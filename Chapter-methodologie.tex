@@ -210,6 +210,13 @@ La valeur  $EQUILIBRE_{avx\_512}$ est la plus pertinente des deux pour réaliser
 
 
 
+
+
+
+
+
+
+
 \iffalse 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -333,7 +340,7 @@ Double-precision SSE/AVX :     (*\bfseries 1372.78 GFlop/s*)  -- 100.0% of Flops
 
 
 
-\iffalse 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%_______ .___________.    ___      .______    _______                      ___       %%
@@ -344,11 +351,6 @@ Double-precision SSE/AVX :     (*\bfseries 1372.78 GFlop/s*)  -- 100.0% of Flops
 %%|_______|    |__|    /__/     \__\ | _|      |_______|                   |____/     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fi
-
-
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -449,7 +451,7 @@ Pour comparaison, les processeurs récents ont un ratio proche de $10\ flop/byte
 L'analyse de la fonction avec le modèle du \textit{roof line} indique que sur l'architecture ciblée, la performance du code sera limité par la performance de la bande passante.
 A chaque itération de boucle, deux opérations doivent être réalisées, une addition et une multiplication. 
 
-Une fois assuré que les performances de l'application sont limitées par le système mémoire, le Simple Memory Model peut être appliqué. Dans notre éxpérimentation, nous utilisons trois matrices de 19.6 GB ($3 \times 10^9 \times sizeof(double)$). Pour une exécution optimale, le bus mémoire devrait être utilisé pour charger une fois les deux matrices en lectures (matrices B et C)  et pour l'écriture de la matrice A. Le traffic mémoire total serait alors de 58.8 GB. En utilisant les résultats mesurés lors de l'étape 2, on peut estimer le temps optimale pour l'exécution de cette fonction: $ \frac{58.8}{128} = 0.56\ seconde$.
+Une fois assuré que les performances de l'application sont limitées par le système mémoire, le Simple Memory Model peut être appliqué. Dans notre éxpérimentation, nous utilisons trois matrices de 19.6 GB ($3 \times 10^9 \times sizeof(double)$). Pour une exécution optimale, le bus mémoire devrait être utilisé pour charger une fois les deux matrices en lectures (matrices B et C)  et pour l'écriture de la matrice A. Le traffic mémoire total serait alors de 58.8 GB. En utilisant les résultats mesurés lors de l'étape 2, on peut estimer le temps optimale pour l'exécution de cette fonction: $\text{TEMPS}_{optimal} = \frac{58.8}{128} = 0.56$ seconde.
 
 
 
@@ -458,7 +460,7 @@ Une fois assuré que les performances de l'application sont limitées par le sys
 
 
 
-\iffalse 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%_______ .___________.    ___      .______    _______                      _  _      %%
@@ -469,7 +471,6 @@ Une fois assuré que les performances de l'application sont limitées par le sys
 %%|_______|    |__|    /__/     \__\ | _|      |_______|                      |_|     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Étape 4: Sélection de la plate-forme}
@@ -491,9 +492,9 @@ L'objectif de cette étape est d'aider à la sélection des plate-formes adapté
 \subsection{La performance}
 %%%%%%%%%%%%%%%%%
 
-Le choix de l'accélérateur prend en considération la performance qu'aura l'application lorsque le kernel y sera porté. Les étapes 1 et 2 ont permis d'établir les performances d'une architecture. L'étape 3 à elle permis de modéliser les performances d'un kernel en fonction de la performance du processeur et de la bande passante. Grâce à ces 3 étapes, il est possible de de prévoir la performance d'un kernel sur un accélérateur en comparant son intensité opérationnelle  $\text{OI}_{kernel}$ et l'équilibre arithmétique de la plate-forme $\text{EQUILIBRE}_{plate-forme}$. Des valeurs proches, indiquent que l'architecture ciblée est adaptée au code étudié. Le choix d'un accélérateur adapté aura un meilleur rendement énergétique. Un code faisant peu de calculs flottant ne nécessitera pas l'utilisation de coeurs complexes réalisant plusieurs dizaines de flop par cycle. Bien que non utilisés, ces composants impactent le prix de la solution mais aussi sa consommation électrique.
+Le choix de l'accélérateur prend en considération la performance qu'aura l'application lorsque le kernel y sera porté. Les étapes 1 et 2 ont permis d'établir les performances d'une architecture. L'étape 3 à elle permis de modéliser les performances d'un kernel en fonction de la performance de la bande passante passante en calculant $\text{TEMPS}_{optimal}$, le temps optimal pour exécuter ce kernel sur l'architecture considérée.
 
-
+En comparant son intensité opérationnelle  $\text{OI}_{kernel}$ et l'équilibre arithmétique de la plate-forme $\text{EQUILIBRE}_{plateforme}$. Des valeurs proches, indiquent que l'architecture ciblée est adaptée au code étudié. Le choix d'un accélérateur adapté aura un meilleur rendement énergétique. Un code faisant peu de calculs flottant ne nécessitera pas l'utilisation de coeurs complexes réalisant plusieurs dizaines de flop par cycle. Bien que non utilisés, ces composants impactent le prix de la solution mais aussi sa consommation électrique. Une grande part des centre de données consomment aujourd'hui la totalité de l'électricité disponible. Ces super-calculateurs doivent alors se tourner vers des solutions plus efficace énergétiquement.
 
 
 
@@ -501,6 +502,18 @@ Le choix de l'accélérateur prend en considération la performance qu'aura l'ap
 \subsection{Le coût}
 %%%%%%%%%%%%%%%%%
 
+Le coût de l'architecture ciblé est important, mais aussi celui de la solution globale. Beaucoup de paramètres entrent en jeu dans le calculs de prix total appelé coût total de possession ou $\text{TCO}$. Il prend en compte tout les coûts engendrés par le centre de données durant son cycle de vie. Le budget pour la construction du premier centre Exascale Européen est de 500 millions d'euros \cite{SergiGirona2018}.
+
+\subsubsection{Le prix du matériel} a un part significative dans le calcul du coût (\textbf{todo: une idée ?}). En fonction du prix de l'accélérateur, une solution moins performante pourra lui être préféré. Même si d'autres raison interviennent comme la complexité de programmation, le prix des cartes FPGA est une raison majeure de leur faible utilisation dans les clusters du Top500.
+
+\subsubsection{La consommation électrique} joue un rôle majeur dans la prise de décision. La consommation des centres de données est un réel investissement qui doit être mesuré et anticipé lors de l'achat du matériel. un supercalculateur consommant 10 Mwatt engendrera un facture plusieurs millions d'euros chaque année. Le prix de l'électricité et l'enveloppe énergétique disponible pour le calcul dépend de la localisation du centre de données. La chaleur de la zone géographique de son installation impactant le refroidissement nécessaire.
+
+\subsubsection{La taille du centre de donnée} doit aussi être prise en compte. Certaines solutions prenant plus ou moins de place pour être installées. La densité de la solution choisie doit alors être mesurée et s'adapter aux contraintes du lieu si le centre de donnée est déjà existant. Autrement, le coût de la construction et de la taille nécessitée doit entrer dans le calcul de la solution.
+
+
+\subsubsection{La maintenance } du matériel, sa facilité d'entretien et d'utilisation a une conséquence sur le prix $\text{TCO}$. Notamment, le taux de pannes du matériel doit être considéré ainsi que la facilité pour les remplacer. Par exemple les disque \textit{hot swap} permettent d'être changés sans avoir à éteindre le serveur et ainsi impacter les utilisateurs.
+
+\subsubsection{La performance } du kernel a aussi un impact financier car s'il est éxécuté plus rapidement, d'autres applications pourront alors accéder à la plate-forme. Les clients de supercalculateurs ont généralement un budget fixe. Ils cherchent alors à optimiser l'exécution de la totalité des applications des utilisateurs de la plate-forme. Bien que l'on considère de porter individuellement chaque kernel sur un accélérateur le plus adapté, il faut aussi prendre en considération le reste de l'application mais aussi celle des autres utilisateurs.
 
 
 
