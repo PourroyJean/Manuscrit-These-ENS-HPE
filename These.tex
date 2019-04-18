@@ -1,0 +1,353 @@
+\documentclass[11pt,twoside, french]{StyleThese}
+
+
+
+%\input{structure}
+
+\include{formatAndDefs}
+
+
+
+
+%%% TEMPLATE POUR PARTIE EN BLEU
+\iffalse
+\usepackage{fourier}% change to lmodern if fourier is no available
+\usepackage{tikz}
+\usepackage[explicit]{titlesec}
+
+\definecolor{mybluei}{RGB}{0,173,239}
+\definecolor{myblueii}{RGB}{63,200,244}
+\definecolor{myblueiii}{RGB}{199,234,253}
+
+\renewcommand\thepart{\arabic{part}}
+
+\newcommand\partnumfont{% font specification for the number
+  \fontsize{380}{130}\color{myblueii}\selectfont%
+}
+
+\newcommand\partnamefont{% font specification for the name "PART"
+  \normalfont\color{white}\scshape\small\bfseries 
+}
+
+\titleformat{\part}
+  {\normalfont\huge\filleft}
+  {}
+  {20pt}
+  {\begin{tikzpicture}[remember picture,overlay]
+  \fill[myblueiii] 
+    (current page.north west) rectangle ([yshift=-13cm]current page.north east);   
+  \node[
+      fill=mybluei,
+      text width=2\paperwidth,
+      rounded corners=6cm,
+      text depth=18cm,
+      anchor=center,
+      inner sep=0pt] at (current page.north east) (parttop)
+    {\thepart};%
+  \node[
+      anchor=south east,
+      inner sep=0pt,
+      outer sep=0pt] (partnum) at ([xshift=-20pt]parttop.south) 
+    {\partnumfont\thepart};
+  \node[
+      anchor=south,
+      inner sep=0pt] (partname) at ([yshift=2pt]partnum.south)   
+  {\partnamefont PART};
+  \node[
+      anchor=north east,
+      align=right,
+      inner xsep=0pt] at ([yshift=-0.5cm]partname.east|-partnum.south) 
+  {\parbox{.7\textwidth}{\raggedleft#1}};
+  \end{tikzpicture}%
+  }
+  \fi
+
+%WORK
+\iffalse
+% standard incantations
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+% glossary
+\usepackage[xindy]{glossaries} 
+\usepackage[index]{glossaries}
+\input{glossaire}
+\input{abbreviations}
+\makeglossaries
+\fi
+
+%WORK 2
+\iffalse
+\usepackage{imakeidx}
+\usepackage{hyperref}
+\usepackage[abbreviations, xindy,acronym]{glossaries-extra}
+\makeglossaries
+\input{glossaire}
+\input{abbreviations}
+\input{acronymes}
+\glssetcategoryattribute{common}{dualindex}{true}
+\setabbreviationstyle[common]{long-short-desc}
+\makeglossaries
+\makeindex
+\fi
+
+
+\usepackage{hyperref}  %pour autoref
+
+%%%%% GLOSSAIRE %%%%%%%
+\usepackage[acronym]{glossaries}
+\makeglossaries
+\input{glossaire}
+\input{abbreviations}
+\input{acronymes}
+
+%%%%% INDEX %%%%%%%%%%%
+\usepackage{imakeidx}%Index compris par overleaf
+\makeindex
+
+
+%A chaque lien d'un mot avec sa référence dans le glosssaire
+%On veut aussi mettre à jour l'index
+%\iffalse
+ \let\oldGls\gls
+ \renewcommand{\gls}[1]{%
+    \ifglsused{#1}{ %
+        \oldGls{#1}%
+    }{%
+        \oldGls{#1}%
+        \index{\glsentryfirst{#1}}%
+    }%
+ }
+%\fi
+
+
+\usepackage[many]{tcolorbox}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+\usepackage{subcaption} %subfigure
+
+
+\newcommand{\CD}[1]{\emph{\color{red} #1}}
+
+
+
+
+
+\addto\extrasfrench{%
+  \renewcommand{\equationautorefname}{équation} %Pour avoir une lettre minuscule a Équation
+  \renewcommand{\lstlistingautorefname}{extrait} %Pour les extrait de code
+  \renewcommand{\lstlistingname}{Extrait} %Pour les extrait de code dans la figure
+}
+
+
+\usepackage{listings} %citer du code
+
+\lstset{
+    escapeinside={(*}{*)}
+} %pour mettre en gras un ligne (*\bfseries coucou *)
+
+
+
+
+%%%%%%%%%% MATH%%%%%%%%%%%%%%%%%%%
+\usepackage{empheq} %eq centrée
+
+
+
+%%%%%%%%%%%%%%%%%%%%% POUR LE CODE %%%%%%%%%%%
+\usepackage{listings}
+\usepackage{color}
+\usepackage{float}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+  keywordstyle=\color{blue},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\newtcolorbox{fancyquotes}{%
+    enhanced jigsaw, 
+    breakable,      % allow page breaks
+    frame hidden,   % hide the default frame
+    left=0cm,       % left margin
+    right=0cm,      % right margin
+    overlay={%
+        \node [scale=8,
+            text=black,
+            inner sep=0pt,] at ([xshift=-1cm,yshift=-1cm]frame.north west){``}; 
+        \node [scale=8,
+            text=black,
+            inner sep=0pt,] at ([xshift=1cm]frame.south east){''};  
+            },
+        % paragraph skips obeyed within tcolorbox
+                parbox=false,
+}
+
+
+\begin{document}
+
+
+
+
+\iffalse
+The glossaries package automatically generates a list of glossary entries. It's great for keeping track of your \gls{domain-knowledge} and \glspl{tla}. In this example we've put the glossary definitions in a separate \texttt{glossary.tex} file, which you can edit via the project menu.
+\\
+First use \gls{debs} and \gls{p2p}. Next use: \gls{debs} and
+\gls{p2p}.
+
+No expansion: \gls{http}.
+A \gls{duck} and a \gls{parrot}. Lots of \glspl{duck}.
+
+Index aardvark\index{aardvark}.
+\\
+Petit test de \gls{api} et re de \gls{api}
+
+\fi
+
+
+
+
+\include{TitlePage}
+
+\dominitoc
+\pagenumbering{roman}
+\cleardoublepage
+
+
+
+% .______       _______     _______. __    __  .___  ___.  _______  %
+% |   _  \     |   ____|   /       ||  |  |  | |   \/   | |   ____| %
+% |  |_)  |    |  |__     |   (----`|  |  |  | |  \  /  | |  |__    %
+% |      /     |   __|     \   \    |  |  |  | |  |\/|  | |   __|   %
+% |  |\  \----.|  |____.----)   |   |  `--'  | |  |  |  | |  |____  %
+% | _| `._____||_______|_______/     \______/  |__|  |__| |_______| %
+
+\section*{Résumé}
+Résumé de la thèse en français
+
+- 250 mots
+- Mots clefs
+
+\clearpage
+\section*{Abstract}
+Résumé de la thèse en anglais
+
+- 250 mots
+- Mots clefs
+
+
+%.___  ___.  _______ .______        ______  __  
+%|   \/   | |   ____||   _  \      /      ||  | %
+%|  \  /  | |  |__   |  |_)  |    |  ,----'|  | %
+%|  |\/|  | |   __|  |      /     |  |     |  | %
+%|  |  |  | |  |____ |  |\  \----.|  `----.|  | %
+%|__|  |__| |_______|| _| `._____| \______||__| %
+
+
+\section*{Remerciements}
+
+A faire en dernier :-)
+
+\clearpage
+
+
+
+% .___________.  ______     ______  %
+% |           | /  __  \   /      | %
+% `---|  |----`|  |  |  | |  ,----' %
+%     |  |     |  |  |  | |  |      %
+%     |  |     |  `--'  | |  `----. %
+%     |__|      \______/   \______| %
+
+\tableofcontents
+
+
+%   _______  __        ______        _______.     _______.  % 
+%  /  _____||  |      /  __  \      /       |    /       |  % 
+% |  |  __  |  |     |  |  |  |    |   (----`   |   (----`  % 
+% |  | |_ | |  |     |  |  |  |     \   \        \   \      % 
+% |  |__| | |  `----.|  `--'  | .----)   |   .----)   |     % 
+%  \______| |_______| \______/  |_______/    |_______/      % 
+\printglossary[type=main]           % Glossaire
+\printglossary[type=\acronymtype]   % Acronymes
+
+
+
+%  ______  __    __       ___      .______   .___________. _______ .______       % 
+% /      ||  |  |  |     /   \     |   _  \  |           ||   ____||   _  \      % 
+%   ,----'|  |__|  |    /  ^  \    |  |_)  | `---|  |----`|  |__   |  |_)  |     % 
+%   |     |   __   |   /  /_\  \   |   ___/      |  |     |   __|  |      /      % 
+%   `----.|  |  |  |  /  _____  \  |  |          |  |     |  |____ |  |\  \----. % 
+% \______||__|  |__| /__/     \__\ | _|          |__|     |_______|| _| `._____| % 
+
+\mainmatter
+
+%% PART 1 %%
+\part{Introduction au contexte du Calcul Haute Performance}
+%\include{Chapter1}
+%\include{Chapter-StateOfTheArt}
+
+%% PART 2 %%
+\part{Contributions et résultats}
+\include{Chapter-methodologie}
+
+\appendix
+
+\include{Annexe1}
+
+\bibliographystyle{StyleThese}
+\bibliography{These}
+
+  \printindex
+
+
+\cleardoublepage
+
+\begin{vcenterpage}
+\noindent\rule[2pt]{\textwidth}{0.5pt}
+\begin{center}
+{\large\textbf{Titre de la thèse\\}}
+\end{center}
+{\large\textbf{Abstract:}}
+Résumé en anglais
+\\
+{\large\textbf{Keywords:}}
+a,e,i,o,u,y
+\\
+\noindent\rule[2pt]{\textwidth}{0.5pt}
+\end{vcenterpage}
+
+\end{document}
