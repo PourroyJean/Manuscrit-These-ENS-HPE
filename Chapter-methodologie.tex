@@ -442,11 +442,17 @@ for (j=0; j < STREAM_ARRAY_SIZE; j++)
 
 
 Concernant les données, il faut, à chaque itération, charger 3 éléments en double précision, soit 24 bytes. En effet, or optimisation, une ligne de cache doit être chargée avant d'être écrite, même si aucune des données n'est utilisées en lecture par le processeur. Cette fonction a donc une intensité arithmétique $\text{OI}_{kernel} = \frac{2}{24} = 0.083\ flop/byte$.
-Pour comparaison, les processeurs récents ont un ratio proche de $10\ flop/byte$. Cette simple modélisation montre le déséquilibre qu'il y a entre la performance de la mémoire et celle des processeurs. Elle permet de guider le choix de la plate-forme sur laquelle cette fonction devra être portée.
+Pour comparaison, les processeurs récents ont un ratio proche de $10\ flop/byte$. Cette simple modélisation montre le déséquilibre qu'il y a entre la performance de la mémoire et celle des processeurs. Elle permet de guider le choix de la plate-forme sur laquelle cette fonction devra être portée. La \autoref{pic:roofline_stream} montre l'application du roofline à l'étude de la fonction triadd et au processeur étudié. Cette fonction ayant un faible $\text{OI}_{kernel}$, ses performances théorique mesurée en flop sont elles aussi très faible.
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/roofline_stream.png}
+    \caption{\label{pic:roofline_stream} Modèle du \textit{Roofline} appliqué à la fonction \textit{triadd} du benchmark \textit{Stream} et un processeur Xeon Skylake 6148.}
+\end{figure}
 
 
 
-\subsubsection{Simple Memory Model}
+\subsubsection{Simple Memory Model} \label{sec:smm}
 %%%%%%%%%%%%%%%%%
 L'analyse de la fonction avec le modèle du \textit{roof line} indique que sur l'architecture ciblée, la performance du code sera limité par la performance de la bande passante.
 A chaque itération de boucle, deux opérations doivent être réalisées, une addition et une multiplication. 
@@ -527,14 +533,9 @@ La performance du kernel a un impact financier car s'il est exécuté plus rapid
 %%%%%%%%%%%%%%%%%
 \subsection{Application au benchmark Stream et au processeur Intel Xeon 6148}
 %%%%%%%%%%%%%%%%%
- \textbf{TODO}
+ \textbf{TODO:} l'application a telle un sens alors qu'on compare qu'un seul matériel ? Est ce que pour cette étape on le compare à un accélérateur NEC ou GPU ?
 
-Nous continuons l'analyse du benchmark Stream et du processeur Intel Xeon 6148 débutée dans les étapes précédentes. Cette application prend pour postulat que ce processeur est envisagé pour le portage du kernel.
-Lors de l'étape 3, l'intensité arithmétique de la fonction tri-add avait été mesuré à $12\ bytes/flop$. Pour estimer si le processeur envisagé est \textbf{bon?} pour y porter cette fonction, son équilibre arithmétique doit être calculé. \textbf{TODO INVERSE}
-
-Le processeur Intel Xeon 6148 possède une instruction FMA, les deux opérations de la boucle (addition et multiplication) peuvent se faire en une seule instruction.
-
-$3 \times 8 = 24$ éléments en double précision, ce qui correspond à 192 bytes. L'intensité arithmétique de cette fonction est de $ \frac{192}{32} = 6\ byte/flop$. 
+%Nous continuons l'analyse du benchmark Stream et du processeur Intel Xeon 6148 débutée dans les étapes précédentes. Cette application prend pour postulat que ce processeur est envisagé pour le portage du kernel. Lors de l'étape 3, l'intensité arithmétique de la fonction tri-add avait été mesuré à $12\ bytes/flop$. Pour estimer si le processeur envisagé est \textbf{bon?} pour y porter cette fonction, son équilibre arithmétique doit être calculé. \textbf{TODO INVERSE} Le processeur Intel Xeon 6148 possède une instruction FMA, les deux opérations de la boucle (addition et multiplication) peuvent se faire en une seule instruction. $3 \times 8 = 24$ éléments en double précision, ce qui correspond à 192 bytes. L'intensité arithmétique de cette fonction est de $ \frac{192}{32} = 6\ byte/flop$. 
 
 
 
@@ -562,9 +563,71 @@ $3 \times 8 = 24$ éléments en double précision, ce qui correspond à 192 byte
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Étape 5: Portage et optimisation du code}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+ 
 
 %%%%%%%%%%%%%%%%%
 \subsection{Motivations et objectifs}
 %%%%%%%%%%%%%%%%%
 
+
+Lors de l'étape 4, une plate-forme a été choisie en fonction de plusieurs critère pour y porter les kernels. L'étape 5 s'occupe du portage du code et de la validation du modèle de performance. Nous montrons comment les outils développés lors de cette thèse sont crucial pour l'analyse de performance. Lorsque le code n'atteint pas les performances espérées, nous proposons un cheminement pour trouver d'où vient ce problème et comment le régler. 
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{Portage de l'application}
+%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Premier développement}
+%%%%%%%%%%%%%%%%%
+Une fois la plate-forme choisie il faut appliquer les transformations du code nécessaires pour pouvoir y exécuter les kernels. L'effort nécessaire pour adapter le code à cette nouvelle architecture a dû être évalué lors de l'étape précédente. Le portage du code peut nécessiter un changement de langage de programmation ou de paradigme de programmation.
+Si possible, il est important d'utiliser des librairies déjà optimisées pour espérer atteindre les performances crêtes de l'application. De plus, les constructeurs de la plate-forme peuvent avoir développé des librairies (NVIDIA, NEC) pouvant être casi-optimale et qui nécessitent une grande expertise pour être développées.
+
+
+
+
+\subsubsection{Vérification du modèle de performance}
+%%%%%%%%%%%%%%%%%
+
+Lors de l'étape 4, un modèle de performance du kernel à été établi (voir paragraphe \ref{sec:smm}). Pour s'assurer des performances du kernel une fois porté, il faut comparer ses performances mesurées avec celles établies par le modèle. Comparer la performance théorique à la performances réelle permet de valider les bonnes performances ou, dans le cas contraire, de les quantifier par rapport à l'optimum théorique $\text{TEMPS}_{optimal}$. Nous avions alors préféré calculer $\text{TEMPS}_{optimal}$ à partir des performances maximales $\text{MEMORY}_{max}$ atteintes par nos benchmark.
+
+Pour mesurer le temps d'exécution du kernel, $\text{TEMPS}_{mesure}$, nous proposons d'utiliser la fonction \textit{gettimeofday ()} \cite{Linux}. Cette fonction est disponible sur la totalité des système linux et permet de récupérer l'heure actuelle avec une précision allant jusqu'à la microseconde. Le but de la méthodologie présentée est de porter les codes sur de nouvelles architectures. Baser l'analyse de performance sur des compteurs matériels trop complexes aurait réduit la portabilité de notre démarche. On peut mesurer  $\text{TEMPS}_{mesure}$ en plaçant deux appels à la fonction \textit{gettime} présentée dans l'\autoref{lst:gettime}, avant et après le kernel.
+
+
+
+
+
+\begin{lstlisting}[language=c,caption=Fonction utilisée pour lire la date actuelle avec une précision allant jusqu'à la microseconde,label={lst:gettime}, 
+  basicstyle=\footnotesize, frame=tb,
+  xleftmargin=.065\textwidth, xrightmargin=.065\textwidth]
+double gettime()
+{
+  struct timeval tp;
+  struct timezone tzp;
+  int i;
+  i = gettimeofday(&tp,&tzp);
+  return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+}
+\end{lstlisting}
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{Profilage des performances}
+%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%
+\subsection{Optimisations du kernel}
+%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+\subsubsection{Optimisations}
+%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{Application au benchmark \textit{Stream}}
+%%%%%%%%%%%%%%%%%
