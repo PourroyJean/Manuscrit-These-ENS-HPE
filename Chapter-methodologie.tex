@@ -408,7 +408,7 @@ Il est nécessaire de calculer l'intensité opérationnelle, $\text{OI}_{kernel}
 
 
 %%%%%%%%%%%%%%%%%
-\subsection{Simple Memory Model: Modélisation de la performance mémoire}
+\subsection{Simple Memory Model: Modélisation de la performance mémoire} \label{sec:smm}
 %%%%%%%%%%%%%%%%%
 
 La majorité des codes étant limité par la performance du système mémoire, nous avons développé un modèle de performance simple, permettant de modéliser et valider les performances d'un code facilement. Pour réaliser cette modélisation le développeur doit avoir accès au code source de l'application à porter. Pour un hot spot donné, il faut compter le nombre d'accès mémoire en distinguant les accès en lecture et ceux en écriture. Il est important de distinguer les accès en lecture et en écriture car nous utiliserons leur ratio pour valider le bon comportement de la micro-architecture avec l'outil YAMB. En effet, nous montrons dans notre expérience que la saturation du bus mémoire n'est pas un indicateur suffisant pour conclure de l'efficacité ou non d'un code.
@@ -452,7 +452,7 @@ Pour comparaison, les processeurs récents ont un ratio proche de $10\ flop/byte
 
 
 
-\subsubsection{Simple Memory Model} \label{sec:smm}
+\subsubsection{Simple Memory Model} 
 %%%%%%%%%%%%%%%%%
 L'analyse de la fonction avec le modèle du \textit{roof line} indique que sur l'architecture ciblée, la performance du code sera limité par la performance de la bande passante.
 A chaque itération de boucle, deux opérations doivent être réalisées, une addition et une multiplication. 
@@ -594,9 +594,6 @@ Lors de l'étape 4, un modèle de performance du kernel à été établi (voir p
 Pour mesurer le temps d'exécution du kernel, $\text{TEMPS}_{mesure}$, nous proposons d'utiliser la fonction \textit{gettimeofday ()} \cite{Linux}. Cette fonction est disponible sur la totalité des système linux et permet de récupérer l'heure actuelle avec une précision allant jusqu'à la microseconde. Le but de la méthodologie présentée est de porter les codes sur de nouvelles architectures. Baser l'analyse de performance sur des compteurs matériels trop complexes aurait réduit la portabilité de notre démarche. On peut mesurer  $\text{TEMPS}_{mesure}$ en plaçant deux appels à la fonction \textit{gettime} présentée dans l'\autoref{lst:gettime}, avant et après le kernel.
 
 
-
-
-
 \begin{lstlisting}[language=c,caption=Fonction utilisée pour lire la date actuelle avec une précision allant jusqu'à la microseconde,label={lst:gettime}, 
   basicstyle=\footnotesize, frame=tb,
   xleftmargin=.065\textwidth, xrightmargin=.065\textwidth]
@@ -610,10 +607,57 @@ double gettime()
 }
 \end{lstlisting}
 
+Si $\text{TEMPS}_{mesure}$ est proche de $\text{TEMPS}_{optimal}$ alors le kernel est proche d'avoir des performances optimale. En effet, dans le cas de code limité par la bande passante, notre modélisation permet de calculer le temps minimale pour exécuter le kernel, en calculant le temps nécessaire pour déplacer le jeu de données de la mémoire au processeur. Pour un même algorithme il est théoriquement impossible d'exécuter le kernel plus rapidement. La mesure $\text{TEMPS}_{optimal}$ permet d'avoir un objectif de performances à atteindre et de savoir quand le travail d'optimisation est terminé en mesurant simplement son temps d'exécution. Malheureusement, la majorité des applications ont du mal à atteindre cette performance et doivent avoir recourt à des technique d'optimisation de localité pour minimiser le nombre de relecture du jeu de donnée. 
+
+
+
 
 %%%%%%%%%%%%%%%%%
 \subsection{Profilage des performances}
 %%%%%%%%%%%%%%%%%
+
+Si la mesure de $\text{TEMPS}_{mesure}$  a montrer que le code était inefficace il est alors nécessaire d'en comprendre la raison. Pour cela, le programmeur doit avoir des outils à sa disposition lui permettant de comprendre la cause de ces performances. Même si l'analyse par le modèle du \textit{roofline} a montré que la performance maximale atteignable était limitée par la bande passante mémoire, le proceseur peut lui aussi dégrader les performances (mauvaise compilation, dépendances de données, \textit{cache misses}). Utilisés de façon méthodique les deux outils présentés dans cette thèse, \textit{OProfile++} et \textit{YAMB}, permettent de répondre à beaucoup de question et mener à bien le travail d'optimisation du code dont une vue d'ensemble est proposée sur la \autoref{pic:analyse_bigpicture}.
+
+\begin{figure}
+    \center
+    \includegraphics[width=11cm]{images/analyse_bigpicture.png}
+    \caption{\label{pic:analyse_bigpicture} Flux de travail pour l'utilisation des outils \textit{Oprofile++} et \textit{YAMB}. La première étape est de mesurer l'IPC du kernel pour déterminer si le processeur ou la mémoire limite les performances. En fonction des observations amenées par les outils, des réponses différentes sont proposées au programmeur pour optimiser son code.}
+\end{figure}
+
+
+
+
+
+\subsubsection{Profilage du processeur}
+L'exécution de l'assembleur peut être suivie avec l'outil \textit{Oprofile++} (voir \autoref{sec:oprofile++}). Il permet d'extraire le code assembleur et d'y agrémenter les compteurs de cycles comme le montre l'\autoref{lst:oprofileex}. L'outil aide pour trouver si des motifs d'instructions sont plus long à exécuter que d'autres, pouvant être expliqué par une dépendance entre les données ou une donnée non présente dans la mémoire cache au moment requis. 
+Si des instructions de calculs flottant sont responsables d'un grand nombre de cycle, on peut vérifier le bon fonctionnement du processeurs pour celles ci grâce au générateur de kernels (\autoref{sec:kg}). 
+
+
+\begin{lstlisting}[language={},caption=L'outil \textit{Oprofile++} permet d'extraire le code assembleur et d'y associer le compteur de cycle,label={lst:oprofileex}, 
+  frame=tb]
+================================================================
+Analysis from the app name (horner1_long) hot spot from the symbole name (f1(double)) which takes 50.1878% 
+================================================================
+CYCLES       INSTS      ADDRESS    disassembly
+----------------------------------------------------------------
+     5           11      401be0    vmovupd 0xd1b8(%rip),%ymm1
+    39           79      401bf0    vfnmadd231pd 0xd1c7(%rip),%ymm11,%ymm1
+     3           14      401bf9    vfmadd213pd %ymm2,%ymm11,%ymm1
+...
+   760         1652      401c3e    cmp    %eax,%edx
+    48           99      401c40    jb     401be0 <_Z8range_f1ddi+0xa0>
+----------------------------------------------------------------
+LOOP from 401c40 to 401be0  size= 96 sum(cycles)= 2287 
+     IPC= 2.12462 cycles/LOOP= 10.3548 flop/cycle = 1.42 
+----------------------------------------------------------------
+\end{lstlisting}
+
+
+\subsubsection{Profilage de la mémoire}
+%%%%%%%%%%%%%%%%%
+Les performances étant généralement limitée par la bande passante mémoire, l'outil YAMB (voir \autoref{sec:YAMB}) peut être utilisé pour récupérer le profile du bus mémoire. On peut ainsi vérifier si le bus est bien saturé et comparer les ratio de lecture/écriture avec ceux mesurée lors de l'étape 3 présentée dans la \autoref{sec:smm}. Grâce à ces ratios, on peut déterminer si le jeu de donnée est lu plusieurs fois, et si des techniques de \textit{blocking} pour améliorer la localité dans la mémoire cache doivent être utilisées.
+
+
 
 %%%%%%%%%%%%%%%%%
 \subsection{Optimisations du kernel}
