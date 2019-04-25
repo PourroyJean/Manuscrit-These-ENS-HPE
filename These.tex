@@ -6,11 +6,18 @@
 
 \include{formatAndDefs}
 
+
+\PassOptionsToPackage{backref=page,pageref}{hyperref}
+\usepackage{backref}
+
 \usepackage[semicolon,sort&compress,sectionbib, numbers,square]{natbib}  %
 %\usepackage[semicolon,square,sort,comma,numbers,sectionbib]{natbib}
 
 \usepackage{chapterbib} 
-\usepackage{hyperref}
+
+
+
+
 
 
 %%% TEMPLATE POUR PARTIE EN BLEU
@@ -372,6 +379,18 @@
 	pdftitle={\PhDTitle},
 }
 
+
+
+
+%\renewcommand*{\backref}[1]{}
+%\renewcommand*{\backrefalt}[4]{%
+%    %\ifcase #1 (Not cited.)%
+%    \ifcase #1 %
+%    \or        (Cited on page~#2.)%
+%    \else      (Cited on pages~#2.)%
+%    \fi}
+
+
 \begin{document}
 
 
@@ -512,6 +531,8 @@ A faire en dernier :-)
 % \______||__|  |__| /__/     \__\ | _|          |__|     |_______|| _| `._____| % 
 
 \mainmatter
+
+\bibliographystyle{StyleThese}
 
 %% PART 1 %%
 \part{Introduction au contexte du Calcul Haute Performance}
