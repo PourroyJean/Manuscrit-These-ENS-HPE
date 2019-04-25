@@ -427,7 +427,7 @@ Il y a deux façon d'activer le prefetching. La première exposée précédemmen
 
 \subsubsection{Execution dans le désordre - Out of order}
 \begin{fancyquotes}
-Ne pas attendre l'exécution d'une instruction précédente si cette instruction n'en dépend pas. \cite{out_of_order:online}
+Ne pas attendre l'exécution d'une instruction précédente si cette instruction n'en dépend pas. %\cite{out_of_order:online}
 \end{fancyquotes}
 Comme pour le \textit{prefetch}, le but de cet optimisation est de cacher l'attente de donnée du processeur de la mémoire. Cette avancée est apparue sur les processeurs Itel en 1995 avec le \textit{pentium P6}. Le principe de l'exécution dans le désordre est d'exécuter les instructions dans un ordre différent que celui donné par le code source.  Ainsi lorsqu'une instruction doit attendre une donnée, au lieu de perdre des cycles inutilisé à attendre ces données. Le processeur va executer les instructions qui suivent et finira d'exécuter la première quand la donné sera chargée dans un registre. Cependant ne pas exécuter le programme dans l'ordre initial peut fausser les résultats. C'est alors au processeur de s'assurer que les instructions permutées ne sont pas dépendantes. Il existe trois types de dépendances:
 \begin{itemize}
@@ -961,3 +961,6 @@ TODO
 \cite{Flynn:1972:COE:1952456.1952459}
 $https://www.polyhedron.com/web_images/intel/productbriefs/3a_SIMD.pdf$
 schéma nombre d'opération par cycle et aussi que 4xfloat = 2 double = 16xbytes ...
+
+%\bibliographystyle{StyleThese}
+\bibliography{These}
