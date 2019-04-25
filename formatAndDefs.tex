@@ -80,9 +80,9 @@
 \hypersetup
 {
 bookmarksopen=true,
-pdftitle="Création et utilisation d'atlas anatomiques numériques pour la radiothérapie",
+pdftitle="Titre de la thèse",
 pdfauthor="Jean POURROY", %auteur du document
-pdfsubject="Segmentation d'images par atlas et création d'atlas", %sujet du document
+pdfsubject="Manuscrit de thèse de doctorat spécialisé en Calcul Haute Performance", %sujet du document
 %pdftoolbar=false, %barre d'outils non visible
 pdfmenubar=true, %barre de menu visible
 pdfhighlight=/O, %effet d'un clic sur un lien hypertexte
@@ -94,6 +94,7 @@ linkcolor=linkcol, %couleur des liens hypertextes internes
 citecolor=citecol, %couleur des liens pour les citations
 urlcolor=linkcol%couleur des liens pour les url
 }
+
 
 % definitions.
 % -------------------
@@ -111,11 +112,51 @@ urlcolor=linkcol%couleur des liens pour les url
 \newcommand{\eqRef}[1]{(\ref{#1})}
 
 \usepackage{rotating}                    % Sideways of figures & tables
+
+
+
+%-----------------------------------------------------------------------------------------------------
+%-----------------------------------------------------------------------------------------------------
+%%%%   .______    __  .______    __       __    ______   
+%%%%   |   _  \  |  | |   _  \  |  |     |  |  /  __  \  
+%%%%   |  |_)  | |  | |  |_)  | |  |     |  | |  |  |  | 
+%%%%   |   _  <  |  | |   _  <  |  |     |  | |  |  |  | 
+%%%%   |  |_)  | |  | |  |_)  | |  `----.|  | |  `--'  | 
+%%%%   |______/  |__| |______/  |_______||__|  \______/  
+                                                  
+
 %\usepackage{bibunits}
 %\usepackage[sectionbib]{chapterbib}          % Cross-reference package (Natural BiB)
 %\usepackage{natbib}                  % Put References at the end of each chapter
                                          % Do not put 'sectionbib' option here.
                                          % Sectionbib option in 'natbib' will do.
+                                         
+\usepackage[defernums=true, hyperref, backref, refsegment=chapter, 
+            backend=biber,
+            style=alphabetic,
+            ]{biblatex}
+% Define typesetting of references heading
+\defbibheading{references}[References]{% 
+  \section*{#1}% 
+  \markboth{#1}{#1}%
+}
+
+% Define typesetting of bibliography heading
+\defbibheading{bibliography}[Complete Bibliography]{% 
+  % define as above if you want to have this numbered as well:
+  \chapter*{#1}%
+  \addcontentsline{toc}{chapter}{#1}
+  \markboth{#1}{#1}%
+}
+
+
+\bibliography{bibliography.bib}
+%-----------------------------------------------------------------------------------------------------
+%-----------------------------------------------------------------------------------------------------
+
+
+
+
 \usepackage{fancyhdr}                    % Fancy Header and Footer
 
 % \usepackage{txfonts}                     % Public Times New Roman text & math font

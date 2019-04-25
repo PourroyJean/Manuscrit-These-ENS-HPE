@@ -7,16 +7,6 @@
 \include{formatAndDefs}
 
 
-\PassOptionsToPackage{backref=page,pageref}{hyperref}
-\usepackage{backref}
-
-\usepackage[semicolon,sort&compress,sectionbib, numbers,square]{natbib}  %
-%\usepackage[semicolon,square,sort,comma,numbers,sectionbib]{natbib}
-
-\usepackage{chapterbib} 
-
-
-
 
 
 
@@ -372,12 +362,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Méta-données du PDF / PDF meta-datas
-\hypersetup{
-	pdfauthor={\PhDname},
-	pdfsubject={Manuscrit de thèse de doctorat},
-	pdftitle={\PhDTitle},
-}
 
 
 
@@ -532,7 +516,8 @@ A faire en dernier :-)
 
 \mainmatter
 
-\bibliographystyle{StyleThese}
+%\bibliographystyle{StyleThese}
+
 
 %% PART 1 %%
 \part{Introduction au contexte du Calcul Haute Performance}
@@ -547,8 +532,10 @@ A faire en dernier :-)
 
 \include{Annexe1}
 
-\bibliographystyle{StyleThese}
-\bibliography{These}
+%\bibliographystyle{StyleThese}
+%\bibliography{These}
+
+\printbibliography[sorting=none, heading=bibliography]
 
   \printindex
 
