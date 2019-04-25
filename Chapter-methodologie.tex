@@ -192,7 +192,7 @@ L'équilibre arithmétique du processeur permet d'évaluer s'il est approprié p
 %%%%%%%%%%%%%%%%%
 \subsubsection{L'efficacité énergétique}
 
-La valeur  $EQUILIBRE_{avx\_512}$ est la plus pertinente des deux pour réaliser le choix de l'architecture. Les composants permettant de faire du calcul vectoriel sont compris dans le prix d'achat, qu'ils soient utilisés ou non. Si l'application portée est loin du ratio de 11 opérations flottantes pour 1 byte de données transféré, il faudra se tourner vers d'autres architecture, plus efficace. La notion d'efficacité se retrouve dans le ration $flops/watt$.
+La valeur  $EQUILIBRE_{avx\_512}$ est la plus pertinente des deux pour réaliser le choix de l'architecture. Les composants permettant de faire du calcul vectoriel sont compris dans le prix d'achat, qu'ils soient utilisés ou non. Si l'application portée est loin du ratio de 11 opérations flottantes pour 1 byte de données transféré, il faudra se tourner vers d'autres architecture, plus efficace. La notion d'efficacité se retrouve dans le ratio $flops/watt$.
 \\
 \textbf{todo}
 
@@ -376,20 +376,28 @@ L'objectif de cette étape est d'identifier ces zones du code clés et de modél
 
 Si une application passe 99\% de ses cycles dans l'exécution d'une fonction, une amélioration d'un facteur 10 de celle-ci entraînera une amélioration du même facteur de l'application. L'identification des ces fonctions est donc primordiale. 
 
-De nombreux travaux sont réalisés pour identifier et extraire les \textit{hot spots} d'une application \cite{castro2015cere, brunst2013custom}. L'outil de profilage \textit{perf} \cite{de2010new} permet d'extraire un sommaire de l'exécution d'une application (voir \autoref{perf_example}). 
+De nombreux travaux sont réalisés pour identifier et extraire les \textit{hot spots} d'une application \cite{castro2015cere, brunst2013custom}. L'outil de profilage \textit{perf} \cite{de2010new} permet d'extraire un sommaire de l'exécution d'une application en représentant son arbre d'appel (voir \autoref{perf_example}). 
 
 
 
-\begin{lstlisting}[]caption=Exemples de la sortie de l'outil \textit{perf}, float,floatplacement=H, label=perf_example]
-CPU: Intel Skylake microarchitecture, speed 3.7e+06 MHz (estimated)
-Counted cpu_clk_unhalted events () with a unit mask of 0x00 (Core cycles when at least one thread on the physical core is not in halt state) count 10000000
-Counted inst_retired events () with a unit mask of 0x00 (Number of instructions retired. General Counter   - architectural event) count 10000000
-vma      samples  %        samples  %        app name       symbol name
-00401ab0 7348     50.1878  21851    60.7462  horner1_long   f1(double)
-00401d30 4449     30.3873  8885     24.7005  horner1_long   main
-00401b40 2307     15.7571  4901     13.6249  horner1_long   f2 (double)
+\begin{lstlisting}[caption=Exemple d'utilisation de l'out perf avec la commande \textit{perf record  -g  -F 97}. Le rapport d'exécution est obtenu avec la commande \textit{perf report --stdio}, float,floatplacement=H, label={perf_example}]
+# Samples: 116K of event 'cycles:ppp'
+# Event count (approx.): 2744862582690
+#
+# Children      Self  Command          Shared Object       Symbol                                                                       
+# ........  ........  ...............  .................. .......
+    99.52%     0.00%  Stream.SKL.128   [unknown]           [k] 0000000000000000
+            |          
+             --99.52%--0
+                       |          
+                        --99.16%--0xadf96
+                                  |
+                                  |--25.35%--tuned_STREAM_Add   
+                                  |--25.34%--tuned_STREAM_Triad
+                                  |--20.36%--tuned_STREAM_Copy
+                                  |--17.27%--tuned_STREAM_Scale
+                                   --10.74%--main
 
-(* TODO: faire le profile de Stream *)
 \end{lstlisting}
 
 
@@ -427,7 +435,7 @@ Cette modélisation est faisable seulement si les kernels du code ont été iden
 \subsection{Application des modèles roofline et SMM au benchmark Stream}
 %%%%%%%%%%%%%%%%%
 
-Nous choisissons arbitrairement de consacrer notre analyse sur un des quatre \textit{hot spot} de Stream: la fonction \textit{triad} dont le code peut être vu dans l'\autoref{code:triad}. Cette fonction est intéressante car ce motif d'accès est très courant dans les applications HPC (algorithmes RTM).
+L'\autoref{perf_example} montre le profil de l'exécution du benchmark \textit{Stream}. Il comporte quatre fonctions utilisées pour stresser la mémoire par différent type d'accès. Nous choisissons arbitrairement de consacrer notre analyse sur un des quatre \textit{hot spot} de Stream: la fonction \textit{triad} dont le code peut être vu dans l'\autoref{code:triad}. Cette fonction est intéressante car ce motif d'accès est très courant dans les applications HPC (algorithmes RTM).
 
 \subsubsection{Modèle du roofline}
 %%%%%%%%%%%%%%%%%
@@ -626,6 +634,12 @@ Si la mesure de $\text{TEMPS}_{mesure}$  a montrer que le code était inefficace
 
 
 
+\subsubsection{Profilage de la mémoire}
+%%%%%%%%%%%%%%%%%
+Si la performance est inférieure aux attentes, la première question à se poser est de savoir si le bus mémoire est saturé. Pour y répondre, nous proposons l'outil YAMB qui affiche l'activité du bus mémoire (lecture, écriture et utilisation totale). Pour confirmer sa saturation, il est nécessaire d'avoir caractérisé la performance du bus mémoire dans la première étape. Si le bus n'est pas saturé, la mauvaise performance est due à une autre pathologie. Si le bus est bien saturé et comparer les ratio de lecture/écriture avec ceux mesurée lors de l'étape 3 présentée dans la \autoref{sec:smm}. Grâce à ces ratios, on peut déterminer si le jeu de donnée est lu plusieurs fois, et si des techniques de \textit{blocking} pour améliorer la localité dans la mémoire cache doivent être utilisées. Si le ratio n'est pas celui attendu, c'est parce que le nombre de lectures est plus élevé que prévu. Un mauvais ratio peut provenir d'un nombre de lectures plus élevé que prévu. Ceci est causé par un large éventail de problèmes potentiels, par exemple, des conflits dans le cache, la lecture de données inutiles, une décomposition incorrecte des données ou des structures de mémoire inappropriées. Il est très rare qu'un code écrive plus qu'il ne devrait.
+
+
+
 
 
 \subsubsection{Profilage du processeur}
@@ -653,25 +667,83 @@ LOOP from 401c40 to 401be0  size= 96 sum(cycles)= 2287
 \end{lstlisting}
 
 
-\subsubsection{Profilage de la mémoire}
-%%%%%%%%%%%%%%%%%
-Les performances étant généralement limitée par la bande passante mémoire, l'outil YAMB (voir \autoref{sec:YAMB}) peut être utilisé pour récupérer le profile du bus mémoire. On peut ainsi vérifier si le bus est bien saturé et comparer les ratio de lecture/écriture avec ceux mesurée lors de l'étape 3 présentée dans la \autoref{sec:smm}. Grâce à ces ratios, on peut déterminer si le jeu de donnée est lu plusieurs fois, et si des techniques de \textit{blocking} pour améliorer la localité dans la mémoire cache doivent être utilisées.
 
 
 
 %%%%%%%%%%%%%%%%%
-\subsection{Optimisations du kernel}
+\subsection{Optimisations: méthodologie d'analyse et d'optimisation}
 %%%%%%%%%%%%%%%%%
 
+\textbf{TODO: } écrire une section sur comment optimiser un code en suivant toutes les branches de la figure, et en proposant des optimisations
 
+\begin{figure}
+    \center
+    \includegraphics[width=18cm]{images/methodologie_optimisation.png}
+    \caption{\label{pic:methodologie_optimisation} \textbf{TODO: } écrire une section sur comment optimiser un code en suivant toutes les branches de la figure, et en proposant des optimisations}
+\end{figure}
 
-
-
-
-\subsubsection{Optimisations}
-%%%%%%%%%%%%%%%%%
 
 
 %%%%%%%%%%%%%%%%%
 \subsection{Application au benchmark \textit{Stream}}
 %%%%%%%%%%%%%%%%%
+
+Nous appliquons notre méthodologie sur le benchmark Stream fonctionnant sur un processeur Intel Skylake. Cet exercice nous permet de montrer que même sur un code aussi simple, apparemment optimal, notre analyse nous permet de comprendre sa performance et de l'optimiser.
+
+
+\subsubsection{Vérification du modèle SMM}
+%%%%%%%%%%%%%%%%%
+
+Nous avons montré précédemment que la performance du code était limité par la bande passante mémoire. Nous avons appliqué notre modèle de performance SMM et déterminé $\text{TEMPS}_{optimal} = \frac{58.8}{128} = 0.56$ seconde. En utilisant la fonction présenté dans l'\autoref{lst:gettime} nous mesurons $\text{TEMPS}_{mesure} = 0.79$ seconde.
+
+L'application n'est donc pas optimale. Ceci est également validé par le résultat du benchmark Stream qui annonce une bande passante mémoire de 80,13 Go/sec. Pour comprendre ce résultat, nous avons utilisé YAMB pour vérifier que le bus mémoire était bien saturé. Le graphique de la \autoref{fig:stream_before} nous montre que le bus mémoire est utilisé au maximum de son potentiel de 104 GB/s. La saturation du bus n'est donc pas la cause de la mauvaise performance du noyau. Il est alors nécessaire de regarder les rapports lecture/écriture. La \autoref{fig:stream_before} montre cette répartition : 26 Go/s en écriture pour 78 Go/s en lecture, puis un total de 104 Go/s, ce qui correspond à un ratio de 1 écriture pour 3 lectures. Bien que nous nous attendions à un ratio d'une écriture pour deux lectures, ce ratio exact d'une écriture pour trois lectures n'est pas une coïncidence. Un vecteur entier est lu alors qu'il ne devrait pas l'être.
+
+\begin{figure}[htb]
+{
+\centering
+\includegraphics[width=0.80\textwidth]{images/stream_before.png}
+\caption{Prolie mémoire donné par l'outil YAMB pour plusieurs exécution de kernel \textit{triadd} du benchmark \textit{Stream}. }\label{fig:stream_before}
+}
+\end{figure}
+
+
+
+\subsubsection{Optimisation du kernel \textit{triadd}}
+%%%%%%%%%%%%%%%%%
+
+Les deux vecteurs B et C doivent nécessairement être rouges une fois. La lecture supplémentaire provient du vecteur en écriture A. Ce comportement est dû au processeur qui, avant d'écrire une donnée, charge la ligne de cache correspondante pour la mettre à jour. Cependant, le kernel étudié a la particularité d'écrire toute la ligne de cache, les données initialement présentes n'ayant aucune valeur utile. Une option peut être utilisée avec le compilateur Intel (ICC) pour contourner ce comportement : \textit{-qopt- streaming-stores=always}. Cette option permet au CPU d'écrire toute la ligne de cache sans avoir à la charger.
+
+
+\subsubsection{Performance du kernel optimisé}
+%%%%%%%%%%%%%%%%%
+
+Nous avons compilé \textit{Stream} avec l'option \textit{-qopt- streaming-stores=always} et mesuré le temps et la bande passante de la même manière que pour la première exécution. Les résultats sont résumés dans le \autoref{table:stream_res}. Le temps passé dans le noyau est de 0,59 seconde, beaucoup plus proche du maximum théorique de 0,56 seconde. En analysant la bande passante mémoire, on constate que le rapport lecture/écriture est maintenant de 2 pour 1, les données échangées étant de 34 Go/s en mode écriture pour 68 Go/s en mode lecture. Le total approche la limite du bus, maintenant 102GB/s.
+
+ \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{8pt}
+    
+    \begin{table}[htbp]
+        \centering
+
+        \caption{Performance du kernel \textit{triadd} du benchmark \textit{Stream} avant et après optimisation. Le temps (seconde) après optimisation est proche de l'optimum théorique $\text{TEMPS}_{optimal}$  calculé à 0,56 sec. L'utilisation du bus mémoire est approximativement la même entre les deux versions du code (104 et 102 Go/s). L'option de compilation optimise le rapport lecture/écriture (Go/s) et améliore les performances du code de 25\%.}
+
+            \begin{tabular}{l|c|c|c|c|c|}
+            \cline{2-6}
+                                            & $\text{T}_{mesure} (s)$ & Stream  (GB/s) & $\text{YAMB}_{read}$ (GB/s) & $\text{YAMB}_{write}$ (GB/s) & $\text{YAMB}_{total}$ (GB/s) \\ \hline
+            \multicolumn{1}{|l|}{Orig.}  & 0.79   & 80.13  & 26        & 78         & 104        \\ \hline
+            \multicolumn{1}{|l|}{Opti.} & 0.59   & 101.84 & 34        & 68         & 102        \\ \hline
+            \end{tabular}
+            \label{table:stream_res}
+        \end{table}
+    
+    
+    
+
+\subsection{Conclusion}
+%%%%%%%%%%%%%%%%%
+
+\textbf{TODO}
+\begin{itemize}
+    \item Through this experiment we wanted to show that having a solid analytic methodology is essential to understand the performance of a code
+    \item Only measuring the memory throughput is not enough to conclude that the code is optimal. 
+\end{itemize}
