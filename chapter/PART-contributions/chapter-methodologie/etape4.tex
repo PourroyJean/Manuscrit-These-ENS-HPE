@@ -1,0 +1,70 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%_______ .___________.    ___      .______    _______                      _  _      %%
+%%|   ____||           |   /   \     |   _  \  |   ____|                   | || |     %%
+%%|  |__   `---|  |----`  /  ^  \    |  |_)  | |  |__          ______      | || |_    %%
+%%|   __|      |  |      /  /_\  \   |   ___/  |   __|        |______|     |__   _|   %%
+%%|  |____     |  |     /  _____  \  |  |      |  |____                       | |     %%
+%%|_______|    |__|    /__/     \__\ | _|      |_______|                      |_|     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Étape 4: Sélection de la plate-forme}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{Motivations et objectifs}
+%%%%%%%%%%%%%%%%%
+
+
+Dans l'utilisation d'une plate-forme Exascale, la majorité des lignes de codes seront encore exécutés sur des processeurs standard. Ces zones de codes doivent être identifiées, portées et optimisées sur des architectures optimisées pour leur exécution. Par exemple, une fonction réalisant de la compression de données pourra être exécutée sur un accélérateur à bas coût spécialisé pour cette tâche. Le budget ainsi économisé pour être réinvesti dans d'autres accélérateurs plus puissant et performant pour les parties critiques du code. 
+
+L'objectif de cette étape est d'aider à la sélection des plate-formes adaptées aux kernels identifiés dans l'étape précédente.
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{Le coût}
+%%%%%%%%%%%%%%%%%
+
+Le coût de l'architecture ciblé est important, mais aussi celui de la solution globale. Beaucoup de paramètres entrent en jeu dans le calculs de prix total appelé coût total de possession ou $\text{TCO}$. Il prend en compte tout les coûts engendrés par le centre de données durant son cycle de vie. Le budget pour la construction du premier centre Exascale Européen est de 500 millions d'euros \cite{SergiGirona2018}.
+
+\subsubsection{Le prix du matériel} 
+Le  prix des accélérateurs et du matériels nécessaire à la construction du supercalculateur une part significative dans le calcul du coût (\textbf{todo: une idée ?}). En fonction du prix de l'accélérateur, une solution moins performante pourra lui être préféré. Même si d'autres raison interviennent comme la complexité de programmation, le prix des cartes FPGA est une raison majeure de leur faible utilisation dans les clusters du Top500.
+
+\subsubsection{La consommation électrique}
+La majorité des data center ont des lignes électriques déjà construite permettant d’acheminer une quantité limité de courant. La consommation électrique de la plate-forme finale est devenue un critère très important dans le choix du matériel. La consommation des centres de données est un réel investissement qui doit être mesuré et anticipé lors de l'achat du matériel. Un supercalculateur consommant 10 Mwatt engendrera un facture plusieurs millions d'euros chaque année. Le prix de l'électricité et l'enveloppe énergétique disponible pour le calcul dépend de la localisation du centre de données. La chaleur de la zone géographique de son installation impactant le refroidissement nécessaire. Ainsi en 2018, Microsoft a décidé de couler ses serveurs au fond de l'océan pour profiter d'un refroidissement gratuit \cite{ChristineHall2018}.
+
+\subsubsection{La taille du centre de donnée} 
+Souvent les centre de données sont déjà existant et la taille disponible pour la création d'un supercalculateur ou l'ajout de nouveaux serveurs est une contrainte forte. Certaines solutions prenant plus ou moins de place pour être installées, le ratio $\frac{flop}{m^2}$ peut alors être calculé pour évaluer la densité des serveurs pour s'adapter aux contraintes du lieu. Si le bâtiment doit être construit pour accueillir le supercalculateur, son coût doit entrer dans le calcul de la solution finale.
+
+
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{La performance}
+%%%%%%%%%%%%%%%%%
+
+\subsubsection{Performance du kernel}
+Le choix de l'accélérateur prend en considération la performance qu'aura l'application lorsque le kernel y sera porté. Les étapes 1 et 2 ont permis d'établir les performances d'une architecture. L'étape 3 à elle permis de modéliser les performances d'un kernel en fonction de la performance de la bande passante passante en calculant $\text{TEMPS}_{optimal}$, le temps optimal pour exécuter ce kernel sur l'architecture considérée.
+
+\subsubsection{Efficacité énergétique}
+En comparant son intensité opérationnelle  $\text{OI}_{kernel}$ et l'équilibre arithmétique de la plate-forme $\text{EQUILIBRE}_{plateforme}$ il est possible d'estimer la pertinence d'un accélérateur pour un kernel. Des valeurs proches, indiquent que l'architecture ciblée est adaptée au code étudié et que l'accélérateur choisi aura un meilleur rendement énergétique. Un code faisant peu de calculs flottant ne nécessitera pas l'utilisation de coeurs complexes réalisant plusieurs dizaines de flop par cycle. Bien que non utilisés, ces composants impactent le prix de la solution mais aussi sa consommation électrique. Une grande part des centre de données consomment aujourd'hui la totalité de l'électricité disponible. Ces supercalculateurs doivent alors se tourner vers des solutions plus efficace énergétiquement.
+
+
+\subsubsection{Difficulté du portage}
+Le code de l'application  et les transformations nécessaires doivent être pris en compte car il peut avoir un impact sur les performances ou financier. Le travail de portage de l'application sur une nouvelle architecture doit être mesuré. Suivant l'architecture choisie, il faudra peut être coder l'application avec un nouveau langage. Le temps $\text{TEMPS}_{optimal}$, pour exécuter l'application considère que l'application utilise de façon optimale l'architecture. Cependant pour atteindre ces performances, le kernel peut nécessiter d'être optimiser et certaines peuvent être très difficile à implémenter sur des codes existants. Certaines optimisations nécessitent une réelle expertise du domaine et du matériel envisagé. Lorsqu'une optimisation est choisi d'être implémentée le risque de ne pas parvenir à obtenir les performances espérées doit lui aussi être mesuré. Il peut arriver qu'une optimisation moins performante soit préférée car la transformation du code est plus facile. Le temps et le nombre de programmeurs nécessaires à son implémentation entre aussi en considération dans le prix de la solution
+
+
+\subsubsection{Performance des applications }
+La performance du kernel a un impact financier car s'il est exécuté plus rapidement, d'autres applications pourront alors accéder à la plate-forme. Les clients de supercalculateurs ont généralement un budget fixe et de multiples applications à exécuter. Ils cherchent alors à optimiser l'utilisation des ressources informatiques par les différents codes. Bien que l'on considère de porter individuellement chaque kernel sur un accélérateur le plus adapté, il faut aussi prendre en considération le reste de l'application mais aussi celle des autres utilisateurs. Si une seule des applications exécutée par l'utilisateur ne bénéficie des performances d'un accélérateur, il serait plus pertinent d'opter pour un accélérateur plus "globale". 
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{Application au benchmark Stream et au processeur Intel Xeon 6148}
+%%%%%%%%%%%%%%%%%
+ \textbf{TODO:} l'application a telle un sens alors qu'on compare qu'un seul matériel ? Est ce que pour cette étape on le compare à un accélérateur NEC ou GPU ?
+
+%Nous continuons l'analyse du benchmark Stream et du processeur Intel Xeon 6148 débutée dans les étapes précédentes. Cette application prend pour postulat que ce processeur est envisagé pour le portage du kernel. Lors de l'étape 3, l'intensité arithmétique de la fonction tri-add avait été mesuré à $12\ bytes/flop$. Pour estimer si le processeur envisagé est \textbf{bon?} pour y porter cette fonction, son équilibre arithmétique doit être calculé. \textbf{TODO INVERSE} Le processeur Intel Xeon 6148 possède une instruction FMA, les deux opérations de la boucle (addition et multiplication) peuvent se faire en une seule instruction. $3 \times 8 = 24$ éléments en double précision, ce qui correspond à 192 bytes. L'intensité arithmétique de cette fonction est de $ \frac{192}{32} = 6\ byte/flop$. 
+
