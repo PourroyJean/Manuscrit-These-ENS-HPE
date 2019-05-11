@@ -1,8 +1,41 @@
-\chapter{Exemple d'annexe}
-\label{chap:annexe1}
+\chapter{Table des pages}
+\label{annexe:memory_page_table}
 
-\section{Exemple d'annexe}
+%\section{Table des pages Intel}
 
-%Et j'en profite pour me citer et montrer mon style bibtex (deux auteurs) \cite{Commowick_MICCAI_2007}.
-hihi
-%Et deux autres citations pour le style optionnel de bibliographie : un seul auteur \cite{Oakes_RStat_1999} et plus de deux auteurs \cite{Guimond_CVIU_2000}.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=10cm]{images/memory_page_table_32bits.png}
+    \caption{\label{pic:memory_page_table_32bits} Table de pages utilisant 32 bits de l'adresse virtuelle dans une table à 3 niveaux \cite{intel64and}}.
+\end{figure}
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/memory_page_table_32bits_large.png}
+    \caption{\label{pic:memory_page_table_32bits_large} Table de pages pour des page large de 2 MiB\cite{intel64and}}.
+\end{figure}
+
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/memory_page_table_entry_intel.png}
+    \caption{\label{pic:memory_page_table_entry_intel} Structure d'une entrée dans la table de page \cite{intel64and}}.
+\end{figure}
+
+
+
+%\begin{figure}[p]
+  %\centering
+  %\includegraphics[width=0.2\textwidth]{images/memory_page_table_32bits.png}
+  %\caption{Capt1.}
+  %\label{fig:lab1}
+  %\centering
+  %\includegraphics[width=0.2\textwidth]{images/memory_page_table_32bits_large.%png}
+  %\caption{Capt2.}
+  %\label{fig:lab2}
+  %\centering
+  %\includegraphics[width=0.2\textwidth]{images/memory_page_table_entry_intel.p%ng}
+  %\caption{capt3.}
+  %\label{fig:lab3}
+%\end{figure}
