@@ -175,22 +175,22 @@ Les trois politiques de placement les plus utilisées sont: le mappage  \textit{
 La propriété principale d'un cache est sa capacité à conserver les données pour de futurs accès. Un cache de 8 MB à 2 set associatifs peu sauver jusqu'à 44\% des \textit{miss} comparé à un cache à correspondance directe \cite{Drepper2007}. Sur les architectures récentes Intel Skylake, les caches utilisent entre 8 et 16 associativités, pouvant varier entre les différents niveaux. 
 
 \begin{figure}
-    \centering
-    \begin{subfigure}[b]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{images/cache_circuit-direct.png}
+    \begin{subfigure}[t]{\linewidth}\centering
+        \includegraphics[width=0.7\linewidth, trim = 0cm 10cm 0cm 2cm]{images/cache_circuit-direct.png}
         \caption{Le cache pleinement associatif nécessite d'avoir un comparateur pour chacune des lignes du cache}
         \label{pic:cache_circuit-direct}
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
-      %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{images/cache_circuit-fully-associative.png}
-        \caption{Le cache pleinement associatif nécessite d'avoir un comparateur pour chacune des lignes du cache}
-        \label{pic:cache_circuit-fully-associative}
+        \vspace{1cm}
     \end{subfigure}
     
-    \begin{subfigure}[b]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{images/cache_circuit-set-associative.png}
+    \begin{subfigure}[t]{\linewidth}\centering
+        \includegraphics[width=0.7\linewidth]{images/cache_circuit-fully-associative.png}
+        \caption{Le cache pleinement associatif nécessite d'avoir un comparateur pour chacune des lignes du cache}
+        \label{pic:cache_circuit-fully-associative}
+        \vspace{.5cm}
+    \end{subfigure}
+    
+    \begin{subfigure}[t]{\linewidth}\centering
+        \includegraphics[width=0.7\linewidth]{images/cache_circuit-set-associative.png}
         \caption{Le cache N-associatif associe les deux architectures des caches direct et pleinement associatif. Ce sont plusieurs caches directs montés en parallèles.}
         \label{pic:cache_circuit-set-associative}
     \end{subfigure}

@@ -9,13 +9,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Pour présenter un sujet complexe, il est courant de regrouper les concepts pour les empiler progressivement (comme le modèle OSI \cite{day1983osi}). Cette section utilise la même approche pour présenter le fonctionnement d'un ordinateur. Cette approche est courante dans la littérature \cite{tanenbaum2016structured}. Le but de cette section n'est pas de donner un cours d'architecture des ordinateurs, elle présente les principaux niveaux qui sont nécessaires de connaître pour la suite de la thèse. Étudier la base des technologies utilisées est important pour comprendre les challenges auxquels fait face l'industrie des technologies de l'information (IT).
+Pour présenter un sujet complexe, il est courant de regrouper les concepts pour les empiler progressivement (comme le modèle OSI \cite{day1983osi}). Cette section utilise la même approche pour présenter le fonctionnement d'un ordinateur. Cette approche est courante dans la littérature \cite{tanenbaum2016structured, Jalby2013}. Le but de cette section n'est pas de donner un cours d'architecture des ordinateurs, elle présente les principaux niveaux qui sont nécessaires de connaître pour la suite de la thèse. Étudier la base des technologies utilisées est important pour comprendre les challenges auxquels fait face l'industrie des technologies de l'information (IT).
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 0 - Le circuit logique}
+\subsection{Niveau 0 - Le circuit logique} \label{sec:logique}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Le niveau plus bas abordé dans cette thèse est celui des transistors qui sont les composants de bases de tout système électronique. 
@@ -276,9 +276,61 @@ En 2019, Samsung annonce qu'il a mis au point une technologie permettant la grav
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 1 - La micro-architecture}
+\subsection{Niveau 1 - La micro-architecture} \label{sec:micro}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Dans la section \autoref{sec:logique} sont présentés les transistors, les éléments de bases des ordinateurs. Les transistors sont groupés en portes logiques pour construire des circuits électroniques. Cette section présente comment ces circuits sont utilisés pour construire la micro-architecture d’un ordinateur, capable d’exécuter les instructions défini par une \textit{Instruction Set Architecture} (ISA).
+
+Afin d'éviter toutes confusions, nous rappelons la définition de la micro-architecture et de l'ISA car ces termes sont souvent confondus dans la littérature. 
+
+\begin{itemize}
+    \item  \textbf{La couche ISA} (\textit{Instruction Set Architecture})  peut être vue comme une spécification formelle établie, qui peut être utilisée par plusieurs fabricant \cite{tanenbaum2016structured}. Elle regroupe les instructions pouvant être utilisées et leur mode (système ou utilisateur), les registres disponibles... 
+    Elle forme l'interface entre le matériel et le logiciel et permet la compatibilité de programme sur des micro-architectures de différents constructeurs.
+    Grâce à la couche ISA, différents langages de programmation peuvent être utilisés pour écrire les application. Le compilateur s'occupe alors de les traduire dans un langage bas niveau pouvant utiliser l'ISA (langage assembleur). Ce langage est tellement proche de la couche ISA que les deux termes sont souvent mélangés.
+
+    \item \textbf{La micro-architecture} correspond à l'implémentation matériel de l'\textit{ISA} est implémentée matériellement par la micro-architecture. Ce sont deux couches distinctes, la seconde n'ayant pas forcément besoin d'avoir connaissance de la première (bien que pour des raisons de performances cela soit préférable). En ayant connaissance de la micro-architecture, le compilateur pourra réordonner ou modifier des instructions pour tirer parti du pipeline ou d'un processeur vectoriel. La conception d'une nouvelle micro-architecture doit commencer par choisir l'ISA à implémenter (si possible existante pour permettre la compatibilité des programmes). Les différences principales entre deux micro-architecture implémentant la même ISA sont leur différence de performances et de coût.
+    
+    \item Le terme d'\textbf{architecture} est souvent employé à la place du terme \textit{ISA}, notamment par IBM en 1964 \cite{amdahl1964architecture}.  Aujourd'hui il est souvent utilisé pour faire référence à la fois à l'\textit{ISA} et à la \textit{micro-architecture}. Il est courant d'entendre parler d'\textit{architecture x86} pour faire référence à un système implémentant l'\textit{ISA x86}.
+\end{itemize}
+
+
+L’objectif de la section n’est pas de présenter la totalité de la micro-architecture mais seulement les éléments importants nécessaires pour la suite de la thèse.
+
+\subsubsection{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+Le développement d'une nouvelle micro-architecture doit prendre en compte plusieurs facteurs qui peuvent impacter son implémentation (vitesse de traitement des instructions, le coût de fabrication, la fiabilité, consommation électrique, taille). Ces différents facteurs font pression sur les architectes de processeurs qui doivent redoubler d'inventivité pour les satisfaire en implémentant des optimisation matériels.
+
+Les améliorations ont pour but d’améliorer la performance de l’architecture, la plus part du temps de façon transparente pour l’utilisateur. Cependant, un programmeur n’étant pas avertis de ces optimisations, pourrait écrire des applications inefficaces voire contre-productive. Les développeurs d’applications \textit{HPC} étant généralement des scientifiques experts dans leur domaine (physique, chimie, mécanique…), il est fréquent de voir des codes peu efficaces. Cette section, liste les principales améliorations des micro-architectures qu'il faut connaître et utiliser pour exploiter la maximum des performances disponibles. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

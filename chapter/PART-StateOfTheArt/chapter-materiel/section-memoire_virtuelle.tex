@@ -72,38 +72,38 @@ La \textit{MMU} est un composant matériel responsable de la gestion de la mémo
 
 \subsubsection{Table des pages} \label{sec:table_page}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-La table des pages à pour fonction de faire correspondre les pages virtuelles à leur cadre de page correspondant (flèches de la \autoref{pic:memory_page_frame}). C'est grâce à cette table que les adresses virtuelles peuvent être traduites. La \autoref{fig:memory_page_table_16bits} montre un exemple du fonctionnement de la table des pages pour la traduction d'une adresse de 16 bits. Dans la table des pages est stockés le numéro du cadre de page, utilisé pour la construction de l'adresse physique. Cette entrée contient également d'autres informations (\autoref{pic:memory_page_table_entry}) comme les droits d'accès à la page ou si elle a été modifiée (pour la gestion de cohérence).
+La table des pages à pour fonction de faire correspondre les pages virtuelles (\textit{Virtual Page Number} (\textit{VPN})) à leur cadre de page correspondant (\textit{Physical Page Number} (\textit{PPN}) représenté par les flèches de la \autoref{pic:memory_page_frame}. C'est grâce à cette table que les adresses virtuelles peuvent être traduites. L'adresse de cette table est stockée dans un registre (\textit{Page Table Base Register} (\textit{PTBR}). Une fois la traduction de l'adresse virtuelle de la page réalisée, les bits de décalage \textit{Virtual Page Offset} (VPO) sont utilisée pour sélectionner la donnée voulue dans cette page. La \autoref{fig:memory_page_table_nbits} montre un exemple du fonctionnement de la table des pages pour la traduction d'une adresse virtuelle. Dans la table des pages est stockés le numéro du cadre de page, utilisé pour la construction de l'adresse physique. Cette entrée contient également d'autres informations (\autoref{pic:memory_page_table_entry}) comme les droits d'accès à la page ou si elle a été modifiée (pour la gestion de cohérence).
 
 \begin{figure}
     \centering
-    \begin{subfigure}[b]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{images/memory_page_table_16bits.png}
-        \caption{Exemple d'une table de page pour des adresses de 16 bits}
-        \label{pic:memory_page_table_16bits}
+    \begin{subfigure}[b]{\linewidth}\centering
+        \includegraphics[width=0.7\linewidth]{images/memory_page_table_nbits.png}
+        \caption{L'adresse physique de la table des pages est stockée dans un registre (\textit{PTBR}). La MMU utilise une partie des bits de l'adresse virtuelle (\textit{VPN}) pour trouver la ligne correspondant à la page dans cette table. A cette entrée de la table est stockée l'adresse du cadre de page correspondant à la page virtuelle (\textit{PPN}). L'adresse \textit{PPN} associée aux bits restant de l'adresse virtuelle (\textit{VPO}) permet de construire l'adresse physique de la donnée voulue \cite{Mowry2012}.}
+        \label{pic:memory_page_table_nbits}
     \end{subfigure}
     ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
       %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\linewidth}
-        \includegraphics[width=\linewidth]{images/memory_page_table_entry.png}
-        \caption{Exemple d'une entrée dans la table des pages}
+    \begin{subfigure}[b]{\linewidth}\centering
+        \includegraphics[width=0.7\linewidth]{images/memory_page_table_entry.png}
+        \caption{Pour le fonctionnement de la MMU, la table des pages conserve plusieurs informations importantes pour chaque entrée de page, en plus de l'adresse du cadre de page. Un bit de présence permet de savoir si la page est en mémoire, ou sur le disque. La protection assure qu'un utilisateur ne puisse pas modifier des données de lui appartenant pas. Un bit de modification est utilisé pour la cohérence \cite{tanenbaum2008systemes}.}
         \label{pic:memory_page_table_entry}
     \end{subfigure}
     
 
-    \caption{Exemple de fonctionnement de la MMU pour la traduction d'une adresse virtuelle de 16 bits en utilisant une table de page à un seul niveau. En utilisant les 4 premiers bits de l'adresse virtuelle, la MMU accède à sa table et renvoie le numéro de cadre de page qui sera utilisé pour former l'adresse physique \cite{tanenbaum2008systemes}). }\label{fig:memory_page_table_un_niveau}
+    \caption{Exemple de fonctionnement de la MMU pour la traduction d'une adresse virtuelle en utilisant une table de page à un seul niveau.). }\label{fig:memory_page_table_un_niveau}
 \end{figure}
 
 
 Cependant, la table des pages peut rapidement prendre beaucoup de places et son stockage en mémoire peut affecter les performances des programmes. Par exemple, un machine utilisant des adresses de 32 bits aura une table de page mesurant plus de 16 MiB, et chaque processus possède sa propre table. De plus, pour des pages de 4 KiB et un espace d'adressage de 32 bits utilise 1 million de page. Le parcours de la table peut être long, d'autant que les architecture modernes utilisent des adresses de 64 bits. Pour répondre à ce challenge, les architectes ont implémentés deux techniques permettant d'accélérer la traduction. La première est d'utiliser un cache qui stocke les traductions récentes et évite la traduction permanente des adresses virtuelles. La deuxième est de modifier la structure de la table de pages en implémentant une table à plusieurs niveaux grâce à une structure d'arbre. 
 
 
-\paragraph{Accélérer le parcours de la table grâce à une table multiniveaux} Le parcours de la table de page est primordiale car une seule instruction peut nécessiter de la parcourir 3 fois avant d'être exécuté (adresse de l'instruction, et adresses des deux opérandes). La \autoref{pic:memory_page_table_multi} montre un table utilisant 4 niveaux. Le premier niveau est appelé répertoire des pages (\textit{Page Directory}). La MMU utilise 9 bits pour connaître l'entrée correspondant à l'adresse virtuelle dans le répertoire des pages comportant 512 entrées. Dans cette entrée est stockée l'adresse de la table du  prochain niveau. Pour connaître l'entrée dans cette nouvelle table, la MMU utilise les 9 bits suivants. Ainsi de suite pour parcourir tous les niveaux de la table. Les derniers bits sont utilisés pour le décalage dans la page mémoire et la construction de l'adresse physique. Ainsi les différentes pages  n'ont pas besoin d'être stocké continuellement en mémoire. Seul le répertoire des pages, entrée commune à toutes les pages, est conservé en mémoire. 
+\paragraph{Accélérer le parcours de la table grâce à une table multiniveaux} Le parcours de la table de page est primordiale car une seule instruction peut nécessiter de la parcourir 3 fois avant d'être exécuté (adresse de l'instruction, et adresses des deux opérandes). La \autoref{pic:memory_page_table_multi} montre un table utilisant 4 niveaux. Le premier niveau est appelé répertoire des pages (\textit{Page Directory}). La MMU partage l'adresse virtuelle de la page (\textit{VPN}) en $k$ morceaux permettant de parcourir les $k$ niveau de la table de pages. Les derniers bits sont utilisés pour le décalage dans la page mémoire et la construction de l'adresse physique. Ainsi les différentes pages  n'ont pas besoin d'être stocké continuellement en mémoire. Seul le répertoire des pages, entrée commune à toutes les pages, est conservé en mémoire. 
 
 
 \begin{figure}
     \center
-    \includegraphics[width=14cm]{images/memory_page_table_multi.png}
-    \caption{\label{pic:memory_page_table_multi} Exemple d'une table de pages multiniveaux utilisée pour des adresses de 64 bits \cite{Molka}}.
+    \includegraphics[width=10cm]{images/memory_page_table_multi2.png}
+    \caption{\label{pic:memory_page_table_multi} Exemple d'utilisation d'une table de pages à \textit{k} niveaux \cite{Mowry2012}. L'adresse virtuelle est découpé en $k+1$ morceaux. Le premier morceau (\textit{VPN 1}) détermine la ligne dans la premier table (située à l'adresse \textit{PTBR}). Cette entrée permet d'obtenir l'adresse physique de la page de niveau 2. L'entrée dans cette page est déterminée à partir du second morceau (\textit{VPN 2}). Ce même procédé est utilisé pour parcourir tous les niveaux table. Dans la dernière table (\textit{VPN k}) est stockée l'adresse physique de la page ciblée (\textit{PPN}). L'adresse physique est construite à partir de cette adress \textit{PPN} et du décalage \textit{VPO} (derniers bits de l'adresse virtuelle).  }.
 \end{figure}
 
 
@@ -127,7 +127,7 @@ La \autoref{pic_memory_page_table_tlb} résumer comment le TLB est utilisé par 
         \caption{Si la page ne se trouve pas dans la TLB, la MMU doit s'occuper de la traduction  de PTE. Elle utilise sa table des pages (multiniveaux par exemple) pour trouver l'adresse physique \textit{PTEA} où est stockée l'adresse de l'entrée de la page \textit{PTE} (étape 3). La traduction est copiée dans la TLB pour éviter une nouvelle traduction (étape 5). Enfin, elle peut réaliser la traduction de l'adresse virtuelle en adresse physique (étape 5)}
         \label{pic_memory_page_table_tlb_miss}
     \end{subfigure}
-    \caption{Fonctionnement de la TLB. Lors d'un accès mémoire le processeur envoie l'adresse virtuelle \textit{VA} à la MMU pour la traduire (étape 1). La MMU vérifie si la traduction \textit{VPN} a été faite récemment et si l'adresse physique a été sauvée dans la TLB (étape 2) \cite{TamsinCameron2018}
+    \caption{Fonctionnement de la TLB. Lors d'un accès mémoire le processeur envoie l'adresse virtuelle \textit{VA} à la MMU pour la traduire (étape 1). La MMU vérifie si la traduction \textit{VPN} a été faite récemment et si l'adresse physique a été sauvée dans la TLB (étape 2) \cite{Mowry2012}.
     \label{pic_memory_page_table_tlb}}
 \end{figure}
 
