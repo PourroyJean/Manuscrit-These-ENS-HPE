@@ -1,26 +1,27 @@
 \section{Les piles de l'architecture d'un ordinateur}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Pour présenter un sujet complexe, il est courant de regrouper les concepts pour les empiler progressivement (comme le modèle OSI \cite{day1983osi}). Cette section utilise la même approche pour présenter le fonctionnement d'un ordinateur. Cette approche est courante dans la littérature \cite{tanenbaum2016structured, Jalby2013}:
+
+\begin{itemize}
+    \item Niveau 1 - Le circuit logique (\autoref{sec:logique})
+    \item Niveau 2 - L'architecture (\autoref{sec:micro})
+    \item Niveau 3 - Le système d'exploitation
+    \item Niveau 4 - Les langages et compilateurs
+\end{itemize}
+
+Le but de cette section n'est pas de donner un cours d'architecture des ordinateurs, elle présente les principaux niveaux qui sont nécessaires de connaître pour la suite de la thèse. Étudier la base des technologies utilisées est important pour comprendre les challenges auxquels fait face l'industrie des technologies de l'information (IT).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Présentation}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Pour présenter un sujet complexe, il est courant de regrouper les concepts pour les empiler progressivement (comme le modèle OSI \cite{day1983osi}). Cette section utilise la même approche pour présenter le fonctionnement d'un ordinateur. Cette approche est courante dans la littérature \cite{tanenbaum2016structured, Jalby2013}. Le but de cette section n'est pas de donner un cours d'architecture des ordinateurs, elle présente les principaux niveaux qui sont nécessaires de connaître pour la suite de la thèse. Étudier la base des technologies utilisées est important pour comprendre les challenges auxquels fait face l'industrie des technologies de l'information (IT).
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 0 - Le circuit logique} \label{sec:logique}
+\section{Le circuit logique} \label{sec:logique}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Le niveau plus bas abordé dans cette thèse est celui des transistors qui sont les composants de bases de tout système électronique. 
 
-\subsubsection{Les Transistors}
+\subsection{Les Transistors}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Le premier transistor a été mis au point par des chercheurs des Laboratoire Bell en 1947 \cite{bardeen1948transistor} dont la découverte avait été réalisée quelque années avant \cite{edgar1930method}. Ils apparaissent comme une révolution face aux tube électronique utilisé jusque là (plus rapide, léger et robuste). Un transistor est un composant électronique qui utilise trois bornes: la base, l'émetteur et le collecteur (voir \autoref{pic:transistor}). Le collecteur est relié au fil d'où vient la tension et correspond à la sortie du transistor. L'émetteur est lui relié à la masse (tension 0 volt). La base constitue la connexion en connecteur et émetteur en fonction de la tension qui lui est appliquée. En appliquant une tension faible à la base, le courant entre le collecteur et l'émetteur est possible. Sans aucune tension appliquée à la base, le passage du courant n'est pas possible. Pour les personnes non familières avec ces concepts électrique, une approche vulgarisée peut être utilisée \cite{JohnLeDuc2017}. Ainsi, le transistor se comporte comme un interrupteur binaire très rapide (basculement en quelque nanosecondes $10^{-9}$ seconde).
 
@@ -44,7 +45,7 @@ Le premier transistor a été mis au point par des chercheurs des Laboratoire Be
 
 
 
-\subsubsection{Les portes logiques}
+\subsection{Les portes logiques}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Les portes logiques sont construites à partir de transistors et permettent l'exécution de différentes instructions ou la capacité de stocker une information (registres). Par exemple, en associant deux transistors inverseur en série on construit une porte NON-ET qui ne laisse passer le courant seulement lorsque 0 ou 1 des deux entrées à une tension (voir \autoref{pic:processeur_porte_nand})
 
@@ -76,7 +77,7 @@ Une porte logique possède plusieurs entrée numériques qui peuvent être le r�
 
 
 
-\subsubsection{Algèbre de Boole}
+\subsection{Algèbre de Boole}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Analyser le fonctionnement de plusieurs portes peut rapidement se complexifier et le recours à des méthodes algébriques est nécessaire. Les portes pouvant avoir des valeurs de 0 ou 1, un nouveau type d'algèbre a été créée: l'algèbre de Boole. Comme pour l'algèbre en base décimale, l'algèbre booléenne utilise des fonctions et des variables pour décrire le comportement d'un système. Les variables utilisées ne peuvent prendre que deux valeurs. Une table de vérité de fonctions générales peut alors être écrite. On peut écrire une table de vérité d'un programme souhaité, qui prend trois entrées et déterminer les sorties ($M$) souhaitées (voir \autoref{pic:processeur_porte_table}). Grâce à l'algèbre de Boole, on peut convertir cette table en circuit implémentant ce fonctionnement (\autoref{pic:processeur_porte_schema}).
 L'algèbre de Boole est aussi utiliser pour réduire la complexité d'un même circuit, sans en changer le comportement, notamment grâce à la fameuse loi de DeMorgan \cite{hurley2014concise} permettant le changement de portes ET en portes OU. En réduisant la complexité et le nombre de portes il est possible de réaliser des circuits plus économiques et plus rapides.
@@ -102,17 +103,17 @@ L'algèbre de Boole est aussi utiliser pour réduire la complexité d'un même c
 
 
 
-\subsubsection{Circuits logiques}
+\subsection{Circuits logiques}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 A partir des portes logiques et de leur analyse avec l'algèbre de Boole des circuits plus complexes peuvent être élaborés qui peuvent être regroupés en deux grandes familles: les circuits logiques de base  et les circuits logiques à mémoire. La principale différence entre les deux vient de leur capacité à retenir une information. 
 
-\paragraph{Les circuits logiques de base}
+\subsubsection{Les circuits logiques de base}
 contiennent les circuits intégrés qui sont des circuits pouvant comporter quelques centaines de portes (circuit SSI, MSI) ou plusieurs centaines de milliers (circuit LSI et VLSI) \cite{barbe2013very}.
 Les circuits combinatoires ne dépendent que des entrées ne possédant pas de mémoire interne pouvant influer sur le résultat. Parmi eux, nous pouvons citer le multiplexeur (permet de choisir une entrée parmi n), les circuits arithmétiques (additionneur, décaleur) et l'horloge. 
 Ces circuits de bases sont utilisés pour construire les unités arithmétique et logique des processeurs. Ce circuit intégré aux processeurs est la puce responsable des opérations arithmétiques, de comparaisons et de décalage. Elle est présentée plus amplement dans la partie \autoref{sec:alu}.
 
 
-\paragraph{Circuits à mémoire}
+\subsubsection{Circuits à mémoire}
 La deuxième famille de circuits comporte un des composants fondamentale des ordinateurs qui permet la construction de mémoires. Cette capacité de mémorisation est permis grâce à l'utilisation de deux portes NON-ET (\autoref{pic_processeurs_porte_bascule_nand}) ou NON-OU (\autoref{pic_processeurs_porte_bascule_nor}). La particularité de ce circuit, appelé bascule, est la réutilisation de la sortie d'une porte comme entrée d'une seconde. 
 Les deux entrées d'un tel circuit peuvent être assimilées à une commande de mise à 1 (set) et de remise à 0 (reset).
 
@@ -135,7 +136,7 @@ Les deux entrées d'un tel circuit peuvent être assimilées à une commande de 
 \end{figure}
 
 
-\subsubsection{Les mémoires RAM}
+\subsection{Les mémoires RAM}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 La mémoire à accès aléatoires ou \textit{Random Acces Memory} (RAM) est une mémoire dont le temps d'accès ne dépend pas de la position de l'information. Contrairement aux disques ou aux bandes magnétiques dont le temps d'accès pouvait varier en fonction de l'emplacement actuelle de la tête de lecture et de la prochaine donnée à lire.
@@ -161,11 +162,11 @@ La RAM est une mémoire volatile, l'information stockée n'est pas persistante l
     \label{fig_processeurs_ram}
 \end{figure}
 
-\paragraph{La SRAM} est un circuit logique qui utilise 6 transistors pour représenter les état 0 et 1 (bien qu'il existe des variantes utilisant 4, 8 ou même 10 transistors). Une SRAM à 6 transistors en utilise 4 pour stocker l'information. Deux transistors additionnels sont utilisés pour contrôler leur accès durant leur lecture ou écriture.
+\subsubsection{La SRAM} est un circuit logique qui utilise 6 transistors pour représenter les état 0 et 1 (bien qu'il existe des variantes utilisant 4, 8 ou même 10 transistors). Une SRAM à 6 transistors en utilise 4 pour stocker l'information. Deux transistors additionnels sont utilisés pour contrôler leur accès durant leur lecture ou écriture.
 Il est courant d'utiliser différent type de SRAM dans les différents niveaux de caches pour optimiser la densité (mémoire de plus grande capacité) ou la vitesse d'accès. Le premier niveau de cache étant optimisé pour la vitesse d'accès, contrairement aux cache de niveau supérieur de plus grande capacité.
 
 
-\paragraph{La DRAM} à une structure plus simple que la SRAM qui n'est composé que d'un transistor et d'un condensateur. La valeur du bit est déterminée par la charge (positive ou négative) du condensateur. Qu'il soit VRAI ou FAUX, le condensateur doit donc être chargé. 
+\subsubsection{La DRAM} à une structure plus simple que la SRAM qui n'est composé que d'un transistor et d'un condensateur. La valeur du bit est déterminée par la charge (positive ou négative) du condensateur. Qu'il soit VRAI ou FAUX, le condensateur doit donc être chargé. 
 A cause des fuites (\textit{leakage}) les condensateurs doivent être rafraîchis en permanence. La fréquence de rafraîchissement est de l'ordre de 1\% à 5\% du temps totale d'utilisation de la mémoire. C'est cette spécificité qui fait de la DRAM une mémoire très consommatrice en énergie. Grâce à leur faible nombre de transistors, la densité des mémoires DRAM est élevée permettant la construction de mémoire de grande capacité (en GiB). Cependant, La lecture d'une cellule décharge le condensateur, il faut donc, même lors d'une lecture, le recharger.
 La charge et la décharge du condensateur n'étant pas instantanés, la DRAM est beaucoup plus lente que la SRAM (une cellule ne pouvant pas être accédé pendant son rafraîchissement).
 La quasi totalité des ordinateurs des 50 dernières années ont une mémoire centrale utilisant de la DRAM.
@@ -173,7 +174,7 @@ La quasi totalité des ordinateurs des 50 dernières années ont une mémoire ce
 Il existe plusieurs types de DRAM: DDR, GDDR, QDR, HBMC, HMC.
 
 
-\paragraph{SRAM vs DRAM}
+\subsubsection{SRAM vs DRAM}
 
 L'avantage de la SRAM est sa rapidité de fonctionnement et sa faible consommation électrique. Contrairement à la DRAM, la SRAM est statique, elle conserve l'information et ne nécessite pas de rafraîchissement périodique pour conserver la donnée enregistrée. Cependant, elle s'efface si aucune tension ne lui est appliqué en continue.
 Le principale inconvénient de la SRAM vient de son coût de fabrication ainsi que leur faible densité (due à l'utilisation de 6 transistors)
@@ -199,15 +200,15 @@ Le principale inconvénient de la SRAM vient de son coût de fabrication ainsi q
 
 
 
-\subsubsection{Évolution des transistors}
+\subsection{Évolution des transistors}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\paragraph{Le transistors, élément central des systèmes informatiques.}
+\subsubsection{Le transistors, élément central des systèmes informatiques.}
 La vitesse de calcul d'un processeur ou la capacité de stockage d'une mémoire sont directement liées à aux nombre de transistors disponible sur une puce. 
 Plus un processeur aura de transistors, au plus il pourra calculer rapidement (ajout de coeur, meilleurs unités de calculs). Plus une mémoire aura de transistors, au plus elle pourra contenir de cellule RAM et donc avoir une grande capacité de stockage. La performance des systèmes informatiques est donc directement lié aux technologies de transistors utilisées. 
 
 
-\paragraph{Évolution du nombre de transistors.}
+\subsubsection{Évolution du nombre de transistors.}
 L'évolution du nombre de transistors sur une puce a été prédit par l'un des trois fondateur de la société Intel, Gordon Moore. En 1965, Gordon Moore prévoit que le nombre de transistor gravable doublera chaque année, sur une même surface, pour un coût constant \cite{Moore1998}. Il réévaluera cette période à 2 ans en 1975 \cite{Moore75}, ce qui correspond parfaitement avec l'évolution réelle jusqu'à ces dernières années (\autoref{pic_Moore_prediction}). 
 
 
@@ -234,7 +235,7 @@ L'évolution du nombre de transistors sur une puce a été prédit par l'un des 
 
 
 
-\paragraph{Coût de la gravure.}
+\subsubsection{Coût de la gravure.}
 
 La notion de coût est souvent oublié lorsque la loi de Moore est citée. Cependant c'est un aspect fondamentale de la loi. Les procédés de fabrication étant plus complexes, les usines de fabrication coûtent elles aussi de plus en plus cher. L'augmentation du coût des fonderies à lui aussi été prédit par la seconde loi de Gordon Moore (loi de Rock), qui estime que leur prix double tous les 4 ans \cite{schaller1997moore}. Bien que les coût de fabrication augmentent, la taille de gravure s'affine et permet de mettre plus de transistor sur une même surface, permettant ainsi à l'industrie de suivre la cadence dictée par la loi de Moore (\autoref{pic_Moore_explique}).
 
@@ -246,7 +247,7 @@ La notion de coût est souvent oublié lorsque la loi de Moore est citée. Cepen
 
 
 
-\paragraph{Les fondeurs.}
+\subsubsection{Les fondeurs.}
 Pour doubler le nombre de transistors sans changer la surface grave, il faut graver des transistors deux fois plus petits. 
 Depuis plus de cinquante ans, les \textbf{fondeurs} (les industriels responsable de la gravure des processeurs) tels que Samsung Electronics, TSMC, Intel et GlobalFoundries ont développés de nombreuses techniques et technologies pour réduire la taille des transistors (voir \autoref{processeurs_porte_fondeurs}). Aujourd'hui, de nombreuses étapes sont nécessaire pour transformer une plaque de silicium (la plus pure possible) en processeurs: dopage, déposition d'une couche de résine, gravure, traitement thermique, revêtement par couche mince, découpe, encapsulation... \cite{AnthonyNelzinSantos2018}.
 Les procédés de fabrication étant plus complexes, les usines de fabrication coûtent elles aussi de plus en plus cher. L'augmentation du coût des fonderies à lui aussi été prédit par la seconde loi de Gordon Moore (ou \textit{loi de Rock}), qui estime que leur prix double tous les 4 ans \cite{schaller1997moore}.
@@ -276,34 +277,117 @@ En 2019, Samsung annonce qu'il a mis au point une technologie permettant la grav
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 1 - La micro-architecture} \label{sec:micro}
+\section{Niveau 1 - L'architecture} \label{sec:micro}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Dans la section \autoref{sec:logique} sont présentés les transistors, les éléments de bases des ordinateurs. Les transistors sont groupés en portes logiques pour construire des circuits électroniques. Cette section présente comment ces circuits sont utilisés pour construire la micro-architecture d’un ordinateur, capable d’exécuter les instructions défini par une \textit{Instruction Set Architecture} (ISA).
+Dans la section \autoref{sec:logique} sont présentés les transistors, les éléments de bases des ordinateurs. Les transistors sont groupés en portes logiques pour construire des circuits électroniques. Cette section présente comment ces circuits sont utilisés pour construire la micro-architecture d’un ordinateur, capable d’exécuter les instructions défini par une \textit{Instruction Set Architecture} (ISA). L’objectif n’est pas de présenter la totalité de la micro-architecture mais seulement les éléments importants nécessaires pour la suite de la thèse.
 
-Afin d'éviter toutes confusions, nous rappelons la définition de la micro-architecture et de l'ISA car ces termes sont souvent confondus dans la littérature. 
+
+
+\subsection{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+Afin d'éviter toutes confusions, nous rappelons la définition de la micro-architecture et de l'ISA car ces termes sont souvent confondus dans la littérature:
 
 \begin{itemize}
-    \item  \textbf{La couche ISA} (\textit{Instruction Set Architecture})  peut être vue comme une spécification formelle établie, qui peut être utilisée par plusieurs fabricant \cite{tanenbaum2016structured}. Elle regroupe les instructions pouvant être utilisées et leur mode (système ou utilisateur), les registres disponibles... 
-    Elle forme l'interface entre le matériel et le logiciel et permet la compatibilité de programme sur des micro-architectures de différents constructeurs.
-    Grâce à la couche ISA, différents langages de programmation peuvent être utilisés pour écrire les application. Le compilateur s'occupe alors de les traduire dans un langage bas niveau pouvant utiliser l'ISA (langage assembleur). Ce langage est tellement proche de la couche ISA que les deux termes sont souvent mélangés.
+    \item  \textbf{La couche ISA} (\textit{Instruction Set Architecture}) regroupe les instructions, leur mode (système ou utilisateur), les registres utilisables, l'organisation du système mémoire (alignement, espace d'adressage) ... 
+    C'est une spécification formelle établie, qui peut être utilisée par plusieurs fabricants de micro-architecture \cite{tanenbaum2016structured}. Intel publie fréquemment la documentation de l'ISA x86 \cite{guide2011intel}. Elle forme l'interface entre le matériel et le logiciel et permet la compatibilité de programme sur des micro-architectures de différents constructeurs. 
+    Grâce à la couche ISA, différents langages de programmation peuvent être utilisés pour écrire les application. Le compilateur s'occupe alors de les traduire dans un langage bas niveau pouvant utiliser l'ISA (langage assembleur). Ce langage est tellement proche de la couche ISA que les deux termes sont souvent mélangés. Les \textit{ISA} existantes sont listées dans la \autoref{sec:isa}. 
 
-    \item \textbf{La micro-architecture} correspond à l'implémentation matériel de l'\textit{ISA} est implémentée matériellement par la micro-architecture. Ce sont deux couches distinctes, la seconde n'ayant pas forcément besoin d'avoir connaissance de la première (bien que pour des raisons de performances cela soit préférable). En ayant connaissance de la micro-architecture, le compilateur pourra réordonner ou modifier des instructions pour tirer parti du pipeline ou d'un processeur vectoriel. La conception d'une nouvelle micro-architecture doit commencer par choisir l'ISA à implémenter (si possible existante pour permettre la compatibilité des programmes). Les différences principales entre deux micro-architecture implémentant la même ISA sont leur différence de performances et de coût.
+    \item \textbf{La micro-architecture} correspond à l'implémentation matériel de l'\textit{ISA} est implémentée matériellement par la micro-architecture. Ce sont deux couches distinctes, la seconde n'ayant pas forcément besoin d'avoir connaissance de la première (bien que pour des raisons de performances cela soit préférable). En ayant connaissance de la micro-architecture, le compilateur pourra réordonner ou modifier des instructions pour tirer parti du pipeline ou d'un processeur vectoriel. La conception d'une nouvelle micro-architecture doit commencer par choisir l'ISA à implémenter (si possible existante pour permettre la compatibilité des programmes). Les différences principales entre deux micro-architectures implémentant la même ISA sont leur différence de performances et de coût. Les processeurs Intel et AMD implémente la même \textit{ISA x86}. La performance et le nombre d'instructions supportés par les deux architectures est cependant différent.
     
-    \item Le terme d'\textbf{architecture} est souvent employé à la place du terme \textit{ISA}, notamment par IBM en 1964 \cite{amdahl1964architecture}.  Aujourd'hui il est souvent utilisé pour faire référence à la fois à l'\textit{ISA} et à la \textit{micro-architecture}. Il est courant d'entendre parler d'\textit{architecture x86} pour faire référence à un système implémentant l'\textit{ISA x86}.
+    \item Le terme d'\textbf{architecture} est souvent employé à la place du terme \textit{ISA}, notamment par IBM en 1964 \cite{amdahl1964architecture}.  Aujourd'hui il est souvent utilisé pour faire référence à la fois à l'\textit{ISA} et à la \textit{micro-architecture}. Il est courant d'entendre parler d'\textit{architecture x86} pour faire référence à une micro-architecture implémentant l'\textit{ISA x86}.\\ 
 \end{itemize}
-
-
-L’objectif de la section n’est pas de présenter la totalité de la micro-architecture mais seulement les éléments importants nécessaires pour la suite de la thèse.
-
-\subsubsection{Introduction}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 Le développement d'une nouvelle micro-architecture doit prendre en compte plusieurs facteurs qui peuvent impacter son implémentation (vitesse de traitement des instructions, le coût de fabrication, la fiabilité, consommation électrique, taille). Ces différents facteurs font pression sur les architectes de processeurs qui doivent redoubler d'inventivité pour les satisfaire en implémentant des optimisation matériels.
 
-Les améliorations ont pour but d’améliorer la performance de l’architecture, la plus part du temps de façon transparente pour l’utilisateur. Cependant, un programmeur n’étant pas avertis de ces optimisations, pourrait écrire des applications inefficaces voire contre-productive. Les développeurs d’applications \textit{HPC} étant généralement des scientifiques experts dans leur domaine (physique, chimie, mécanique…), il est fréquent de voir des codes peu efficaces. Cette section, liste les principales améliorations des micro-architectures qu'il faut connaître et utiliser pour exploiter la maximum des performances disponibles. 
+Les améliorations ont pour but d’améliorer la performance de l’architecture, la plus part du temps de façon transparente pour l’utilisateur. Cependant, un programmeur n’étant pas avertis de ces optimisations, pourrait écrire des applications inefficaces voire contre-productive. Les développeurs d’applications \textit{HPC} étant généralement des scientifiques experts dans leur domaine (physique, chimie, mécanique…), il est fréquent de voir des codes peu efficaces. Cette section, liste les principales améliorations des micro-architectures qu'il faut connaître et utiliser pour exploiter le maximum des performances disponibles. 
+
+
+Pour améliorer la vitesses d’exécution d’un programme, 4 moyens peuvent être utilisés.
+Le premier est l’utilisation d’un nouveau matériel, plus rapide, consommant moins d'énergie, moins cher ou plus dense.
+Le deuxième moyen est de réaliser les calculs plus rapidement, ou plus simplement. 
+Le troisième est de réduire le temps nécessaire pour exécuter ces instructions. 
+Enfin, le quatrième moyen est d’exécuter plusieurs instructions en parallèle. Les deuxième et troisième points peuvent être réalisés par deux techniques: dynamique ou statique.
+Les méthodes statiques interviennent avant que le code soit exécuté. Généralement, c’est le compilateur qui les implémente lors de la génération du code. Les techniques dynamiques sont mis en oeuvre au fil des exécutions d’instructions. Elles nécessitent donc du matériel spécialisé supplémentaire et sont donc très coûteuses. 
+
+La section présente les principales techniques et matériels utilisés pour l’amélioration des performances (dynamique et statique). Deux améliorations majeures que sont la hiérarchie mémoire et la mémoire virtuelle sont présentées dans deux section distinctes.
+
+
+
+
+
+\subsection{Nouvelles technologies}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+La performance de la micro-architecture ont pu bénéficier de nombreuses évolutions technologiques.
+La mémoire DRAM à vu ses performances évoluer d'un facteur 10 depuis les premières versions de \textit{SDRAM} dans les années 90. La passage de la SDRAM à la \textit{Double Data Rate} (DRAM) permet d'envoyer deux données par signal d'horloge. Les principales évolutions des performances de la mémoire sont résumé dans le \autoref{tab_ddr}. Ces nouvelles technologies sont crutiale pour la construction des micro-architectures. Les principales technologies qu'il est nécessaire d'appréhender pour la construction d'un supercalculateur Exascale sont décrite dans la \autoref{sec:opportunites}. 
+
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}|l|c|c|c|c|c|@{}}
+\toprule
+\rowcolor[HTML]{EFEFEF} 
+\textbf{DDR Standard} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Vitesse Bus (MHz)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Prefetch}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Débit (MT/s)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Bande passante (GB/s)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Tension (V)}} \\ \midrule
+SDRAM & 100-166 & 1n & 100-166 & 0.8-1.3 & 3.3 \\ \midrule
+DDR & 133-200 & 2n & 266-400 & 2.1-3.2 & 2.5/2.6 \\ \midrule
+DDR2 & 266-400 & 4n & 533-800 & 4.2-6.4 & 1.8 \\ \midrule
+DDR3 & 533-800 & 8n & 1066-1600 & 8.5-14.9 & 1.35/1.5 \\ \midrule
+DDR4 & 1066-1600 & 8n & 2133-3200 & 17-21.3 & 1.2 \\ \bottomrule
+\end{tabular}%
+}
+\caption[Évolution des technologies de mémoire DRAM]{Les évolution des technologies mémoires DDR ont permis d'améliorer les vitesses de transferts d'un facteur dix en divisant par trois leur consommation électrique\protect\footnotemark}
+\label{tab_ddr}
+\end{table}
+\footnotetext{source: \url{https://www.transcend-info.com/Support/FAQ-296}}
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Jeu d'instructions ISA } \label{sec:isa}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Le choix de l'\textit{ISA} à implémenter est le premier choix à réaliser lors du développement d'une nouvelle micro-architecture. L'\textit{ISA} utilisée à un impact sur la performance, la facilité de programmation, les applications compatibles...
+
+Les jeux de d'instructions existant sont séparés en deux grandes familles d'ISA: les jeux d'instructions CICS pour \textit{Complex Instruction Set Computing} et les instructions RISC pour \textit{Reduced Instruction Set Computing}. La principale différence entre les deux est la complexité de leurs instructions. 
+
+    \paragraph{CISC} est la première famille d'instructions à avoir été utilisé massivement. Ces instructions sont dites complexes car une seule instructions peut à elle seule demander plusieurs opérations à réaliser. Par exemple une addition CISC s'occuperait de charger les données depuis la mémoire, d'exécuter l'addition ensuite et sauver le résultat. A l'origine, beaucoup de codes étaient écrit en assembleur, et ce genre d'instructions permettaient au programmeur d'éviter d'écrire de nombreuses lignes de codes souvent redondantes. De plus les codes générés en CISC sont plus petit et nécessitent donc moins de mémoire, qui à l'origine manquait énormément.
+
+    \paragraph{RISC} regroupe les ISA dites \textit{simple}. En 1970, John Cocke, alors ingénieur chez IBM, proposa de réduire le nombre d'instructions CISC \cite{cocke1990evolution}. Le terme \textit{réduit} fait référence au nombre d'instructions plus petit que celles de CISC mais aussi pour signifier que le travail à réaliser par une instructions était moindre que pour une instruction CISC. Pour réaliser une multiplications entre deux données, on devra alors explicitement charger la première donnée, puis la deuxième et enfin écrire l'instruction qui correspond à la multiplication. Les instructions étant plus nombreuses le travail des compilateurs est augmenté mais souvent l'exécution des codes résultantes en est réduite. Le RISC fut une réponse apporté a la lenteur de décodage du CISC.  Toutes les instructions font la même taille, les architectures nécessitent donc moins de transistors pour les analyser. Les micro-architecture sont donc moins coûteuses et peuvent atteindre des fréquences plus élevées.
+
+Ces deux familles d'instructions ont toutes deux leurs avantages et leurs inconvénients et les puces actuelles comportent des parties qui exécutent des instructions RISC et d'autres en CISC. L'ISA la plus rependu est le x86 qui se veut être un jeu d'instruction CISC. Le RISC augmente le nombre d'instructions lues séparément par le micro-processeur, si cela à le désavantage de consommer plus de mémoire, cela à aussi d'autre avantages, comme de pouvoir optimiser leur exécution avec la mise en place d'un \textit{pipeline}. Les \textit{ISA RISC} les plus connus sont les \textit{ISA} ARM, \textit{MIPS} (utilisé dans le domaine universitaire pour apprendre le langage assembleur), PA-RISC (Hewlett-Packard) et RISC-V. L'\textit{ISA CISC} la plus utilisée dans les super-calculateurs aujourd'hui est \textit{x86} (processeurs Intel et AMD).
+
+
+
+\paragraph{Extensions vectoriels} Pour tirer partie de la puissance de calculs des processeurs et des unités de calculs vectorielles, les \textit{ISA} ont reçu de nombreuses extensions. L'\textit{ISA x86} à reçu plus de dix extensions dans les vingts dernières années pour s'adapter à l'agrandissement des unités verctorielles. Les principales sont \textit{MMX} (1996), \textit{3DNOW!} (1998), 6 versions de \textit{SSE} de 1999 à 2008 et enfin \textit{AVX-2} et \textit{AVX-512} en 2013 et 2015.
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/processeur_archi.png}
+    \caption{\label{processeur_archi} Évolution des extensions SIMD de l'ISA \textit{x86}}
+\end{figure}
+
+
+
+
+
+
+
+\subsection{Accélérer l'exécution d'une instruction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -321,16 +405,109 @@ Les améliorations ont pour but d’améliorer la performance de l’architectur
 
 
 
+\subsection{Exécuter les instructions en parallèles}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+La loi de Moore à assurer aux processeurs un gain constant de transistors chaque année. Ils peuvent être utilisés pour implémenter de nouvelles fonctionnalités matériels permettant d'exécuter les instructions en parallèles pour accélérer les applications. Les processeurs ont reçu de nombreuses améliorations dont les principales sont présentées dans cette section: 
+
+\begin{itemize}
+    \item Le pipeline
+    \item Les Floating Point Units et les instructions vectorielles
+    \item Les processeurs superscalaire
+    \item Les coeurs
+\end{itemize}
+
+
+\subsubsection{Le pipeline} \label{sec:pipeline}
+%%%%%%%%%%%%%%%%%%%%%%
+
+
+\paragraph{Motivations.} 
+
+L'utilisation d'instructions CISC toujours plus complexes, a pour effet d'allonger le temps nécessaire à leur exécution qui dure alors plusieurs cycles. Les instructions complexes nécessitent plusieurs opérations: le chargement depuis la mémoire (\textit{fetch}), le décodage (\textit{decode}), le chargement des données nécessaire (\textit{memory}), l'exécution (\textit{execute}) et l'enregistrement du résultat (\textit{write-back}). Pendant ces différentes étapes, la totalité de l'unité d'exécution ne peut pas être utilisée simultanément et l'unité d'exécution n'est pas disponible pour les instructions suivantes. 
+
+La chaîne de traitement du processeur, ou \textit{pipeline}, est une implémentation matériel d'un module qui permet de découper l'exécution d'une instructions en plusieurs étapes (\autoref{pic_pipeline_simple}). Cette technique peut être vu pas analogie à l'utilisation de chaîne de montage. Datant de plus d'un sciècle, la technique de la chaîne de montage a été abondamment utilisée par des industriels tels que Louis Renault et Henry Ford \cite{wolff1957entrepreneurs}.
+
+
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/Chapitre1/Neumann.png}
+    \caption{\label{pic_pipeline_simple} Représentation simplifié d'un pipeline de 5 étapes.}
+\end{figure}
+
+
+\paragraph{Implémentation}
+
+En informatique, la technique de \textit{pipeline} est utilisée pour exploiter la parallélisme d'instructions (ILP) (\autoref{pic_pipeline}). Il est commun de présenter la notion de pipeline avec un pipeline de 5 niveaux:
+
+\begin{itemize}
+    \item \textbf{Recherche de l'instruction} ou \textit{fetch}: cette première étape charge l'instruction à exécuter depuis la mémoire principale dans un registre du processeur. Grâce à un compteur interne, le registre \textit{Program Counter}, le processeur connaît l'adresse mémoire de la prochaine instruction à charger. Pour améliorer le temps d'accès aux instructions, le processeur possède un tampon (\textit{instruction buffer}) contenant plusieurs instructions d'avance. Ce tampon permet l'implémentation d'optimisations tel que l'exécution dans le désordre (voir \autoref{sec:out_of_order}).
+    \item \textbf{Décodage} ou \textit{décode}: une fois que l'instruction est chargée elle est décodée pour déterminer l'action à exécuter et les données nécessaires.
+    \item \textbf{Execution} ou \textit{execute}: en fonction du décodage réalisé, l'instruction est exécutée: utiliser l'ALU pour faire une opération ou calculer une adresse.
+    \item \textbf{Accès mémoire} ou \textit{memory}: réalise un accès mémoire (\textit{load} ou \textit{store}) lorsqu'une instructions le nécessite.
+    \item \textbf{Ecriture du résultat} ou \textit{write back}: Enfin le processeur doit enregistrer le résultat produit par l'étape \textit{execute}. Si c'est un branchement, il modifie le registre \textit{Program Counter} (\textit{branch}). Si c'est une opération arithmétique il sauvegarde le résultat dans l'adresse destinataire décodé par la deuxième étape.
+\end{itemize}
+
+Le fait de partager l'exécution d'une instruction en sous étapes permet de commencer l'exécution de la suivante pendant que l'instruction actuelle est encore dans la chaîne d'exécution (voir figure ~\ref{pic_pipeline}). Son utilisation ne réduit pas le temps d'exécution d'une instruction (5 cycles sur la \autoref{pic_pip_no}). Celles-ci doivent tout de même passer une à une par chaque étape de la chaîne. Le \textit{pipeline} permet d'améliorer la cadence d'exécution en maximisant l'utilisation de chaque ressource à un même moment (\autoref{pic_pip_yes}). On peut par exemple commencer à charger la prochaine instruction (étape \textit{fetch}), alors que l'instruction actuelle est en train d'être exécutée (étape \textit{execute}). Sur la \autoref{pic_pip_yes} on assiste à l'exécution de 5 instructions, au premier temps un seul instruction est exécutée, à l'étape $IF$ pour \textit{instruction fetch}. Ensuite (ligne suivante) une nouvelle instruction est chargé (opération $IF$) pendant que la première est passé à l'étape suivante (opération $ID$). Ainsi au bout de 5 cycles, chaque étape du pipeline est utilisée (partie en verte). 
+
+
+\begin{figure}
+    \begin{subfigure}[]{0.5\linewidth}\centering
+        \vspace{1.6cm}
+        \includegraphics[width=\linewidth]{images/Chapitre1/pipelineNo.png}
+        \label{pic_pip_no}
+        \caption{Processeur sans pipeline}
+    \end{subfigure}%
+    ~ %space
+    \begin{subfigure}[]{0.5\linewidth}\centering
+        \includegraphics[width=.7\linewidth]{images/Chapitre1/pipelineYes.png}
+        \caption{Processeur avec un pipeline à 5 étages}
+        \label{pic_pip_yes}
+    \end{subfigure}
+    
+    \caption{Pipeline: en séquençant les instructions le processeur est capable d'exécuter des étapes différentes en parallèles (\textit{IF: instruction fetch, ID: instruction decode, EX: execution, MEM: memory, WB: write back}). Le nombre de cycle nécessaire pour l'exécution de 3 instructions passe alors de 15 à 8 cycles (source: \url{https://fr.wikipedia.org/wiki/Pipeline_(architecture_des_processeurs)} }
+    \label{pic_pipeline}
+\end{figure}
+
+
+
+
+\paragraph{Taille du pipeline.}
+En 1939 IBM conçoit le premier processeur avec pipeline. Ce n'est qu'en 1985 qu'Intel produira le siens (Intel 80386). Le nombre d'étapes, ou profondeur du pipeline, était de 2 à l'origine et a augmenté au fil du temps atteignant 31 étapes pour l'architecture du Pentium 4 Prescott d'Intel en 2004. 
+
+\paragraph{Complexité de la gestion du pipeline.}
+L'utilisation d'un \textit{pipeline} n'est pas toujours optimale et plusieurs facteurs peuvent affecter sa performance. le principe du pipeline repose sur le concept de commencer à exécuter des instructions avant que la précédente ne soit terminée. Cela peut être rendu impossible par la dépendance entre deux instructions et par l'utilisation de branchements conditionnels \cite{emma1987characterization}. Lors de l'évaluation d'un tel branchement, le pipeline ne peut pas commencer à exécuter les instructions suivantes sans connaître son résultat. Le processeur doit alors attendre (\textit{stall}) plusieurs cycle avant de continuer. Une optimisation de prédiction de branchement a été implémentée pour éviter ces états de \textit{stall} (voir \autoref{sec:branch_predictor}). De plus, pour permettre la bonne utilisation du pipeline des mémoires tampons doivent être disposées entre chaque étapes pour mémoriser les différents résultats intermédiaires. Lorsque le processeur exécute plusieurs processus, il doit veiller à terminer l'exécution des instructions avant de commencer celles du processus suivant. La complexité de sa gestion le rend vulnérable aux attaques informatiques (voir \autoref{sec:out_of_order}). 
+
+\cite{emma1987characterization}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Niveau 2 - L'assembleur}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Niveau 3 - Les instructions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
 
 
 
-
-
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Niveau 4 - Le système d'exploitation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -340,40 +517,7 @@ Les améliorations ont pour but d’améliorer la performance de l’architectur
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 2 - L'assembleur}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 3 - Les instructions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 4 - Le système d'exploitation}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Niveau 5 - Le langage et le compilateur}
+\section{Niveau 5 - Le langage et le compilateur}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
