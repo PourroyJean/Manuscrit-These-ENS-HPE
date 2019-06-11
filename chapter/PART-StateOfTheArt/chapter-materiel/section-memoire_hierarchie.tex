@@ -1,4 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Hiérarchie mémoire} \label{sec:hierarchie}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -8,52 +7,141 @@ Traduit de \cite{burks1946preliminary}.
 
 \end{fancyquotes}
 
+La \autoref{sec:micro} présente les principales améliorations dont la micro-architecture a pu  bénéficier. Pour son exécution un processeur utilise les données stockées en mémoire. Pour apprécier la performance totale du processeur, cette partie s'intéresse à la partie mémoire. 
+La \autoref{sec:memory} présente la différence d'évolution entre les processeurs et la mémoire. Cette introduction permet de motiver la nécessitée de construire une hiérarchie mémoire présenté dans la \autoref{sec:hierarchie_true}. Enfin, la \autoref{sec:cache} présente plus précisément les mémoires caches.
 
-\subsection{Motivations}
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Mémoire principale} \label{sec:memory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Pour stocker les données en mémoire, les processeurs 
 
-Dès 1946, les architectes des processeurs avaient anticipé que les applications seraient demandeuses de mémoires très performantes. A cause de la forte évolution du processeur, l'écart avec la performance des mémoires s'est creusé au fil des années (voir \autoref{pic:cpuvsmemory}). L'incapacité du processeur d'accéder suffisamment rapidement à la mémoire est inhérent à l'architecture actuelle des processeurs qui partage le même bus pour accéder aux instructions et aux données stockées en mémoire. Ce \textit{goulot d'étranglement} ou \textit{bottleneck}, a été nommé d'après l'un des architectes de l'architecture: le \textit{bottleneck Von Neumann}.
+Pour leur exécution, les processeurs doivent accéder aux instructions et aux données stockées en mémoire. Celles-ci sont principalement construites à partir de mémoire RAM (voir \autoref{sec:ram}). Ces mémoires, élaborées à partir de transistors, ont pû bénéficier des même évolutions technologiques que les processeurs (voir \autoref{sec:moore}). Il est cependant connu de tous que l'écart des performances entre ces deux modules s'est agrandi année après année. 
+
+%CONSTAT
+\subsubsection{Performance de la mémoire et des processeurs}
 
 
-\begin{figure}
+À cause de la forte évolution du processeur, l'écart avec la performance des mémoires s'est creusé au fil des années (voir \autoref{pic:cpuvsmemory}). Le graphique utilise une échelle logarithmique, l'écart de performance entre les deux s’agrandi exponentiellement. La performance des processeurs a évoluée de 70\% chaque année quand la latence mémoire n’est réduite que de 7\%.
+L’augmentation du nombre de coeurs, toujours plus puissant (fréquence, pipeline, opérations vectorielles), se partageant un bus mémoire dont les performances évoluent lentement, implique une baisse de bande passante disponible par coeur. A l’inverse des besoins des applications, la bande passante par coeur diminue(voir \autoref{pic_cpu_bw_per_core}). 
+ 
+ \begin{figure}
     \center
-    \includegraphics[width=10cm]{images/cpu_vs_memory.png}
-    \caption{\label{pic:cpuvsmemory} Progression de la performance des processeurs et des mémoires. Les processeurs ont vu leur performance évoluer de 50\% chaque année, contre 7\% pour les mémoires. L'écart de performance entre les deux matériels s'est creusé de 50\%  chaque année depuis les années 2000 (graphique extrait de \cite{AliSalehi2012}).}
-\end{figure}
-
-La réponse naïve à ce problème est de construire de grande mémoire à partir de SRAM, très performante et qui consomme peu d'énergie. Cependant, des contraintes économiques et technique sont à prendre en compte et rendent impossible cette solution. La mémoire SRAM est très cher à produire et nécessite l'utilisation de six transistors pour fonctionner, empêchant la construction de modules denses. Les constructeurs de processeurs ont dû élaborer une solution en prenant en compte la vitesse, la densité et le coût de chacune des technologies mémoires. Au plus une mémoire est rapide, au plus sont coût est élevé. Au plus la densité est élevée, plus le prix par bit stocké est réduit. Au plus la densité est élevé, au plus le temps d'accès est élevé. 
-
-
-
-
-
-
-\subsection{Hiérarchie mémoire sur les processeurs récents}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-La hiérarchie mémoire est la réponse économique et technique apportée aux contraintes évoquées ci dessus. Elle consiste en l'utilisation de différents modules mémoires de tailles, de technologies et de performances différentes. Son objectif peut être résumé à trois points: réduire le coût par bit stocké, augmenter la capacité de la mémoire la plus rapide, améliorer le temps d'accès aux données. La solution est de placer au plus proche du processeur des mémoires très rapide pouvant répondre instantanément aux accès mémoire. Au plus on s'éloigne des unités de calcul, au plus la latence d'accès aux modules mémoires augmente, mais au plus leur prix diminue rendant possible l'utilisation de module de plus grande capacité.
-
-
-Les différents niveaux de mémoire peuvent être imbriqués, une donnée qui se trouve dans le premier niveau sera aussi stockée dans les modules de niveaux supérieurs.
-
-Lorsque le processeur souhaite accéder à une donnée, il vérifie qu'elle se trouve dans son premier niveau de mémoire et, si ce n'est pas le cas, remonte la hiérarchie jusqu'à la trouver. La performance des applications varie fortement si les données nécessaires sont présentes ou non dans les mémoires proches du processeur. Les programmes doivent essayer de profiter du concept de localité présenté dans la section \autoref{sec:localite}.
-\begin{figure}
-    \center
-    \includegraphics[width=14cm]{images/memory_hierarchy.png}
-    \caption{\label{pic:cpuvsmemory} Hiérarchie mémoire}
+    \includegraphics[width=8cm]{images/cpu_cpu_vs_memory.png}
+    \caption{\label{pic:cpuvsmemory} Progression de la performance des processeurs et des mémoires. La performance de plusieurs générations de processeurs a été mesurée à l'aide du benchmark SPECint \cite{Efnusheva2017ASO}. La performance des mémoires est la mesurer des temps d’accès mémoire (CAS et RAS) des mémoires DRAM.}
 \end{figure}
 
 
 
+\begin{figure}
+    \center
+    \includegraphics[width=8cm]{images/cpu_bw_per_core.png}
+    \caption{Évolution de la bande passante bande passante par cycle d'horloge par coeur  \cite{CacheInjection}. L'évolution du nombre de coeurs et de leur fréquence n'est pas compensée par l'évolution de la performance du système mémoire.
+    \label{pic_cpu_bw_per_core}}
+\end{figure}
 
 
-\subsection{Communication entre les différents niveaux}
+
+% EXPLICATION
+\subsubsection{Le mur de la mémoire}
+L'écart croissant entre les performances de la mémoire et des processeurs est souvent appelé \textit{mur de la mémoire} (\textit{memory wall}). Cette expression été déjà utilisée en 1995 \cite{Wulf1995} dans le papier \textit{Hitting the Memory Wall: Implications of the Obvious}. Plusieurs raisons peuvent expliquer cet écart de performance.
+
+
+\paragraph{Économiques.}
+L'économie du marché des mémoires est une première explication. Le prix par gigaoctet diminue avec la densité des mémoires. Les fabricants d'ordinateurs et de téléphones souhaitent avoir des mémoires de plus grande capacité dans des espaces restreints avec des contraintes énergétiques. La SRAM, moins dense et plus consommatrice est ainsi passée en second plan. Les différentes évolutions de ces deux technologies mémoires sont résumés dans le \autoref{tab_ddr}.  La mémoire DRAM à vu ses performances évoluer d'un facteur 10 depuis les premières versions de \textit{SDRAM} dans les années 90. La passage de la SDRAM à la \textit{Double Data Rate} (DRAM) permet d'envoyer deux données par signal d'horloge. Les principales évolutions des performances de ces technologies sont résumées dans le \autoref{tab_ddr}. 
+
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}|l|c|c|c|c|c|@{}}
+\toprule
+\rowcolor[HTML]{EFEFEF} 
+\textbf{DDR Standard} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Débit (MT/s)}}     & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Densité (MiB)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Bande passante (GB/s)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Latence (ns)}}           & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Tension (V)}} \\ \midrule
+SDRAM    &      100-166         & 1          & 0.8-1.3        & 90-75            & 3.3       \\ \midrule
+DDR      &      133-200         & 128         & 1-3.1        & 36-30            & 2.5       \\ \midrule
+DDR2     &      400-1066        & 256         & 3.2-8.3        & 37.5-14.06       & 1.8       \\ \midrule
+DDR3     &      1066-3300       & 1024       & 8.3-25.8       & 19.69-11.82      & 1.5       \\ \midrule
+DDR4     &      1600-4800       & 4096       & 12.5-37.5        & 19.38-9.38       & 1.2       \\ \bottomrule
+\end{tabular}%
+}
+\caption[Évolution des technologies de mémoire DRAM]{Les évolution des technologies mémoires DDR ont permis d'améliorer les vitesses de transferts d'un facteur dix en divisant par trois leur consommation électrique\protect\footnotemark. Pour chaque standard DDR, les débits et la latence sont donnés pour deux fréquences différentes. La latence mesure le temps nécessaire pour transférer  8 mots (soit une ligne de cache). Cette mesure est plus précise car les version les plus récente de DDR lisent plusieurs mots à la fois dans une mémoire tampon, et profite donc de la localité spatiale.}
+\label{tab_ddr}
+\end{table}
+\footnotetext{source: \url{https://www.transcend-info.com/Support/FAQ-296}, \url{https://promotions.newegg.com/crucial/15-2725/index.html?icid=318028}, \url{https://en.wikipedia.org/wiki/CAS_latency} \url{https://www.crucial.com/usa/en/memory-performance-speed-latency}}
+
+
+\paragraph{Technologiques.} Le gain de transistors assuré par la loi de Moore a donc été utilisé pour construire des mémoires plus dense et donc de plus grande capacité. Cependant l’industrie des micro-processeurs a profité de ces transistors pour construire des processeurs plus performants tandis que l’industrie des mémoires en a profité pour créer des mémoires de plus grande capacité. Le bus mémoire reliant la mémoire au processeur limite lui la bande passante mémoire. La raison de sa faible évolution est que la construction d'un bus plus performant nécessite d'utiliser plus de broches. Les bus actuels utilisent déjà presque $NbPinParChannel*NbChannel/nombrePinPerProcessor$\% (\textbf{à faire} des broches disponibles.\\
+
+D'un coté, les processeurs sont plus rapides et plus puissant. D'un autre coté, les mémoires voient leur capacité augmenter. Ainsi, les mémoires doivent transférer plus de données et plus rapidement au processeur. Ce problème est d'autant plus exacerbé par l'architecture des processeurs. L’architecture Von Neumann (voir \autoref{sec:von}) implémente une micro-architecture qui sépare la partie exécution de la partie mémoire.
+Le processeurs a besoin des instructions et des données stockées dans la mémoire ce qui implique de nombreuses communication entre ces deux parties. Le bus mémoire devient un \textit{goulot d'étranglement} pour les performances (ou \textit{bottleneck}). Il a ainsi été nommé d'après l'architecte: le \textit{bottleneck Von Neumann}.
+
+
+
+
+% SOLUTION
+\subsubsection{Solutions}
+
+La latence mémoire est le temps écoulé entre l’initiation d’un transfert mémoire et l'arrivée de la donnée sur le processeur. Bien qu'elle puisse être considéré comme constante, il est possible de réduire la latence du point de vue du processeur en initiant les transferts avant qu'ils ne commencent.  Lest architectures ont reçues plusieurs améliorations matérielles et logicielles pour \textit{réduire} ou \textit{tolérer} les latences mémoires \cite{Efnusheva2017ASO}.
+
+
+
+\paragraph{Améliorer la latence mémoire.} 
+La pré-lecture mémoire \cite{baer1991effective, mowry1991tolerating} ou \textit{memory prefteching}  a pour objectif de prédire les futurs accès mémoire pour réduire ou supprimer la latence lors d'un accès mémoire. La pré-lecture peut être réalisé par le système d'exploitation ou par le compilateur en se basant sur des motifs d'accès pour anticiper les prochains appels mémoire. Elle peut aussi être implémentée manuellement dans l'application en utilisant des instructions spécifiques ou en anticipant les accès. Cette technique, utilisée parfaitement, peut supprimer toute les latences impactant une application. Cependant, la caractéristique principale du bus mémoire qui réduit les performances des applications est la bande passante.
+
+\paragraph{Tolérer les latences.}
+La deuxième solution aux latences mémoires est de les tolérer \cite{Bakshi2000}. Les techniques de tolérance aux latences permettent au processeur de continuer d’exécuter des instructions durant latente d’une donnée: l’exécution dans le désordre (\autoref{sec:outoforder}) ou la prédiction de branchement (\autoref{sec:branchpredictor}).\\
+
+
+Si les latences peuvent être réduites ou tolérer, la bande passante du bus mémoire contraint elle aussi la performance des application. La principale réponse à ce challenge est l’implémentation d’une hiérarchie de mémoire plus ou moins rapide en fonction de leur proximité avec le processeur. 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Pour communiquer entre les différents niveaux de la hierarchie les données sont transmises par bloc de données de tailles différentes. L'avantage de tranférer les données par bloc et non une par une est d'amlélirer la performance des codes en tirant parti du principe de localité spatiale (voir \autoref{sec:localite}).
-Pour accéder à un mot, le processeur a besoin que celle ci se trouve dans le niveau de cache L1. Lorsqu'elle si trouve, le processeur peut charger un mot directement dans ces registres pour y effectuer les opérations nécessaires. C'est la granularité de transfert la plus petite dans un ordinateur. 
+\subsection{Compromis entre le coût, la performance et la capacité } \label{sec:hierarchie_true}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Entre les différents niveaux de caches et entre le cache et la mémoire les données sont transférées par blocs appellées \textit{lignes de cache} ou \textit{cache line}. La ligne de cache contient une copie des données de la mémoire, un tag contenant des informations sur l'adresse mémoire du bloc de donnée et un \textit{flag} contenant des informations sur la validité de la ligne (voir \autoref{pic:cacheline}). La taille d'une ligne de cache peut varier d'une architecture à l'autre mais il est courant d'utiliser des tailles de 32, 64 ou 128 bytes. Une ligne de cache d'un processeur Intel récent mesure 64 bytes. Elle contient ainsi entre 8 et 16 éléments en double précision. 
+La réponse naïve au problème du \textit{memory wall} est de construire de grandes mémoires à partir de SRAM, très performante et qui consomme peu d'énergie. Cependant, des contraintes économiques et techniques sont à prendre en compte et rendent impossible cette solution. La mémoire SRAM est très cher à produire et nécessite l'utilisation de six transistors pour fonctionner, empêchant la construction de modules denses. 
+
+Dans le \autoref{TODO_TAB_ALL_TECHNO} (\textbf{todo: tableau à faire pour comparer SRAM DRAM FLASH DISK}), on remarque que trois caractéristiques sont liées entres elles. Au plus la latence d'accès à la mémoire est petite, au plus son prix est élevé. Plus la capacité d'une mémoire au plus son prix par bit est réduit. Plus la capacité est élevée plus la latence d'accès est grande.
+L'objectif des constructeurs d'ordinateur est de proposer une mémoire à la fois très rapide à un prix le plus faible possible. Ce qui n'est malheureusement le cas d'aucune des technologies existantes. Pour atteindre cet objectif, la solution imaginé par les architectes est l'utilisation de différentes tailles et types de mémoires constituant une \textit{hiérarchie de mémoires}.
+
+La hiérarchie mémoire est la réponse d'un compromis entre le coût, la performance et la capacité de stockage pour la construction de la mémoire d'un processeur. Comme aucune des mémoires ne répond à ces trois facteurs à la fois, la solution est de ne pas se restreindre à  une seule technologie et d'utiliser des modules de taille différentes (voir \autoref{pic_cpu_memory_hierarchy}). Le compromis réalisé par la hiérarchie mémoire permet ainsi de: réduire le coût par bit stocké, augmenter la capacité de la mémoire et améliorer le temps d'accès aux données. 
+
+La solution est de placer au plus proche du processeur des mémoires très rapide pouvant répondre instantanément aux accès mémoire. Au plus on s'éloigne des unités de calcul, au plus la latence d'accès aux modules mémoires augmente, mais au plus leur prix diminue rendant possible l'utilisation de module de plus grande capacité. Lorsque le processeur souhaite accéder à une donnée, il vérifie qu'elle se trouve dans son premier niveau de mémoire et, si ce n'est pas le cas, remonte la hiérarchie jusqu'à la trouver. La performance des applications varie fortement si les données nécessaires sont présentes ou non dans les mémoires proches du processeur. L'apport d'un gain de performance de la hiérarchie réside dans le fait que la donnée accédé doit se trouver le plus souvent possible dans les zones mémoires les plus proches du processeur.
+
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/cpu_memory_hierarchy.png}
+    \caption{\label{pic_cpu_memory_hierarchy} Hiérarchie mémoire}
+\end{figure}
+
+La \autoref{pic_cpu_memory_hierarchy} présente les principaux modules d'une hiérarchie mémoire d'un processeur moderne:
+\begin{enumerate}
+    
+    \item Les registres: ils sont situés au plus proche des unités de calculs. Pour permettre un accès rapide, 1 cycle, ils sont réalisés en SRAM. On compte une centaine de registres sur les processeurs récents. Leur taille est variable en fonction des instructions exécutables par les unités logiques arithmétiques. Par exemple, un processeur pouvant exécuter des instructions vectorielles AVX-512, possède des registres de 512 bits (registre \textit{ZMM}). Il existe différents types de registres, certains sont utilisés pour stocker des données et des résultats intermédiaires, tandis que d'autres ont une signification précise. Le registre de pointeurs de piles stocke l'adresse de la première adresse mémoire responsable de l'instruction actuellement exécutée et permettent de réaliser des appels et des retours de fonctions. Les registres des drapeaux (Flag Register) stockent des informations nécessaire à l'éxécution d'instructions. Par exemple, lorsqu'une retenue est générée par un calcul, ou qu'un branchement conditionnelle a été évalué à vrai. Les processeurs récents dupliquent certains registres pour pouvoir utiliser des techniques de renommage \cite{moudgill1993register} et d'exécution spéculative \cite{chou2004efficient}.
+
+    \item Les caches ou \textit{antémémoire} sont des modules de mémoire généralement en SRAM à très faible latence d'accès (quelques cycles). Ces mémoires étant très chères, elles ne peuvent pas être construire en grande quantité. La performance d'une application dépendra fortement de la présence ou non des données nécessaires dans ces mémoires. Ce principe est connu sous le nom de concept de \textit{localité}, présenté dans la \autoref{sec:locality}. Les caches sont présentés plus précisément dans la \autoref{sec:cache}.
+    
+    \item La mémoire: Dans les architectures récentes basées sur l'architecture Von-Neumann la mémoire principale, ou mémoire, stocke les instructions du programme ainsi que les données nécessaires à leur exécution. Pour des grands jeux de données dépassant la taille de la mémoire, cette dernière agit comme un cache entre le processeur et les modules de stockage. La mémoire est présentée dans la \autoref{sec:memoire}.
+
+    \item Le stockage est le premier étage de la hiérarchie à utiliser une mémoire non-volatile. Ces modules peuvent contenir des téraoctets de données, mais dont les temps d'accès sont extrêmement longs par rapport aux mémoires mentionnées ci-dessus. Leur principal avantage est leur prix.
+    
+    \item La mémoire auxiliaire: Cette mémoire est aussi non volatile avec un coût bien plus faible que pour les mémoires de stockage. Sa capacité à stocker les données pendant plusieurs années est utilisée pour stocker et archiver des données de nécessitant pas d'accès immédiat. Les supports sont magnétiques (disques et bandes) ou optique.
+
+\end{enumerate}
+
+\subsubsection{Communication entre les différents niveaux}
+%%%%%%%%%%%%%%%%%%%
+Pour communiquer entre les différents niveaux de la hiérarchie les données sont transmises par bloc de données de tailles différentes (voir \autoref{pic_cpu_memory_hierarchy}). L'avantage de transférer les données par bloc et non une par une est d'amééliorer la performance des codes en tirant parti du principe de localité spatiale (voir \autoref{sec:locality}).
+Pour accéder à un mot, le processeur a besoin que celle ci se trouve dans le niveau de cache L1. Lorsqu'elle si trouve, le processeur peut charger un mot directement dans ces registres pour y effectuer les opérations nécessaires. C'est la granularité de transfert la plus petite dans une micro-architecture. Entre les différents niveaux de caches et entre le cache et la mémoire les données sont transférées par blocs appelés \textit{lignes de cache} ou \textit{cache line}. La ligne de cache contient une copie des données de la mémoire, un tag contenant des informations sur l'adresse mémoire du bloc de donnée et un \textit{flag} contenant des informations sur la validité de la ligne (voir \autoref{pic:cacheline}). La taille d'une ligne de cache peut varier d'une architecture à l'autre mais il est courant d'utiliser des tailles de 32, 64 ou 128 octets. Une ligne de cache d'un processeur Intel récent mesure 64 octets. Elle contient ainsi entre 8 et 16 éléments en double précision. Enfin, entre le stockage et la mémoire, les blocs de données transférés sont de la taille d'une page (voir \autoref{sec:page}) qui mesure généralement entre 4 KiB et 2 MiB.
 
 \begin{figure}
     \center
@@ -62,13 +150,67 @@ Entre les différents niveaux de caches et entre le cache et la mémoire les don
 \end{figure}
 
 
-Entre la mémoire, les blocs de données transférés sont de la taille d'une page (voir \autoref{sec:page}) qui mesure généralement entre 4 KiB et 2 MiB.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Performances de la hiérarchie mémoire}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Mal utilisée, la hiérarchie mémoire n'apporte aucun gain de performance. Son efficacité réside dans la présence des données utilisées dans les niveaux de caches les plus proches de la mémoire. Pour cela, tirer avantage du principe de localité présenté ci dessous est primordiale. D'autres techniques (matérielles et logicielles) permette d'améliorer l'efficacité de la hiérarchie en réduisant la latence mémoire et en améliorant l'utilisation du bus mémoire. 
+
+
+\subsubsection{Localité}\autoref{sec:locality}
+Le principe de localité exprime la faculté d'un programme à utiliser des données présente dans les premiers niveaux de cache. Elle peut être de deux types:
+\begin{itemize}
+    \item \textbf{La localité spatiale} s'appuie sur l'utilisation de données dont les adresses sont consécutives en mémoire (accès encadré en vert sur la \autoref{pic_cpu_locality}). En effet, la taille d'un bloc de données transféré entre la mémoire (une ligne de cache) mesure plusieurs octets et contient plusieurs éléments. Un programme utilisant des données consécutives en mémoire, aura la chance de trouver la donnée suivante déjà chargée dans le cache. 
+    \item \textbf{La localité temporelle} exprime la réutilisation d'une donnée dans un futur proche, augmentant la probabilité qu'elle soit toujours dans le cache (accès encadré en bleu sur la \autoref{pic_cpu_locality}). Par exemple, les instructions d'un programme se suivent en mémoire et sont accédées consécutivement. 
+
+\end{itemize}
+
+
+Le programmeur doit être conscient de ces deux opportunités lorsqu'il écrit son programme. Pour profiter de la localité spatiale, il doit organiser ses données de telle sorte que l'algorithme les parcours de façon continue. Si la taille de la mémoire le permet, il peut être avantageux de transformer la structure de données, de façon temporaire, pour placer les donnés utilisées consécutivement en mémoire. Pour profiter de la localité temporelle, le programmeur doit veiller à que le maximum d'opération soit exécuter sur une ligne de cache lorsqu'elle se trouve dans la mémoire cache. Il peut alors être utile de réorganiser une boucle de traitement. Cependant, des applications ne peuvent pas, par nature, profiter des localités temporelle et spatiale comme en cryptographie ou analyse de signaux. Ces applications accède à des jeux de données immenses de façon aléatoire ne pouvant pas tenir dans les caches, rendant ces derniers inutiles.
+
+
+\begin{figure}
+    \center
+    \includegraphics[width=14cm]{images/cpu_locality.png}
+    \caption{ Évolution du numéro des pages accédé (axe des ordonnées) en fonction du temps (axe des abscisses) tiré de \cite{Hatfield:1971}. Les accès encadrés en bleu ont une localité temporelle. Les accès encadrés en vert ont une localité spatiale. Les accès encadrés en rouge ne profitent d'aucune localité: 
+    \label{pic_cpu_locality}}
+\end{figure}
 
 
 
-\subsection{Registres}
+
+\subsubsection{Saturation du bus mémoire}
+%%%%%%%%%%%%%%
+
+
+Les performances des applications étant principalement limitées par le bus mémoire, il est important que ce dernier soit utilisé à son maximum. On parle alors de \textit{saturation} du bus mémoire. Pour y parvenir, le processeur doit lancer un certains nombre de lecture/écriture dans un petit intervalle de temps. L'application peut, par nature, effectuer suffisamment de transferts mémoire. Sinon des techniques de \textit{prefetching} ou d'injection dans le cache pouront être utilisées. Pour comprendre le lien entre la saturation du bus et la latence mémoire nous utilisons la loi de Little \cite{Little_1961}.
+
+\paragraph{Loi de Little.}\label{sec:loidelittle} Cette loi énoncée en 1961 est utilisée dans la théorie des files d'attente. Elle sert à caractériser le nombre de personne $N$ dans un système stable (comme une file d'attente), en fonction du temps de traitement $L$ et du débit moyen de client $T$. Le nombre de personne dans la file peut être calculé par la loi de Little (voir \autoref{eq:little}). Ainsi, pour réduire le temps d'attente d'un client dans une file, il faut soit réduire le nombre de personne présente simultanément dans la queue, ou augmenter la cadence de traitement.
+
+\begin{equation} \label{eq:little}
+    N = L \times T
+\end{equation}
+
+
+Bien qu'en apparence éloignée du domaine des ordinateurs, cette loi est fondamentale pour comprendre la performance du bus mémoire. Le bus mémoire peut être vu comme une file d'attente dont les clients sont des requêtes mémoire en attente, le temps de traitement est la latence mémoire et le débit représente la bande passante mémoire. La latence et le débit mémoire sont donnés par les caractéristiques de l'architecture. Le but du programmeur est d'utiliser la performance maximale du bus mémoire. Il doit pour cela générer suffisamment de transactions mémoire permettant sa saturation.
+
+Prenons l'exemple d'un bus mémoire ayant une bande passante de 128 GB/s transférant des lignes de cache de 64 bytes et une latence mémoire de 100ns. Son débit est alors de 2 lignes de cache par nanoseconde. Avec la loi de Little, il est possible de calculer le nombre de requêtes mémoire concurrentes nécessaires pour saturer la bande passante mémoire. Dans notre exemple, il est égale à $100 \times 2 = 200$ transactions. 
+Si le code, ou l’architecture n’est pas capable de générer, au minimum, 200 requête mémoire chaque nanoseconde, le bus mémoire ne pourra jamais être saturé. Un autre impact est que si un processeur est capable de les générer, lui ajouter des coeurs, ne permettra pas d’obtenir des meilleurs performances du bus. Pour certains code limités par la bande passante, il peut être intéressant d’éteindre certains coeurs pour limiter la consommation du processeur sans affecter la performance du code.
+
+
+\begin{figure}
+    \center
+    \includegraphics[width=12cm]{images/cpu_littlelaw.png}
+    \caption{ La loi de Little permet de calculer le nombre de requête mémoire nécessaire pour saturer le bus mémoire. Pour un bus mémoire de 128 GB/s et une latence mémoire de 100ns, il faut qu'il y est plus de 200 requêtes mémoires en attente pour que le bus soit saturé.
+    \label{pic_cpu_littlelaw}}
+\end{figure}
+
+
+Cette loi à un impact direct sur les architectures modernes utilisant des mémoires HMB. Ces mémoires ont des latences d’accès un peu plus faible dûs à leur proximité du processeur. Les débit mémoire sont eux aussi bien meilleur. La loi de Little, implique que le nombre d’accès mémoire à concurrent nécessaires pour saturer ces bus va fortement augmenter. Malheureusement, la micro-architecture actuelle des processeurs n’est pas forcément adaptée à de telles évolutions. Ainsi, nous avons rencontré des architectures incapable de saturer la bande passante mémoire disponible. 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Les registres du processeurs sont situés au plus proche des unités de calculs. Pour permettre un accès rapide, 1 cycle, ils sont réalisés en SRAM. On compte entre x et y registres sur les processeurs récents. Leur taille est variable en fonction des instructions exécutables par les unités logiques arithmétiques. Par exemple, un processeur pouvant exécuter des instructions vectorielles AVX-512, possède des registres de 512 bits (registre \textit{ZMM}). Il existe différents types de registres, certains sont utilisés pour stocker des données et des résultats intermédiaires, tandis que d’autres ont une signification précise. Le registre de pointeurs de piles stocke l’adresse de la première adresse mémoire responsable de l’instruction actuellement exécutée et permettent de réaliser des appels et des retours de fonctions. Les registres des drapeaux (Flag Register) stockent des informations nécessaire à l’éxécution d’instructions. Par exmple, lorsqu’une retenue est générée par un calcul, ou qu’un branchement conditionnelle a été évalué à vrai. Les processeurs récents dupliquent certains registres pour pouvoir utiliser des techniques de renommage \cite{moudgill1993register} et d'exécution spéculative \cite{chou2004efficient}. Lors de l'exécution d'une instruction nécessitant plusieurs cycles, le processeur, si aucune dépendance n'est détectée, commence à exécuter les instructions suivantes sans attendre le résultat de la première instruction.
+
+
 
 
 
@@ -76,19 +218,22 @@ Les registres du processeurs sont situés au plus proche des unités de calculs.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 \subsection{Caches} \label{sec:cache}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %intro
-C’est en 1965 que les premières mémoires caches sont présentées sous le nom de \textit{slave memory} \cite{wilkes1965slave}. Leur temps d’accès est de 4 à 20 fois plus rapide que celui de la mémoire principale servant alors de mémoire tampon. Cependant leur taille est très réduite (quelques MiB) comparée à celle de la mémoire principale (plusieurs GiB). Les cache utilisent généralement de la mémoire SRAM.
+C'est en 1965 que les premières mémoires caches sont présentées sous le nom de \textit{slave memory} \cite{wilkes1965slave}. Leur temps d'accès est de 4 à 20 fois plus rapide que celui de la mémoire principale servant alors de mémoire tampon. Cependant leur taille est très réduite (quelques MiB) comparée à celle de la mémoire principale (plusieurs GiB). Les cache utilisent généralement de la mémoire SRAM.
 
 %performance
-Ce niveau de mémoire a été implémenté pour réduire, du point de vu du processeur, l’écart de performance entre ses unités de calculs et celles de la mémoire centrale. Leur apport de performance vient de la capacité des programmes à réutiliser des données déjà présentes, évitant une accès à la mémoire centrale beaucoup plus long. Lorsque le processeur doit accéder à une donnée, il commence par la chercher dans le premier niveau de cache, si elle si trouve, son temps d'accés est très rapide (évenement \textit{cache hit}). Si ce n’est pas le cas (évenement \textit{chache miss}), il réalise alors une copie de la zone mémoire la contenant dans le cache. La zone mémoire copié est appelé \textit{ligne de cache}. Si par la suite, cette donnée ou une donnée appartement à la même ligne de cache devait être à nouveau accédée, leur temps d’accès serait alors drastiquement réduit. Ce mécanisme est transparent pour l’utilisateur, bien que pour des questions de performances il doive être conscient de son existence (voir \autoref{sec:localite}). 
+Ce niveau de mémoire a été implémenté pour réduire, du point de vu du processeur, l'écart de performance entre ses unités de calculs et celles de la mémoire centrale. Leur apport de performance vient de la capacité des programmes à réutiliser des données déjà présentes dans le cache, évitant une accès à la mémoire centrale beaucoup plus long. Lorsque le processeur doit accéder à une donnée, il commence par la chercher dans le premier niveau de cache, si elle si trouve, son temps d'accés est très rapide (évenement \textit{cache hit}). Si ce n'est pas le cas (évenement \textit{chache miss}), il réalise alors une copie de la zone mémoire la contenant dans le cache. La zone mémoire copié est appelé \textit{ligne de cache}. Si par la suite, cette donnée ou une donnée appartement à la même ligne de cache devait être à nouveau accédée, leur temps d'accès serait alors drastiquement réduit. Ce mécanisme est transparent pour l'utilisateur, bien que pour des questions de performances il doive être conscient de son existence (voir \autoref{sec:locality}). 
 
 %taille vs performance
-La taille de chaque niveau de cache varie pour les raisons expliquées en introduction de cette partie. A cela vient s'ajouter la notion de performance qui est liée à leur taille. Un cache de grande capacité aura plus de chance de contenir la donnée dont le processeur à besoin, améliorant ainsi la performance moyenne du programme. Un cache est une mémoire associative. Pour accéder à son contenu il faut utiliser une clef associative. La clef est constitué de l’adresse en mémoire centrale de l’instruction ou de la donnée. Un cache plus grand nécessite plus de comparaisons pour vérifier si une donnée s'y trouve ou non. Pour allier les avantages et contourner les inconvénient, les processeurs utilisent non pas un, mais plusieurs niveaux de caches de tailles différentes.
-Le premier niveau de cache est généralement séparé en deux zones mémoire: l'une contenant les instructions et l'autre les données. C'est le seul niveau de la hiérarchie qui stocke différemment les données et les instructions. Sur les processeurs récents, le premier et le deuxième niveau de cache est privé à chaque coeur. Un troisième, et parfois un quatrième niveau de cache est partagé entre les différents coeurs du processeur. La \autoref{pic:cache_hierarchy} représente une telle architecture pour un processeur à 4 coeurs. Le partage d’un ou plusieurs niveaux de caches entre différents coeurs à certains bénéfices en programmation parallèle. La communication entre les coeurs est plus rapide, ainsi que la migration d’un thread entre deux coeurs partageant un même niveau de cache. Cependant, cela introduit de la complexité pour la cohérence des caches (voir \autoref{sec:cache_coherence}).
+La taille de chaque niveau de cache varie pour les raisons expliquées en introduction de cette partie. A cela vient s'ajouter la notion de performance qui est liée à leur taille. Un cache de grande capacité aura plus de chance de contenir la donnée dont le processeur à besoin, améliorant ainsi la performance moyenne du programme. Un cache est une mémoire associative. Pour accéder à son contenu il faut utiliser une clef associative. La clef est constitué de l'adresse en mémoire centrale de l'instruction ou de la donnée.
+
+Pour allier les avantages et contourner les inconvénient, les processeurs utilisent non pas un, mais plusieurs niveaux de caches de tailles différentes.
+Le premier niveau de cache est généralement séparé en deux zones mémoire: l'une contenant les instructions et l'autre les données. C'est le seul niveau de la hiérarchie qui stocke différemment les données et les instructions. Sur les processeurs récents, le premier et le deuxième niveau de cache est privé à chaque coeur. Un troisième, et parfois un quatrième niveau de cache est partagé entre les différents coeurs du processeur. La \autoref{pic:cache_hierarchy} représente une telle architecture pour un processeur à 4 coeurs. Le partage d'un ou plusieurs niveaux de caches entre différents coeurs à certains bénéfices en programmation parallèle. La communication entre les coeurs est plus rapide, ainsi que la migration d'un thread entre deux coeurs partageant un même niveau de cache. Cependant, cela introduit de la complexité pour la cohérence des caches (voir \autoref{sec:cache_coherence}).
 
 \begin{figure}
     \center
@@ -101,12 +246,9 @@ Le premier niveau de cache est généralement séparé en deux zones mémoire: l
 
 \subsubsection{Propriété d'inclusion}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorsqu'une donnée est chargé depuis la mémoire, le processeur doit la stocker dans le cache qui varie en fonction de la propriété d'inclusion du processeur pouvant être inclusive ou exclusive ou non-inclusive (voir \autoref{pic:cacheinclusionpolicy}).
+Lorsqu'une donnée est chargé depuis la mémoire, le processeur doit la stocker dans le cache qui varie en fonction de la propriété d'inclusion du processeur pouvant être inclusive ou exclusive ou non-inclusive.
 
-Un cache est dit inclusif, si lorsqu'une donnée se trouve à un niveau de la hiérarchie, tous les caches des niveaux supérieur contiennent eux aussi une copie de la donnée (voir \autoref{pic:InclusivePolicy}). Cette politique d'inclusion a un désavantage lorsqu'elle est utilisée sur des système multi-coeurs. En effet, lorsqu'une donnée doit être retiré d'un niveau de cache, le processeur doit aussi l'enlever des niveaux de caches inférieurs. 
-Un cache non-inclusif permet qu'une ligne du cache de niveau 1 ne soit pas forcément dans le cache de niveau 2. Cela permet d'augmenter la capacité de la hiérarchie de cache. Les processeurs récents implémente les deux politiques d'inclusion. Le processeur Intel Sandy Bridge a un cache L3 inclusif tandis que les cache L1 et L2 sont non-inclusif.
-
-Pour une politique d'exclusion, une donnée qui se trouve à un niveau du cache, ne peut pas se trouver dans un autre niveau de cache au même moment (voir \autoref{fig:ExclusivePolicy}). L'avantage des caches exclusif est leur capacité de stocker plus de données car une ligne de cache ne se trouve jamais à deux endroits à la fois de la hiérarchie de cache. Cependant, lors d'un \textit{hit} dans le cache L2, le processeur doit échanger la ligne entre les deux niveau de cache L1 et L2, plus long qu'une simple copie.
+Un cache est dit inclusif, si lorsqu'une donnée se trouve à un niveau de la hiérarchie, tous les caches des niveaux supérieur contiennent eux aussi une copie de la donnée (voir \autoref{pic:InclusivePolicy}). Cette politique d'inclusion a un désavantage lorsqu'elle est utilisée sur des système multi-coeurs. En effet, lorsqu'une donnée doit être retiré d'un niveau de cache, le processeur doit aussi l'enlever des niveaux de caches inférieurs.  Un cache non-inclusif permet qu'une ligne du cache de niveau 1 ne soit pas forcément dans le cache de niveau 2. Cela permet d'augmenter la capacité de la hiérarchie de cache. Les processeurs récents implémentent les deux politiques d'inclusion. Le processeur Intel Sandy Bridge a un cache L3 inclusif tandis que les cache L1 et L2 sont non-inclusif. Pour une politique d'exclusion, une donnée qui se trouve à un niveau du cache, ne peut pas se trouver dans un autre niveau de cache au même moment (voir \autoref{pic:ExclusivePolicy}). L'avantage des caches exclusif est leur capacité de stocker plus de données car une ligne de cache ne se trouve jamais à deux endroits à la fois de la hiérarchie de cache. Cependant, lors d'un \textit{hit} dans le cache L2, le processeur doit échanger la ligne entre les deux niveau de cache L1 et L2, plus long qu'une simple copie.
 
 
 
@@ -167,12 +309,12 @@ Les trois politiques de placement les plus utilisées sont: le mappage  \textit{
 
 \paragraph{Cache à correspondance directe (\textit{direct-mapped cache})} utilise une fonction simple pour déterminer l'emplacement (index et offset) du cache à utiliser. Une partie des bits le l'adresse de la \textit{cache line} est utilisée pour déterminer la ligne à utiliser (\textit{index}) par exemple à l'aide d'une opération modulo. L'autre partie est utilisée pour déterminer le décalage dans cette ligne (\textit{offset}). Cette méthode est très rapide mais peut avoir des performances catastrophiques. Un algorithme faisant des sauts en mémoire d'une certaine taille pourrait n'utiliser qu'une seule ligne du cache, le rendant totalement inefficace. Comparé aux caches associatifs, le mappage direct est plus simple à implémenter car un seul comparateur est nécessaire pour déterminer la ligne de cache à utiliser (voir \autoref{fig:cache_schema}).
 
-\paragraph{Cache pleinement associatif (\textit{fully associative cache})} remédie à ce problème en permettant à une \textit{cache line} d'être stockée à n'importe quel emplacement dans le cache. Cependant, cette technique à le désavantage d'être très lente. En effet, une \textit{cache line} pouvant se trouver à n'importe quelle ligne du cache, il faut toutes les comparer pour vérifier sa présence ou non. Pour faire cette comparaison en parallèle, il faudrait implémenter autant de comparateurs que de ligne dans le cache, complexifiant grandement le cache.
+\paragraph{Cache pleinement associatif (\textit{fully associative cache})} remédie à ce problème en permettant à une \textit{cache line} d'être stockée à n'importe quel emplacement dans le cache. Ainsi, la totalité du cache peut être utilisée. Cependant, cette technique à le désavantage d'être très lente. En effet, une \textit{cache line} pouvant se trouver à n'importe quelle ligne du cache, il faut toutes les comparer pour vérifier sa présence ou non. Pour faire cette comparaison en parallèle, il faudrait implémenter autant de comparateurs que de ligne dans le cache, complexifiant grandement le cache.
 
 
 \paragraph{Cache N-associatif (\textit{N-way set associative cache})} permet de réduire le nombre de comparateurs nécessaires en regroupant les lignes du caches potentiellement adressable pour une \textit{cache line} en groupe (\textit{set}). L'exemple de la \autoref{pic:cache_associativite} utilise un cache à 4 set, appelé \textit{4-way associative}. Il ne faut plus que 4 comparateurs pour déterminer si une ligne appartient à un des \textit{set}. Les mappage par association sont plus lents que le mappage direct, car il faut trouver où se trouve la \textit{cache line} (si présente) dans un sous ensemble de ligne de cache plus ou moins grand. Pour accélérer la recherche de la présence ou non d'une ligne de cache, le traitement peut être réalisé en parallèle dans les différents \textit{sets} par l'utilisation de plusieurs comparateurs (4 dans la \autoref{pic:cache_circuit-set-associative}). 
 
-La propriété principale d'un cache est sa capacité à conserver les données pour de futurs accès. Un cache de 8 MB à 2 set associatifs peu sauver jusqu'à 44\% des \textit{miss} comparé à un cache à correspondance directe \cite{Drepper2007}. Sur les architectures récentes Intel Skylake, les caches utilisent entre 8 et 16 associativités, pouvant varier entre les différents niveaux. 
+La propriété principale d'un cache est sa capacité à conserver les données pour de futurs accès. Un cache de 8 MB à 2 set associatifs peu sauver jusqu'à 44\% des \textit{miss} comparé à un cache à correspondance direct \cite{Drepper2007}. Sur les architectures récentes Intel Skylake, les caches utilisent entre 8 et 16 associativités, pouvant varier entre les différents niveaux. 
 
 \begin{figure}
     \begin{subfigure}[t]{\linewidth}\centering
@@ -203,7 +345,7 @@ La propriété principale d'un cache est sa capacité à conserver les données 
 
 \subsubsection{Politique de remplacement}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Que ce soit pour le mappage \textit{fully associative} ou \textit{set associative}, une \textit{cache line} peut être stockée dans plusieurs ligne du cache. Pour déterminer laquelle choisir pour y placer la \textit{cache line}, différentes stratégies peuvent être utilisées, appelées \textit{politique de remplacement}. L'objectif de ces politiques est de maximiser l'utilisation du cache en prévoyant et en anticipant les futures lignes à être accéder pour ne pas les supprimer du cache. Il existe de nombreuses politiques de remplacement, chacune ayant ses avantages et ses inconvénients \cite{wikipedia2_2019}: FIFO, LIFO, LRU, TLRU, MRU, PLRU, RR, SLRU, LFU, LFRU, LFUDA, LIRS, ARC, CAR, MQ. La politique choisie à un réelle impacte sur les performances de l'application. Pour la choisir, il faut trouver un compromis entre la performance la complexité apportée par la mise en place de la politique choisie. Dans le cas du mappage \textit{direct}, la ligne de cache présente à l'emplacement calculé est forcément remplacée et ne nécessite pas d'avoir une politique de remplacement. Il existe deux familles de politiques de remplacement. La première famille regroupe les politiques de remplacements qui tiennent compte de l'utilisation des \textit{cache line} (LRU, FIFO). Ce sont généralement les politiques les plus efficaces. La deuxième famille est celle des politiques aléatoires (\textit{random}, \textit{round robin}) qui ne tiennent pas compte de l'utilisation des données et choisissent une ligne aléatoirement à remplacer. Ces politiques sont performantes en termes de rapidité d'exécution car le choix ne se fait que sur une fonction aléatoire. Cependant, \cite{Al-Zoubi:2004:PEC:986537.986601} montrent que ces techniques utilisent 22\% moins bien le cache, impactant fortement les performances des applications.
+Que ce soit pour le mappage \textit{fully associative} ou \textit{set associative}, une \textit{cache line} peut être stockée dans plusieurs ligne du cache. Pour déterminer laquelle choisir pour y placer la \textit{cache line}, différentes stratégies peuvent être utilisées, appelées \textit{politique de remplacement}. L'objectif de ces politiques est de maximiser l'utilisation du cache en prévoyant et en anticipant les futures lignes à être accéder pour ne pas les supprimer du cache. Il existe de nombreuses politiques de remplacement, chacune ayant ses avantages et ses inconvénients \cite{wikipedia2_2019}: FIFO, LIFO, LRU, TLRU, MRU, PLRU, RR, SLRU, LFU, LFRU, LFUDA, LIRS, ARC, CAR, MQ. La politique choisie à un réelle impacte sur les performances de l'application. Pour la choisir, il faut trouver un compromis entre la performance et la complexité apportée par sa mise en place. Dans le cas du mappage \textit{direct}, la ligne de cache présente à l'emplacement calculé est forcément remplacée et ne nécessite pas d'avoir une politique de remplacement. Il existe deux familles de politiques de remplacement. La première famille regroupe les politiques de remplacements qui tiennent compte de l'utilisation des \textit{cache line} (LRU, FIFO). Ce sont généralement les politiques les plus efficaces. La deuxième famille est celle des politiques aléatoires (\textit{random}, \textit{round robin}) qui ne tiennent pas compte de l'utilisation des données et choisissent une ligne aléatoirement à remplacer. Ces politiques sont performantes en termes de rapidité d'exécution car le choix ne se fait que sur une fonction aléatoire. Cependant, \cite{Al-Zoubi:2004:PEC:986537.986601} montrent que ces techniques utilisent 22\% moins bien le cache, impactant les performances des applications.
 
 
 \paragraph{Least Recently Used} ou LRU remplace la ligne de cache la moins récemment utilisée. Les numéros des lignes utilisée sont stockée dans une pile suivant la date de leur dernière utilisation. La pile est mise à jour lorsqu'une nouvelle donnée est stockée dans le cache en empilant son adresse au sommet de la pile. De même, lors d'un \textit{hit}, la ligne de cache référencé est stockée elle aussi en sommet de pile. Cette méthode à un inconvénient pour certains type d'accès, notamment les parcours de tableau. Imaginons un cache pouvant contenir 4 lignes. Le double parcours d'un tableau mesurant 5 ligne de caches a,b,c,d,e aura les accès mémoire suivant: a,b,c,d,e a,b,c,d,e. Le deuxième accès au tableau ne profitera pas du cache car chaque ligne de cache est remplacée au fur et mesure du parcours du tableau. Des améliorations ont été apportées pour corriger ce problème, comme l'introduction d'un répertoire image \cite{Stone:1987:HCA:31845} qui garde une trace des groupes de lignes de cache utilisées ensemble pour prévoir les accès similaires et anticiper leur accès.
@@ -218,15 +360,14 @@ Que ce soit pour le mappage \textit{fully associative} ou \textit{set associativ
 
 Le cache est une zone mémoire qui évolue en fonction des accès mémoires. Son fonctionnement lors d'un accès (en lecture ou écriture) peut varier en fonction de la présence (\textit{hit}) ou non (\textit{miss}) de la donnée et de la stratégie de cache implémentée.
 
-\paragraph{Lecture:}  Lorsque le processeur accède à une donnée, il vérifie qu’elle n’est pas présente dans ses différents niveaux de cache. Si la donnée est présente, son accès est très rapide. Si ce n’est pas le cas, il réalise alors une copie de la zone mémoire la contenant dans le cache (la taille de la zone est une ligne de cache).
+\paragraph{Lecture:}  Lorsque le processeur accède à une donnée, il vérifie qu'elle n'est pas présente dans ses différents niveaux de cache. Si la donnée est présente, son accès est très rapide. Si ce n'est pas le cas, il réalise alors une copie de la zone mémoire la contenant dans le cache (la taille de la zone est une ligne de cache).
 
-Lire en fonction des inclusion exclusion
 
-\paragraph{Écriture:} la comportement du cache lors d'une écriture dépend de la présence ou non de la \textit{cache line} et la politique employée.
+\paragraph{Écriture:} la comportement du cache lors d'une écriture dépend de la présence ou non de la \textit{ligne de cache} et la politique employée.
 
-Si la ligne de cache n’est pas présente (\textit{miss}) dans le cache, deux solutions sont possibles. La première est de charger la ligne depuis la mémoire et d’y apporter les modifications (politique \textit{Write-Allocate}). La deuxième solution est d’écrire la ligne de cache sans la charger (politique \textit{No-Write-Allocate}). La ligne de cache ne sera chargé que lors d’un miss lors d’une lecture, sauf si la totalité de la ligne a été écrite, les données originales n'ayant plus de valeur utile. Cette option peut être intéressante si un algorithme ne fait qu’écrire dans un structure de donnée sans ne jamais la lire.
+Si la ligne de cache n'est pas présente (\textit{miss}) dans le cache, deux solutions sont possibles. La première est de charger la ligne depuis la mémoire et d'y apporter les modifications (politique \textit{Write-Allocate}). La deuxième solution est d'écrire la ligne de cache sans la charger (politique \textit{No-Write-Allocate}). La ligne de cache ne sera chargé que lors d'un miss lors d'une lecture, sauf si la totalité de la ligne a été écrite, les données originales n'ayant plus de valeur utile. Cette option peut être intéressante si un algorithme ne fait qu'écrire dans un structure de donnée sans ne jamais la lire.
 
-Si la ligne de cache est présente (\textit{hit}) dans le cache, deux solutions sont possibles. La première est de mettre à jour la \textit{cache line} dans le cache et en mémoire pour que le changement soit répercuter sur l'ensemble de la hiérarchie mémoire (politique \textit{Write-Through}). Cette politique peut être pénalisante si le processeur effectue consécutivement la mise à jour d'une donnée (par exemple un compteur, ou un index de bouble).  La seconde solution est de différer l'écriture à plus tard (politique \textit{Write-Back}). L’écriture est effectuée seulement dans le cache et ne sera effective en mémoire seulement lorsque la ligne de cache modifiée sera évincé du cache. La ligne de cache modifiée est alors indiqué grâce à un bit indicatif (\textit{dirty bit}). Comparé à la première méthode, celle ci utilise moins de bande passante car les mises à jour en mémoire sont moins fréquentes. Cependant, si plusieurs coeurs utilisent la même donnée, sa valeur pourrait alors être différente entre leurs caches respectifs (donnée périmée). Il faut alors implémenter un protocole de cohérence de cache entre les différents cache et la mémoire.
+Si la ligne de cache est présente (\textit{hit}) dans le cache, deux solutions sont possibles. La première est de mettre à jour la \textit{cache line} dans le cache et en mémoire pour que le changement soit répercuter sur l'ensemble de la hiérarchie mémoire (politique \textit{Write-Through}). Cette politique peut être pénalisante si le processeur effectue consécutivement la mise à jour d'une donnée (par exemple un compteur, ou un index de bouble).  La seconde solution est de différer l'écriture à plus tard (politique \textit{Write-Back}). L'écriture est effectuée seulement dans le cache et ne sera effective en mémoire seulement lorsque la ligne de cache modifiée sera évincé du cache. La ligne de cache modifiée est alors indiqué grâce à un bit indicatif (\textit{dirty bit}). Comparé à la première méthode, celle ci utilise moins de bande passante car les mises à jour en mémoire sont moins fréquentes. Cependant, si plusieurs coeurs utilisent la même donnée, sa valeur pourrait alors être différente entre leurs caches respectifs (donnée périmée). Il faut alors implémenter un protocole de cohérence de cache entre les différents cache et la mémoire.
 
 Les politiques utilisées lors d'un \textit{miss} ou d'un \textit{hit} peuvent être associés. Les combinaisons les plus utilisées sont \textit{Write-Through} + \textit{No-Write-Allocate} et \textit{Write-Back} + \textit{Write-Allocate}.
 
@@ -274,7 +415,7 @@ L'état $I$ (\textit{invalid}) indique que la ligne n'est pas valide. La lecture
 
 
 
-\paragraph{Protocole globaux - Cohérence par répertoire (\textit{directory based coherence}}
+\paragraph{Protocole globaux - Cohérence par répertoire (\textit{directory based coherence}).}
 
 La seconde famille regroupe les protocoles dits \textit{globaux} utilisent des répertoires et des controleurs émettant les commandes de transferts des lignes de cache (entre les caches ou avec la mémoire)\cite{tang1976cache}. Toutes les informations nécessaire à la gestion de la cohérence sont enregistrées dans un répertoire. Leur performance est meilleure que les protocoles utilisant des techniques de \textit{snooping} et \textit{broadcasting} car ils génèrent moins de trafic. Bien que les protocoles tel que MOESI réduise le trafic mémoire en utilisant des écritures différés, la gestion des cinq états est complexe. Et le trafic généré par la cohérence de cache augmente fortement avec le nombre de coeurs utilisés et peu rapidement voir ses performances s'effondrer \cite{liu2016protocoles}. Les futures architectures à mémoire partagée nécessiteront d'implémenter des protocole de cohérence de cache très performant  \cite{al2010snoopy}.
 
@@ -283,30 +424,5 @@ La seconde famille regroupe les protocoles dits \textit{globaux} utilisent des r
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Mémoire principale}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-
-
-

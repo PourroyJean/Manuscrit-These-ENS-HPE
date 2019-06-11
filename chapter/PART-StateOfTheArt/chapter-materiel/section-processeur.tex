@@ -1,293 +1,8 @@
-\section{Les piles de l'architecture d'un ordinateur}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Pour présenter un sujet complexe, il est courant de regrouper les concepts pour les empiler progressivement (comme le modèle OSI \cite{day1983osi}). Cette section utilise la même approche pour présenter le fonctionnement d'un ordinateur. Cette approche est courante dans la littérature \cite{tanenbaum2016structured, Jalby2013}:
-
-\begin{itemize}
-    \item Niveau 1 - Le circuit logique (\autoref{sec:logique})
-    \item Niveau 2 - L'architecture (\autoref{sec:micro})
-    \item Niveau 3 - Le système d'exploitation
-    \item Niveau 4 - Les langages et compilateurs
-\end{itemize}
-
-Le but de cette section n'est pas de donner un cours d'architecture des ordinateurs, elle présente les principaux niveaux qui sont nécessaires de connaître pour la suite de la thèse. Étudier la base des technologies utilisées est important pour comprendre les challenges auxquels fait face l'industrie des technologies de l'information (IT).
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Le circuit logique} \label{sec:logique}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Le niveau plus bas abordé dans cette thèse est celui des transistors qui sont les composants de bases de tout système électronique. 
-
-\subsection{Les Transistors}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Le premier transistor a été mis au point par des chercheurs des Laboratoire Bell en 1947 \cite{bardeen1948transistor} dont la découverte avait été réalisée quelque années avant \cite{edgar1930method}. Ils apparaissent comme une révolution face aux tube électronique utilisé jusque là (plus rapide, léger et robuste). Un transistor est un composant électronique qui utilise trois bornes: la base, l'émetteur et le collecteur (voir \autoref{pic:transistor}). Le collecteur est relié au fil d'où vient la tension et correspond à la sortie du transistor. L'émetteur est lui relié à la masse (tension 0 volt). La base constitue la connexion en connecteur et émetteur en fonction de la tension qui lui est appliquée. En appliquant une tension faible à la base, le courant entre le collecteur et l'émetteur est possible. Sans aucune tension appliquée à la base, le passage du courant n'est pas possible. Pour les personnes non familières avec ces concepts électrique, une approche vulgarisée peut être utilisée \cite{JohnLeDuc2017}. Ainsi, le transistor se comporte comme un interrupteur binaire très rapide (basculement en quelque nanosecondes $10^{-9}$ seconde).
-
-
-
-\begin{figure}[htbp]
-    \centering
-    \begin{subfigure}[b]{0.45\linewidth}\centering
-        \includegraphics[width=\linewidth]{images/transistor.png}
-        \caption{\label{pic:transistor} Schéma d'un transistor NPN \cite{GeraldHuguenin2018}}.
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-      %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.45\linewidth}\centering
-        \includegraphics[width=0.5\linewidth]{images/processeur_porte_nand.png}
-        \caption{\label{pic:processeur_porte_nand} Schéma électrique d'une porte \textit{NON-ET} réalisée à partir de 4 transistors \cite{Wikibooks2019PorteNand}}
-    \end{subfigure}
-    \caption{Un transistor est utilisée pour réaliser des portes complexes  }\label{pic:transistor_usage}
-\end{figure}
-
-
-
-
-\subsection{Les portes logiques}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Les portes logiques sont construites à partir de transistors et permettent l'exécution de différentes instructions ou la capacité de stocker une information (registres). Par exemple, en associant deux transistors inverseur en série on construit une porte NON-ET qui ne laisse passer le courant seulement lorsque 0 ou 1 des deux entrées à une tension (voir \autoref{pic:processeur_porte_nand})
-
-
-
-Une porte logique possède plusieurs entrée numériques qui peuvent être le résultat d'autres portes logiques (voir \autoref{pic:processeur_portes}). Les circuits les plus complexes sont en fait une cascade de milliers de portes logiques comme celles-ci. Il est aussi nécessaire de choisir la signification du passage ou non du courant et construire des portes ayant un « sens ». Il est courant d'utiliser les termes VRAI ou 1 logique lorsque le courant circule et FAUX ou 0 logique pour l'absence de tension.
-
-
-\begin{figure}
-\begin{subfigure}{.3\textwidth}
-\centering
-\includegraphics[width=3cm]{images/processeur_porte_et.png}
-\caption{La porte \textit{ET} ne laisse passer le courant seulement si les deux entrées sont vraies}
-\end{subfigure}\hfill
-\begin{subfigure}{.3\textwidth}
-\centering
-\includegraphics[width=3cm]{images/processeur_porte_ou.png}
-\caption{La porte \textit{ET} laisse passer le courant si au moins une des deux entrées est vraies}
-\end{subfigure}\hfill
-\begin{subfigure}{.3\textwidth}
-\centering
-\includegraphics[width=3cm]{images/processeur_porte_oux.png}
-\caption{La porte \textit{OU EXCLUSIF} est vrai seulement si les deux entrées ont des valeurs distinctes}
-\end{subfigure}
-\caption{Représentation graphique de trois portes logiques \cite{Wikipedia2019Porte}}
-\label{pic:processeur_portes}
-\end{figure}
-
-
-
-
-\subsection{Algèbre de Boole}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Analyser le fonctionnement de plusieurs portes peut rapidement se complexifier et le recours à des méthodes algébriques est nécessaire. Les portes pouvant avoir des valeurs de 0 ou 1, un nouveau type d'algèbre a été créée: l'algèbre de Boole. Comme pour l'algèbre en base décimale, l'algèbre booléenne utilise des fonctions et des variables pour décrire le comportement d'un système. Les variables utilisées ne peuvent prendre que deux valeurs. Une table de vérité de fonctions générales peut alors être écrite. On peut écrire une table de vérité d'un programme souhaité, qui prend trois entrées et déterminer les sorties ($M$) souhaitées (voir \autoref{pic:processeur_porte_table}). Grâce à l'algèbre de Boole, on peut convertir cette table en circuit implémentant ce fonctionnement (\autoref{pic:processeur_porte_schema}).
-L'algèbre de Boole est aussi utiliser pour réduire la complexité d'un même circuit, sans en changer le comportement, notamment grâce à la fameuse loi de DeMorgan \cite{hurley2014concise} permettant le changement de portes ET en portes OU. En réduisant la complexité et le nombre de portes il est possible de réaliser des circuits plus économiques et plus rapides.
-
-
-\begin{figure}[htbp]
-    \centering
-    \begin{subfigure}[b]{0.40\linewidth}\centering
-        \includegraphics[width=0.4\linewidth]{images/processeur_porte_table.png}
-        \caption{Table de vérité d'un circuit souhaité
-        \label{pic:processeur_porte_table}}
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-      %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[b]{0.40\linewidth}\centering
-        \includegraphics[width=\linewidth]{images/processeur_porte_schema.png}
-        \caption{Circuit logiques  utilisant 8 portes
-        \label{pic:processeur_porte_schema}}
-    \end{subfigure}
-    \caption{A partir d'une table de vérité, on peut générer le circuit logique correspondant \cite{tanenbaum2016structured}  \label{pic:processeur_porte_schema}}
-\end{figure}
-
-
-
-
-\subsection{Circuits logiques}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-A partir des portes logiques et de leur analyse avec l'algèbre de Boole des circuits plus complexes peuvent être élaborés qui peuvent être regroupés en deux grandes familles: les circuits logiques de base  et les circuits logiques à mémoire. La principale différence entre les deux vient de leur capacité à retenir une information. 
-
-\subsubsection{Les circuits logiques de base}
-contiennent les circuits intégrés qui sont des circuits pouvant comporter quelques centaines de portes (circuit SSI, MSI) ou plusieurs centaines de milliers (circuit LSI et VLSI) \cite{barbe2013very}.
-Les circuits combinatoires ne dépendent que des entrées ne possédant pas de mémoire interne pouvant influer sur le résultat. Parmi eux, nous pouvons citer le multiplexeur (permet de choisir une entrée parmi n), les circuits arithmétiques (additionneur, décaleur) et l'horloge. 
-Ces circuits de bases sont utilisés pour construire les unités arithmétique et logique des processeurs. Ce circuit intégré aux processeurs est la puce responsable des opérations arithmétiques, de comparaisons et de décalage. Elle est présentée plus amplement dans la partie \autoref{sec:alu}.
-
-
-\subsubsection{Circuits à mémoire}
-La deuxième famille de circuits comporte un des composants fondamentale des ordinateurs qui permet la construction de mémoires. Cette capacité de mémorisation est permis grâce à l'utilisation de deux portes NON-ET (\autoref{pic_processeurs_porte_bascule_nand}) ou NON-OU (\autoref{pic_processeurs_porte_bascule_nor}). La particularité de ce circuit, appelé bascule, est la réutilisation de la sortie d'une porte comme entrée d'une seconde. 
-Les deux entrées d'un tel circuit peuvent être assimilées à une commande de mise à 1 (set) et de remise à 0 (reset).
-
-\begin{figure}
-    %\centering
-    \begin{subfigure}[]{0.48\linewidth}\centering
-        \includegraphics[width=0.60\linewidth]{images/processeurs_porte_bascule_nand.png}
-        \caption{Implémentation à partir de portes \textit{NON-ET}}
-        \label{pic_processeurs_porte_bascule_nand}
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
-      %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[]{0.48\linewidth}\centering
-        \includegraphics[width=0.60\linewidth]{images/processeurs_porte_bascule_nor.png}
-        \caption{Implémentation à partir de portes \textit{NON-OU}}
-        \label{pic_processeurs_porte_bascule_nor}
-    \end{subfigure}
-    \caption{Réalisation d'une bascule à partir de deux types de portes. La bascule maintient son état actuelle tant que les signaux d'entrée ne changent pas}
-    \label{fig_processeurs_porte_bascule}
-\end{figure}
-
-
-\subsection{Les mémoires RAM}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-La mémoire à accès aléatoires ou \textit{Random Acces Memory} (RAM) est une mémoire dont le temps d'accès ne dépend pas de la position de l'information. Contrairement aux disques ou aux bandes magnétiques dont le temps d'accès pouvait varier en fonction de l'emplacement actuelle de la tête de lecture et de la prochaine donnée à lire.
-
-La RAM est une mémoire volatile, l'information stockée n'est pas persistante lorsque la mémoire n'est plus alimentée. Il y a eu beaucoup d'évolution des différentes technologies RAM depuis leur créations. Il en existe différents types, ayant leurs avantages et leurs inconvénients. Dans une plate-forme actuelle, deux types de mémoires RAM sont principalement utilisées: la RAM statique (SRAM, \autoref{pic_processeurs_porte_sram}) et la RAM dynamique (DRAM, \autoref{pic_processeurs_porte_sram}). La raison principale de la présence de deux types de RAM vient de leur différence de coût. La SRAM, bien que plus rapide, est aussi beaucoup plus chère. Cette différence de prix s'explique par l'architecture des deux mémoires ((\autoref{fig_processeurs_ram}).
-
-
-\begin{figure}
-    %\centering
-    \begin{subfigure}[]{0.48\linewidth}\centering
-        \includegraphics[width=0.60\linewidth]{images/processeurs_porte_sram.png}
-        \caption{Mémoire vive statique (SRAM) utilisant 6 transistors}
-        \label{pic_processeurs_porte_sram}
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
-      %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[]{0.48\linewidth}\centering
-        \includegraphics[width=0.60\linewidth]{images/processeurs_porte_dram.png}
-        \caption{Mémoire vive dynamique (DRAM) utilisant un condensateur et un transistor}
-        \label{pic_processeurs_porte_sram}
-    \end{subfigure}
-    \caption{Deux types de RAM très utilisées dans les architectures. La différence de complexité de leur circuit électronique explique la différence de prix entre les deux technologies}
-    \label{fig_processeurs_ram}
-\end{figure}
-
-\subsubsection{La SRAM} est un circuit logique qui utilise 6 transistors pour représenter les état 0 et 1 (bien qu'il existe des variantes utilisant 4, 8 ou même 10 transistors). Une SRAM à 6 transistors en utilise 4 pour stocker l'information. Deux transistors additionnels sont utilisés pour contrôler leur accès durant leur lecture ou écriture.
-Il est courant d'utiliser différent type de SRAM dans les différents niveaux de caches pour optimiser la densité (mémoire de plus grande capacité) ou la vitesse d'accès. Le premier niveau de cache étant optimisé pour la vitesse d'accès, contrairement aux cache de niveau supérieur de plus grande capacité.
-
-
-\subsubsection{La DRAM} à une structure plus simple que la SRAM qui n'est composé que d'un transistor et d'un condensateur. La valeur du bit est déterminée par la charge (positive ou négative) du condensateur. Qu'il soit VRAI ou FAUX, le condensateur doit donc être chargé. 
-A cause des fuites (\textit{leakage}) les condensateurs doivent être rafraîchis en permanence. La fréquence de rafraîchissement est de l'ordre de 1\% à 5\% du temps totale d'utilisation de la mémoire. C'est cette spécificité qui fait de la DRAM une mémoire très consommatrice en énergie. Grâce à leur faible nombre de transistors, la densité des mémoires DRAM est élevée permettant la construction de mémoire de grande capacité (en GiB). Cependant, La lecture d'une cellule décharge le condensateur, il faut donc, même lors d'une lecture, le recharger.
-La charge et la décharge du condensateur n'étant pas instantanés, la DRAM est beaucoup plus lente que la SRAM (une cellule ne pouvant pas être accédé pendant son rafraîchissement).
-La quasi totalité des ordinateurs des 50 dernières années ont une mémoire centrale utilisant de la DRAM.
-
-Il existe plusieurs types de DRAM: DDR, GDDR, QDR, HBMC, HMC.
-
-
-\subsubsection{SRAM vs DRAM}
-
-L'avantage de la SRAM est sa rapidité de fonctionnement et sa faible consommation électrique. Contrairement à la DRAM, la SRAM est statique, elle conserve l'information et ne nécessite pas de rafraîchissement périodique pour conserver la donnée enregistrée. Cependant, elle s'efface si aucune tension ne lui est appliqué en continue.
-Le principale inconvénient de la SRAM vient de son coût de fabrication ainsi que leur faible densité (due à l'utilisation de 6 transistors)
-
-
-\begin{table}[]
-\begin{tabular}{l|l|l|}
-\cline{2-3}
-                                       & SRAM     & DRAM             \\ \hline
-\multicolumn{1}{|l|}{Prix/bit}         & élevé    & bas              \\ \hline
-\multicolumn{1}{|l|}{Vitesse d'accès}  & rapide   & lent             \\ \hline
-\multicolumn{1}{|l|}{Latence}          & 0.5-5 ns & 50-70 ns        \\ \hline
-\multicolumn{1}{|l|}{Rafraichissement} & non      & oui              \\ \hline
-\multicolumn{1}{|l|}{Consommation}     & basse    & élevée           \\ \hline
-\multicolumn{1}{|l|}{Énergie/bit}      & n pj     & n pj             \\ \hline
-\multicolumn{1}{|l|}{Densité}          & faible (6 transistors par bit)   & élevée (1 transistor par bit)          \\ \hline
-\multicolumn{1}{|l|}{Complexité}       & grande   & faible           \\ \hline
-\multicolumn{1}{|l|}{Utilisation}      & Cache    & Mémoire centrale \\ \hline
-\multicolumn{1}{|l|}{Endurance}        & todo     & $10^{16}$           \\ \hline
-\end{tabular}
-\end{table}
-
-
-
-
-\subsection{Évolution des transistors}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsubsection{Le transistors, élément central des systèmes informatiques.}
-La vitesse de calcul d'un processeur ou la capacité de stockage d'une mémoire sont directement liées à aux nombre de transistors disponible sur une puce. 
-Plus un processeur aura de transistors, au plus il pourra calculer rapidement (ajout de coeur, meilleurs unités de calculs). Plus une mémoire aura de transistors, au plus elle pourra contenir de cellule RAM et donc avoir une grande capacité de stockage. La performance des systèmes informatiques est donc directement lié aux technologies de transistors utilisées. 
-
-
-\subsubsection{Évolution du nombre de transistors.}
-L'évolution du nombre de transistors sur une puce a été prédit par l'un des trois fondateur de la société Intel, Gordon Moore. En 1965, Gordon Moore prévoit que le nombre de transistor gravable doublera chaque année, sur une même surface, pour un coût constant \cite{Moore1998}. Il réévaluera cette période à 2 ans en 1975 \cite{Moore75}, ce qui correspond parfaitement avec l'évolution réelle jusqu'à ces dernières années (\autoref{pic_Moore_prediction}). 
-
-
-
-\begin{figure}
-    %\centering
-    \begin{subfigure}[]{0.48\linewidth}\centering
-        \vspace{1cm}
-        \includegraphics[width=\linewidth]{images/Chapitre1/Moore_prediction.png}
-        \caption{\label{pic_Moore_prediction} Évolution du nombre de transistors des processeurs Intel (données \cite{Wikipedia2019Transistor})}
-    \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
-      %(or a blank line to force the subfigure onto a new line)
-    \begin{subfigure}[]{0.48\linewidth}\centering
-        \includegraphics[width=0.9\linewidth]{images/processeurs_porte_moore_dram.png}
-        \caption{La loi de Moore s'applique aux processeurs comme aux mémoires DRAM.}
-        \label{processeurs_porte_moore_dram}
-    \end{subfigure}
-    \caption{La loi de Moore décrit l'évolution de la densité de transistors qui double tous les deux ans pour un prix constant.}
-    \label{fig_processeurs_moore}
-\end{figure}
-
-
-
-
-
-\subsubsection{Coût de la gravure.}
-
-La notion de coût est souvent oublié lorsque la loi de Moore est citée. Cependant c'est un aspect fondamentale de la loi. Les procédés de fabrication étant plus complexes, les usines de fabrication coûtent elles aussi de plus en plus cher. L'augmentation du coût des fonderies à lui aussi été prédit par la seconde loi de Gordon Moore (loi de Rock), qui estime que leur prix double tous les 4 ans \cite{schaller1997moore}. Bien que les coût de fabrication augmentent, la taille de gravure s'affine et permet de mettre plus de transistor sur une même surface, permettant ainsi à l'industrie de suivre la cadence dictée par la loi de Moore (\autoref{pic_Moore_explique}).
-
-\begin{figure}
-    \center
-    \includegraphics[width=10cm]{images/processeurs_porte_moore.png}
-    \caption{\label{pic_Moore_explique} Bien que le prix des fonderie augmente, le nombre de transistors gravable sur une puce augmente plus rapidement. Conséquence de la loi de Moore: le prix par transistor diminue exponentiellement.}
-\end{figure}
-
-
-
-\subsubsection{Les fondeurs.}
-Pour doubler le nombre de transistors sans changer la surface grave, il faut graver des transistors deux fois plus petits. 
-Depuis plus de cinquante ans, les \textbf{fondeurs} (les industriels responsable de la gravure des processeurs) tels que Samsung Electronics, TSMC, Intel et GlobalFoundries ont développés de nombreuses techniques et technologies pour réduire la taille des transistors (voir \autoref{processeurs_porte_fondeurs}). Aujourd'hui, de nombreuses étapes sont nécessaire pour transformer une plaque de silicium (la plus pure possible) en processeurs: dopage, déposition d'une couche de résine, gravure, traitement thermique, revêtement par couche mince, découpe, encapsulation... \cite{AnthonyNelzinSantos2018}.
-Les procédés de fabrication étant plus complexes, les usines de fabrication coûtent elles aussi de plus en plus cher. L'augmentation du coût des fonderies à lui aussi été prédit par la seconde loi de Gordon Moore (ou \textit{loi de Rock}), qui estime que leur prix double tous les 4 ans \cite{schaller1997moore}.
-
-
-Cependant, les finesses de gravures atteintes aujourd'hui sont tellement faibles qu'elles atteignent une limite physique, celle de la taille des atomes. A des tailles proches de quelques atomes, les courants électriques ne sont plus stables et la course à la réduction des finesses de gravure n'a jamais été aussi difficile.
-Voila plusieurs années, qu'Intel ne parvient plus à descendre sous les 10 nm. Les procédés à mettre en oeuvre pour y parvenir sont si complexes, qu'il est courant de parler de la fin de la loi de Moore \cite{theis2017end}.
-En 2019, Samsung annonce qu'il a mis au point une technologie permettant la gravure des premiers processeurs en 3 nm dès 2021 \cite{AdrianBRANCO2019}. 
-
-
-\begin{figure}
-    \center
-    \includegraphics[width=10cm]{images/processeurs_porte_fondeurs.png}
-    \caption{\label{processeurs_porte_fondeurs} Les technologies utilisées pour la gravure ont évoluées, rendant les fonderies plus performantes mais aussi plus chères (source Intel).}
-\end{figure}
-
-
-
-
-
-
-
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Niveau 1 - L'architecture} \label{sec:micro}
+\section{L'architecture} \label{sec:micro}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Dans la section \autoref{sec:logique} sont présentés les transistors, les éléments de bases des ordinateurs. Les transistors sont groupés en portes logiques pour construire des circuits électroniques. Cette section présente comment ces circuits sont utilisés pour construire la micro-architecture d’un ordinateur, capable d’exécuter les instructions défini par une \textit{Instruction Set Architecture} (ISA). L’objectif n’est pas de présenter la totalité de la micro-architecture mais seulement les éléments importants nécessaires pour la suite de la thèse.
-
-
-
-\subsection{Introduction}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+Dans la section \autoref{sec:logique} sont présentés les transistors, les éléments de bases des ordinateurs. Les transistors sont groupés en portes logiques pour construire des circuits électroniques. Cette section présente comment ces circuits sont utilisés pour construire la micro-architecture d'un ordinateur, capable d'exécuter les instructions défini par une \textit{Instruction Set Architecture} (ISA). L'objectif n'est pas de présenter la totalité de l'architecture mais seulement les éléments importants nécessaires pour la suite de la thèse.
 
 
 Afin d'éviter toutes confusions, nous rappelons la définition de la micro-architecture et de l'ISA car ces termes sont souvent confondus dans la littérature:
@@ -303,48 +18,25 @@ Afin d'éviter toutes confusions, nous rappelons la définition de la micro-arch
 \end{itemize}
 
 
-Le développement d'une nouvelle micro-architecture doit prendre en compte plusieurs facteurs qui peuvent impacter son implémentation (vitesse de traitement des instructions, le coût de fabrication, la fiabilité, consommation électrique, taille). Ces différents facteurs font pression sur les architectes de processeurs qui doivent redoubler d'inventivité pour les satisfaire en implémentant des optimisation matériels.
 
-Les améliorations ont pour but d’améliorer la performance de l’architecture, la plus part du temps de façon transparente pour l’utilisateur. Cependant, un programmeur n’étant pas avertis de ces optimisations, pourrait écrire des applications inefficaces voire contre-productive. Les développeurs d’applications \textit{HPC} étant généralement des scientifiques experts dans leur domaine (physique, chimie, mécanique…), il est fréquent de voir des codes peu efficaces. Cette section, liste les principales améliorations des micro-architectures qu'il faut connaître et utiliser pour exploiter le maximum des performances disponibles. 
-
-
-Pour améliorer la vitesses d’exécution d’un programme, 4 moyens peuvent être utilisés.
-Le premier est l’utilisation d’un nouveau matériel, plus rapide, consommant moins d'énergie, moins cher ou plus dense.
-Le deuxième moyen est de réaliser les calculs plus rapidement, ou plus simplement. 
-Le troisième est de réduire le temps nécessaire pour exécuter ces instructions. 
-Enfin, le quatrième moyen est d’exécuter plusieurs instructions en parallèle. Les deuxième et troisième points peuvent être réalisés par deux techniques: dynamique ou statique.
-Les méthodes statiques interviennent avant que le code soit exécuté. Généralement, c’est le compilateur qui les implémente lors de la génération du code. Les techniques dynamiques sont mis en oeuvre au fil des exécutions d’instructions. Elles nécessitent donc du matériel spécialisé supplémentaire et sont donc très coûteuses. 
-
-La section présente les principales techniques et matériels utilisés pour l’amélioration des performances (dynamique et statique). Deux améliorations majeures que sont la hiérarchie mémoire et la mémoire virtuelle sont présentées dans deux section distinctes.
-
-
-
-
-
-\subsection{Nouvelles technologies}
+\subsection{Performance d'une architecture}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-La performance de la micro-architecture ont pu bénéficier de nombreuses évolutions technologiques.
-La mémoire DRAM à vu ses performances évoluer d'un facteur 10 depuis les premières versions de \textit{SDRAM} dans les années 90. La passage de la SDRAM à la \textit{Double Data Rate} (DRAM) permet d'envoyer deux données par signal d'horloge. Les principales évolutions des performances de la mémoire sont résumé dans le \autoref{tab_ddr}. Ces nouvelles technologies sont crutiale pour la construction des micro-architectures. Les principales technologies qu'il est nécessaire d'appréhender pour la construction d'un supercalculateur Exascale sont décrite dans la \autoref{sec:opportunites}. 
 
-\begin{table}[]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}|l|c|c|c|c|c|@{}}
-\toprule
-\rowcolor[HTML]{EFEFEF} 
-\textbf{DDR Standard} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Vitesse Bus (MHz)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Prefetch}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Débit (MT/s)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Bande passante (GB/s)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}\textbf{Tension (V)}} \\ \midrule
-SDRAM & 100-166 & 1n & 100-166 & 0.8-1.3 & 3.3 \\ \midrule
-DDR & 133-200 & 2n & 266-400 & 2.1-3.2 & 2.5/2.6 \\ \midrule
-DDR2 & 266-400 & 4n & 533-800 & 4.2-6.4 & 1.8 \\ \midrule
-DDR3 & 533-800 & 8n & 1066-1600 & 8.5-14.9 & 1.35/1.5 \\ \midrule
-DDR4 & 1066-1600 & 8n & 2133-3200 & 17-21.3 & 1.2 \\ \bottomrule
-\end{tabular}%
-}
-\caption[Évolution des technologies de mémoire DRAM]{Les évolution des technologies mémoires DDR ont permis d'améliorer les vitesses de transferts d'un facteur dix en divisant par trois leur consommation électrique\protect\footnotemark}
-\label{tab_ddr}
-\end{table}
-\footnotetext{source: \url{https://www.transcend-info.com/Support/FAQ-296}}
+Le développement d'une nouvelle micro-architecture doit prendre en compte plusieurs facteurs qui peuvent impacter son implémentation (vitesse de traitement des instructions, le coût de fabrication, la fiabilité, consommation électrique, taille). Ces différents facteurs font pression sur les architectes de processeurs qui doivent redoubler d'inventivité pour les satisfaire en implémentant des optimisation matériels.
+
+Les améliorations ont pour but d'améliorer la performance de l'architecture, la plus part du temps de façon transparente pour l'utilisateur. Cependant, un programmeur n'étant pas avertis de ces optimisations, pourrait écrire des applications inefficaces voire contre-productive. Les développeurs d'applications \textit{HPC} étant généralement des scientifiques experts dans leur domaine (physique, chimie, mécanique…), il est fréquent de voir des codes peu efficaces. Cette section, liste les principales améliorations des micro-architectures qu'il faut connaître et utiliser pour exploiter le maximum des performances disponibles. 
+
+
+Pour améliorer la vitesses d'exécution d'un programme, quatre moyens peuvent être utilisés:
+\begin{itemize}
+    \item Utiliser une nouvelle technologie, plus rapide, consommant moins d'énergie, moins cher ou plus dense (technologie mémoire, fibre optique...). Les nouvelles technologies sont nombreuses et les principales sont listées et discutées dans la \autoref{sec:opportunité}. 
+    \item Améliorer l'efficacité des instructions: \autoref{sec:efficacite} 
+    \item Accélérer l'exécution des instructions: \autoref{sec:accelerer}
+    \item Exécuter les instructions en parallèle: \autoref{sec:para}
+\end{itemize}
+
+Quand elles ne sont pas matérielles, ces différentes améliorations peuvent être réalisés par deux techniques: dynamique ou statique. Les méthodes statiques interviennent avant que le code soit exécuté. Généralement, c'est le compilateur qui les implémente lors de la génération du code. Les techniques dynamiques sont mis en oeuvre au fil des exécutions d'instructions. Elles nécessitent donc du matériel spécialisé supplémentaire et sont donc très coûteuses. La section présente les principales techniques et matériels utilisés pour l'amélioration des performances (dynamique et statique). Deux améliorations majeures sont présentées dans deux section distinctes: la hiérarchie mémoire (\autoref{sec:hierarchie} et la mémoire virtuelle (\autoref{sec:memoire_virtuelle}).
 
 
 
@@ -352,12 +44,14 @@ DDR4 & 1066-1600 & 8n & 2133-3200 & 17-21.3 & 1.2 \\ \bottomrule
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Améliorer l'efficacité de l'exécution} \label{sec:efficacite}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
 
-
-\subsection{Jeu d'instructions ISA } \label{sec:isa}
+\subsubsection{Jeu d'instructions ISA } \label{sec:isa}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Le choix de l'\textit{ISA} à implémenter est le premier choix à réaliser lors du développement d'une nouvelle micro-architecture. L'\textit{ISA} utilisée à un impact sur la performance, la facilité de programmation, les applications compatibles...
@@ -372,24 +66,188 @@ Ces deux familles d'instructions ont toutes deux leurs avantages et leurs inconv
 
 
 
-\paragraph{Extensions vectoriels} Pour tirer partie de la puissance de calculs des processeurs et des unités de calculs vectorielles, les \textit{ISA} ont reçu de nombreuses extensions. L'\textit{ISA x86} à reçu plus de dix extensions dans les vingts dernières années pour s'adapter à l'agrandissement des unités verctorielles. Les principales sont \textit{MMX} (1996), \textit{3DNOW!} (1998), 6 versions de \textit{SSE} de 1999 à 2008 et enfin \textit{AVX-2} et \textit{AVX-512} en 2013 et 2015.
+\paragraph{Extensions vectorielles}.
+Pour tirer partie de la puissance de calculs des processeurs et des unités de calculs vectorielles, les \textit{ISA} ont reçu de nombreuses extensions (\autoref{tab_simd}).
+C'est en 1995 que Sun Microsystem introduit son premier jeu d'instruction vectoriel, le Visual Instruction Set auquel Intel répondra en 1997 avec son processeur Pentium MMX et le jeu d'instructions du même nom. Ainsi ces instructions pouvaient réaliser des opérations sur les jeux de données tel que les images ou vidéos de facon tres performante. En 1997 AMD viendra ameliorer le jeu d'instruction MMX avec l'implémentions des instructions 3DNow ! qui rendait alors possible les operations vectoriels sur les nombre flottant. La possibilite de faire une operation sur deux nombre flottant par cycle doublait alors la performance des processeurs. Intel repondit alors a cette avance avec le jeu d'instructions Streaming SIMD Extensions (SSE) en 1999. Il est alors facile d'augmenter la puissance des processeurs : il suffit d'augmenter la taille des vecteurs.
+L'\textit{ISA x86} reu plus de dix extensions dans les vingts dernires annes pour s'adapter l'agrandissement des units vectorielles. Les principales sont \textit{MMX} (1996), \textit{3DNOW!} (1998), 6 versions de \textit{SSE} de 1999 2008 et enfin \textit{AVX-2} et \textit{AVX-512} en 2013 et 2015. videmment, les codes ne peuvent pas profiter de ces instructions sans une micro-architecture capable de les excuter. Ces micro-architectures sont prsentes dans la sous-section suivante. 
+
+
+\begin{table}[]
+\centering
+\caption{Évolutions principales des instructions SIMD $x86$}
+\label{tab_simd}
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Année}} & \multicolumn{1}{c|}{\textbf{Nom}} & \multicolumn{1}{c|}{\textbf{Nb registres}} & \multicolumn{1}{c|}{\textbf{Taille (bit)}} & \multicolumn{1}{c|}{\textbf{Registres}} & \multicolumn{1}{c|}{\textbf{Commentaires}} \\ \hline
+1996                                 & MMX                               & 8                                          & 64                                         & MM0                                     & Nombre entiers
+\\ \hline
+1999                                 & SSE                               & 8                                          & 128                                        & XMM0                                    & 120 instr., simple precisions              \\ \hline
+2006                                 & SSSE3                             & 8                                          & 128                                        & XMM0                                    & 300 instr., double précisions              \\ \hline
+2008                                 & AVX                               & 16                                         & 128                                        & XMM0                                    & FMA4, op. a 3 opérandes                    \\ \hline
+2011                                 & AVX2                              &  16                                          & 256                                        & YMM0                                    &                                            \\ \hline
+2013                                 & AVX512                            & 32                                         & 512                                        & ZMM                                     & FMA3                                       \\ \hline
+\end{tabular}
+\end{table}
 
 \begin{figure}
     \center
-    \includegraphics[width=10cm]{images/processeur_archi.png}
-    \caption{\label{processeur_archi} Évolution des extensions SIMD de l'ISA \textit{x86}}
+    \includegraphics[width=7cm]{images/Chapitre1/simd_registres.png}
+    \caption{\label{pic_simd_registres} Découpage d'un registre de 512 bits}
 \end{figure}
 
+\subsubsection{Les processeurs vectoriels } \label{sec:cpu_vectoriel}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Dans les années 90, les ordinateurs personnels commençaient à être utilisés pour le multimédia (film, image, musique). Dans le but d'augmenter la performance des applications les architectes ont voulu améliorer l'efficacité des instructions en implémentant des architectures SIMD (Single Instruction Multiple Data de la taxonomie de Flynn ). 
 
 
+L'architecture vectorielle repose sur les même fondement que l'architecture superscalaire: réduire le temps d'exécution d'un code en utilisant le parallélisme et diminuer le coût en transistors de la micro-architecture par la mise en commun du matériel entre plusieurs unités de calculs (\autoref{pic_cpu_simd}). La pression que subit l'unité responsable du \textit{fetch} et du \textit{decode} est donc réduire car avec une seule instruction vectorielle, le processeur réalise le travaille de plusieurs instructions scalaires.  Contrairement au processeur scalaire qui exécutent une instructions sur une seule donnée, les processeurs vectoriels sont capables d'exécuter une instructions sur plusieurs données simultanément (\autoref{pic_simd2}).
 
 
+Il en résulte que doubler largeur des instructions revient à doubler le nombre de FLOP réalisable par le processeur alors que la consommation électrique augmentera d'un facteur inférieur à 2. Beaucoup d'efforts ont donc été réalisé pour être capable d'utiliser cette technologie, par exemple la majorité des compilateurs est capable de détecter les zones de codes parallélisable pouvant bénéficier d'instructions SIMD.
+
+Cependant, dans la pratique les codes ne sont pas aussi parallèle que nous le souhaiterions et certains aspect du code empêche de tirer la totalité de la performance disponible. En effet, si les données sont indépendantes les unes des autres, il est alors impossible de les calculer simultanément rendant la partie vectorielle inutilisable. Aussi, les performances peuvent être réduites si les données accédées ne sont pas continues en mémoire. Cela demande donc un travail supplémentaire pour repenser les structures de données et s'assurer que les donnes transférées sur le bus mémoire sont des données utiles (voir le concept de ligne de cache dans la \autoref{sec:cache}).
+
+\begin{figure}
+    \begin{subfigure}[]{0.5\linewidth}\centering
+        \vspace{1.6cm}
+        \includegraphics[width=.5\linewidth]{images/cpu_simd.png}
+        \label{pic_cpu_simd}
+        \caption{Un processeur vectoriel exécute une même instruction sur différentes données}
+    \end{subfigure}%
+    ~ %space
+    \begin{subfigure}[]{0.5\linewidth}\centering
+        \includegraphics[width=\linewidth]{images/Chapitre1/simd.png}
+        \caption{Schéma de fonctionnement d'une multiplication vectorielle\protect\footnotemark}
+        \label{pic_simd2}
+    \end{subfigure}
+   
+    \caption{Un processeur vectoriel travaille sur un groupe de données indépendantes. Les opérandes sont alors stockées dans des registres vectoriels capable de charger un vecteur pour y appliquer une même opération.}
+    \label{pic_simd}
+\end{figure}
+\footnotetext{source:\url{https://software.intel.com/en-us/articles/ticker-tape-part-2}}
 
 
-\subsection{Accélérer l'exécution d'une instruction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Accélérer l'exécution des instructions} \label{sec:accelerer}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+\subsubsection{Lien entre fréquence et performance}
+Les processeurs sont des circuits électronique dits \textit{synchrone}. Leur fonctionnement est cadencé par une horloge donnant des impulsions régulières aux composants du circuit pour organiser leur synchronisation. Lorsqu'une instruction est exécutée par le processeur les passages dans les différentes étapes de la micro-architecture et notamment du pipeline sont régis par cette horloge. Au plus l'horloge est rapide, au plus l'exécution l'est aussi. Cependant, la durée séparant deux signaux (un cycle) ne peut pas être réduite autant que tout architecte le souhaiterait. En effet, les vitesses d'horloges sont si rapide, qu'il est nécessaire de laisser suffisamment de temps au signal électrique de se propager dans le circuit. La taille du processeur et sa fréquence sont donc liées, c'est notamment pour cette raison qu'il n'existe pas de processeur mesurant plusieurs dizaines de centimètres. À une fréquence de 3 GHz, le signal électrique, qui se déplace à la vitesse de la lumière, ne peut parcourir que 15 centimètres entre deux cycles. Au temps de propagation il faut aussi prévoir le temps de préparer et recevoir la communication. L'augmentation de la fréquence des processeurs à donc une première limite physique infranchissable bien que d'autres limites présentées dans cette partie soient encore plus contraignantes.
+
+La fréquence des processeurs a beaucoup évoluée depuis les premiers processeurs (\autoref{pic_cpu_frequency}). Les premiers processeurs \textit{Pentium} d'Intel utilisaient des fréquences de 60 MHz en 1993. Pendant plus de dix ans, les fréquences ont évoluées chaque année d'un facteur de 40\%  \textbf{tous les deux ans ou un ans ???}pour atteindre des vitesses de plusieurs Gigahertz. En 2000, Intel annonçait la fabrication de processeurs cadencés à 10 GHz\footnote{source \url{https://www.clubic.com/actualite-1791-des-processeurs-intel-10-ghz-pour-2005.html}} pour les années 2005. Pourtant, en 2019, nous sommes encore loin d’utiliser des processeurs avec de telles cadences. Mise à part les systèmes surcadencés, utilisant des système de refroidissement liquide, il est rare de voir des systèmes utiliser des processeurs récents à plus de 5 Ghz.
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/cpu_frequency.jpg}
+    \caption{\label{pic_cpu_frequency} Évolution de la fréquence des processeurs\protect\footnotemark.}
+\end{figure}
+\footnotetext{source: \url{https://en.wikipedia.org/wiki/Beyond_CMOS}}
+
+Le but de cette section est comprendre pourquoi l'évolution de la fréquence des processeurs s'est arrêtée brusquement autour des 4 GHz. Pour cela, nous expliquons comment la loi de Moore a permis d'en arriver là, et quelles sont les limites physiques qui empêchent de poursuivre cette évolution.
+
+\subsubsection{Loi de Dennard}
+Comme constaté dans la section précédente, la fréquence de l'horloge d'un processeur est limitée par le temps nécessaire au signal de se propager entre deux éléments d'un circuit. Au plus les transistors seront proches, au plus la vitesse de propagation sera faible. La loi de Moore prévoit que le nombre de transistors double tout les deux ans pour une surface donnée. Cela est rendu possible par l'affinement de la gravure permettant de réaliser des transistors toujours plus petits et donc plus proches. Avec plus de transistors, les processeurs peuvent utiliser des pipelines plus complexes, entre divisant les étapes les plus longues permettant aussi l'utilisation de fréquence plus élevée. Nous expliquons comment l'évolution de la fréquence des processeurs est intimement liée avec la loi de Moore en utilisant la formule de la consommation électrique d'un circuit CMOS \cite{martin2014post}:
+\begin{equation}
+P = QfCV^{2} +  VI_{leakage}
+\label{eq:power}
+\end{equation}
+
+L'intérêt de cette formule est d'apprécier comment la puissance et la fréquence d'un processeur est impactée par la loi de Moore. Pour cela, nous étudions sa variation entre deux générations de processeurs, c'est à dire une période de deux ans.
+
+\paragraph{Le nombre de transistors $Q$.} D'après la loi de Moore, le nombre de transistors double tous les deux ans pour un circuit de même surface. Ainsi la surface des transistors est divisée par deux. Leurs longueur et largeur est ainsi réduite d'un facteur $\sqrt{2}$. Cette valeur est appelé facteur de \textit{scaling} et a une valeur de $1.44$.
+
+\paragraph{La capacité du circuit $C$.} La capacité d'un transistor peut être calculée par la formule suivante $C = \frac{S \times e}{d}$. Avec $S$ la surface du transistor, $e$ la permitivité électrique du matériau utilisé (pouvant être considéré comme fixe entre deux générations), et $d$ la distance séparant la grille et le semi-conducteur (isolant). Comme vu précédemment, la surface $S$ d'un transistor est divisé par $2$ entre deux générations. La distance $d$ est elle réduite par un facteur $\sqrt{2}$. Tous les deux ans, la capacité d'un transistor est donc réduite de $\sqrt{2}$. 
+
+\paragraph{La fréquence du circuit $f$.} La fréquence d'utilisation d'un transistor dépend essentiellement de la vitesse à laquelle la grille peut être chargée ou déchargée. Diminuer sa capacité diminue du même facteur ce temps de remplissage. Entre deux générations, la fréquence est supposée augmenter d'un facteur $\sqrt{2}$. Cette valeur correspond bien à l'augmentation de $40\%$ constatée dans l'introduction de cette section. 
+
+\paragraph{La tension de fonctionnement $V$.} La tension est proportionnelle à la finesse de grave utilisée. Diviser la finesse de gravure pas un coefficient de $\sqrt{2}$ rien à diviser la tension de fonctionnement par le même facteur. 
+
+\paragraph{Les courants de fuites $I_{leakage}$.} Les courants de fuites sont considérés comme négligeables (pour le moment). 
+
+\paragraph{Variation de $P$.} A une tension de fonctionnement $V$ égale entre deux générations de processeurs et en reprenant les variations des différentes valeurs, nous constatons que $P$ ne varie pas entre deux générations. La baisse de capacité compenser l'augmentation de la fréquence (facteur $\sqrt{2}$). La baisse de V NTM 
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage{graphicx}
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lc}
+\hline
+\rowcolor[HTML]{EFEFEF} 
+{\color[HTML]{000000} Paramètre} & {\color[HTML]{000000} Coefficient multiplicateur (tous les deux ans)} \\ \hline
+Finesse de gravure & $\frac{1}{\sqrt{2}}$ \\
+Nombre de transistors par unité de surface & $2$ \\
+Tension d'alimentation & $\frac{1}{\sqrt{2}}$ \\
+Capacité d'un transistor & $\frac{1}{\sqrt{2}}$ \\
+Fréquence & $\sqrt{2}$ \\ \hline
+\end{tabular}%
+}
+\caption{ Résumé des impacts de la diminution de la finesse de gravure d'un facteur $\sqrt{2}$\protect\footnotemark.}
+\label{tab:dennard}
+\end{table}
+
+\footnotetext{source: \url{https://fr.wikibooks.org/wiki/Fonctionnement_d\%27un_ordinateur/La_consommation_d\%27\%C3\%A9nergie_d\%27un_ordinateur}}
+
+Le \autoref{tab:dennard} résume les différents impacts que la diminution de la finesse de gravure à sur les différentes propriétés d'un circuit. On remarque deux choses concernant l'évolution de $P$ entre deux générations de circuit. La première est que l'augmentation de la fréquence est compensée par la baisse de la capacité du circuit. La deuxième est que le baisse de tension compense le nombre de transistors. Ainsi, la consommation électrique d'un processeur de varie pas entre deux génération bien que la fréquence augmente de $40\%$ et que le nombre de transistor soit doublé. Cette propriété est connue sous le nom de Loi de Dennard \cite{Dennard1974} qui assurait en 1974 que la densité énergétique resterait constante entre deux générations de processeurs. Cette propriété est restée vrai durant 30 ans, permettant l'augmentation de la performance des processeurs sans augmenter drastiquement leur consommation électrique. 
+
+
+
+
+\subsubsection{Fin de Dennard}
+Les équations de Dennard se sont appliquées pendant plus de 30 ans, voyant la fréquence des processeurs augmenter de 40\% tous les 2 ans (voir \autoref{pic_cpu_evolution}). Cependant, l'\autoref{eq:power} ignorait les courants de fuite $I_{leakage}$ alors peu significatifs. Cependant, avec la miniaturisation des transistors, ces fuites augmente exponentiellement pour des tailles de gravure inférieur à 65nm \cite{martin2014post}. Alors que la loi de Dennard prévoyait une consommation électrique constante entre deux générations de processeur, ces fuites de courant vont faire augmenter la consommation des puces d'un facteur 2. Ceci entraîne une forte évolution de la densité électrique à chaque nouvelle génération (voir \autoref{pic_cpu_leakage}) impactant la consommation électrique des processeurs (voir \autoref{pic_cpu_evolution}). Au plus la fréquence des processeurs est élevée, au plus les transistors sont activés augmentant d'autant les courants de fuite. La chaleur dégagée par les puces n'est alors plus soutenable et l'évolution de la fréquence des processeurs s'arrête ainsi autour des années 2005.
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/cpu_evolution.png}
+    \caption{\label{pic_cpu_evolution} Évolution des caractéristiques des processeurs \cite{rupp40years}.}
+\end{figure}
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/cpu_leakage.png}
+    \caption{\label{pic_cpu_leakage} La miniaturisation de l'isolant nécessaire au fonctionnement des transistors permet le passage de courant de \textit{fuites}.}
+\end{figure}
+
+Bien que la fréquence des processeur n'augmentent plus depuis plus de 10 ans, la \autoref{pic_cpu_evolution} montre que la performance des processeurs continue bien d'augmenter. En effet, si la loi de Dennard n'est plus valide, la loi de Moore elle l'est encore après 2005. Les processeurs reçoivent toujours plus de transistors permettant d'augmenter la complexité des pipelines. Ces transistors sont alors utiliser pour construire des processeurs a plusieurs coeurs, présentés dans la \autoref{sec:multicore} (on remarquera que l'augmentation du nombre de coeurs commence exactement quand la fréquence n'augmente plus). Les processeurs sont alors capable de réguler la chaleur d'un processeur en plaçant les processus peu actifs sur les points chauds de la puce.
+Pour limiter la consommation électrique, des techniques de management d'alimentation sont alors mises en place pour éteindre certaines parties du processeur inutilisées.
+L'utilisation de différentes fréquences est aussi largement utilisée. Les processeurs possèdent des fréquences dites \textit{turbo}, leur permettant d'atteindre des fréquences très élevées pendant un cours laps de temps ou lorsque le processeur n'est pas pleinement utilisé (coeurs et calculs vectoriels inutilisés).
+
+
+
+\subsubsection{FPU}\label{sec:fpu}
+
+
+L'unité de calcul en virgule flottante (FPU pour \textit{floating-point  unit}) est un composant du processeurs permettant de réaliser les opérations sur les nombres à virgule flottante. A l'origine ce module était séparé du processeur et il convenait à l'utilisateur de choisir si il voulait ou non en brancher une sur la carte mère dans l'emplacement qui lui était alors dédié. Pour des questions de coûts d'intégration et de performance, la FPU est depuis 1989, avec la sortie du processeur Intel 80486,  intégrée au processeur. 
+
+Au fil des années la complexité de la FPU a augmenté, quand elle n'était capable d'exécuter que de simples opérations à l'origine, elle peut désormais réaliser des opérations complexes (division, racine carrée, exponentielles ou des fonctions trigonométriques).  De plus, des instructions fusionnées ont fait leur apparition en 2013 dans les processeurs \textit{Haswell} de Intel et Piledriver pour AMD. Elles ont la particularité de réaliser 2 opérations en un seul cycle d'horloge du processeur. Connues sous le nom de FMA pour \textit{fused multiply-add} elles sont capables d'exécuter l'instruction $a \leftarrow b * c + d$ en un seul cycle. 
+
+Enfin, les unités de calcul modernes sont capable d'exécuter une opération sur plusieurs données à la fois ce type d'instructions est dit \textit{vectoriel}. Ces instructions sont performantes pour les algorithmes qui doivent exécuter une même opération sur plusieurs données (un vecteur par exemple). L'évolution de leurs caractéristiques sont abordées dans la partie \ref{sub_taxonomie}.
+Les différentes évolution de la FPU sont responsable de la forte augmentation de la puissance de processeur. En effet, usuellement la puissance d'un processeur est donnée par le nombre de calculs flottant qu'il peut exécuter par cycle. Le tableau \ref{tab_FPU} montre comment le nombre de FLOP par cycle évolue: Pour Intel, cette performance a été multipliée par deux à chaque nouvelle version de l'architecture et les FPU modernes exécutent 8 fois plus de calculs qu'en 2008.
+
+\begin{table}[]
+\centering
+\caption{Evolution de la performance des FPU}
+\label{my-label}
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\multicolumn{1}{|c|}{\textbf{Année}} & \multicolumn{2}{c|}{\textbf{Architecture Intel / AMD}}     & \multicolumn{1}{c|}{\textbf{Simpe p.}} & \multicolumn{1}{c|}{\textbf{Double p.}} & \multicolumn{1}{c|}{\textbf{Opérations}} \\ \hline
+2008                                 & Nehalem                          & K10                     & 8                                      & 4                                       & 4 add. et 4 mul.         \\ \hline
+2011                                 & Sandy Bridge                     & Bulldozer               & 16                                     & 8                                       & 8 add. et 8 mul.         \\ \hline
+2013                                 & Haswell \& Skylake               &                         & 32                                     & 16                                      & 8 FMA (mult. + add.)        \\ \hline
+2016                                 & Xeon Phi KNL &                         & 64                                     & 32                                      & 8 FMA (mult. + add.)        \\ \hline
+\end{tabular}
+\label{tab_FPU}
+     \vspace{1ex}
+
+     \raggedright Avec Haswell le nombre d'instructions exécutable n'évolue pas mais c'es le type d'instructions exécuté qui sont des FMA (une multiplication et une addition en un cyle d'horloge) et qui correspond à deux FLOP.
+\end{table}
+
+\textbf{TODO} latence des differentes instructions; skylake FMA 4 cycles %http://agner.org/optimize/blog/read.php?i=415 (calc_fma() combien de FMA en parallele)
 
 
 
@@ -397,22 +255,63 @@ Ces deux familles d'instructions ont toutes deux leurs avantages et leurs inconv
 
 
 
+\subsubsection{Optimisations}
+
+Dans les sous-parties précédentes est présenté comment l'évolution de la fréquence et l'utilisation de matériel spécialisé comme une FPU permet d'accélérer l'exécution d'une instruction. Pour différentes raisons (dépendance, manque d'une opérande), les instructions ne peuvent pas être exécutées à la vitesse maximale théorique prévue par le processeur. Pour maximiser le nombre d'instructions exécutées chaque cycle, les processeurs ont reçu de nombreuses optimisations. 
+
+\paragraph{Exécution dans le désordre.}\label{sec:out_of_order}
+
+Le but de cet optimisation est de cacher l'attente de donnée du processeur de la mémoire. Cette avancée est apparue sur les processeurs Intel en 1995 avec le \textit{Pentium P6}. Le principe de l'exécution dans le désordre est d'exécuter les instructions dans un ordre différent que celui donné par le code source.  Ainsi lorsqu'une instruction doit attendre une donnée, au lieu de perdre des cycles à attendre ces données, le processeur va exécuter les instructions qui suivent et finira d'exécuter la première quand la donné sera chargée dans un registre. 
+Cependant ne pas exécuter le programme dans l'ordre initial peut fausser les résultats. C'est alors au processeur de s'assurer que les instructions permutées ne sont pas dépendantes. Il existe trois types de dépendances. La première est une \textit{lecture après écriture} (Read After Write ou RAW): une instruction lit une donnée écrite par une instruction la précédent. La deuxième est une \textit{écriture après lecture} (WAR): une première instruction lit une donnée qui est modifiée par une instruction la suivant. Enfin, la dernière dépendance est une \textit{écriture après écriture} (WAW): deux instructions écrivent sur la même donnée. Pour éliminer ces deux dernières dépendances, les processeurs possèdent plus de registres que ceux adressable par le programme. Il les utilise pour éliminer les dépendances WAR et WAW grâce à des techniques de renommage de registres \cite{903248}. 
+L'extrait de code \ref{code_dependances} donne un exemple pour chaque type de dépendances. Dans chaque cas, la valeur de B n'est pas la même si les deux assignations ne sont pas exécutées dans le même ordre, suivant cet ordre, B peut valoir 10 ou 15. Pour ce faire, le processeur possède une fenêtre de plusieurs instructions, aussi appelée (à tord) l'\textit{execution queue}. En effet, cette liste n'a pas vocation à être executé dans l'ordre, c'est un rassemblement d'instructions qui ont des dépendances entre elles. Le processeur vient mettre à jour cette liste pour essayer d'exécuter des instructions qui n'ont plus de dépendances avec une donné ou une autre instruction.
+Pour pouvoir bénéficier de l'exécution dans le désordre, le processeurs doit donc détecter si les instructions sont dépendantes pour pouvoir les réordonner. Aussi, le programmeur peut aider le processeur dans son travail en évitant au maximum les dépendances entre les instructions. 
+La complexité apporté par le système d'exécution dans le désordre, peut être la source d'attaque comme la récente faille \textit{Meltdown} des processeurs Intel \cite{DBLP:journals/corr/abs-1801-01207}.
+
+
+\begin{lstlisting}[language=C, caption=Exemples de dépendances entre deux instructions., float,floatplacement=H, label=code_dependances]
+//----------- Read after Write -----------
+int A, B = 0
+A = 5;
+B = A + 10;
+//Result: B == 10 ou B == 15
+
+//----------- Write after Read -----------
+int A, B = 0
+B = A + 10;
+A = 5;
+//Result: B == 10 ou B == 15 
+ 
+//----------- Write after Write -----------
+int B = 0
+B = 10;
+B = 15;
+//Result: B == 10 ou B == 15
+\end{lstlisting}
 
 
 
 
 
 
+\paragraph{Prédiction de branchement}\label{sec:branch_predictor}
+L'exécution dans le désordre fonctionne tant que suffisamment d'instructions sont disponible pour être exécutées. Cependant, lorsqu'un programme contient un branchement conditionnel, le processeur doit attendre que sa condition soit testée. Si cette condition utilise une variable modifiée dans les instructions précédentes le processeur doit attendre d'avoir le résultat du test pour connaître les futures instructions à exécuter. Pour maximiser l'utilisation du pipeline, le processeur peut essayer de prédire le résultat du test et ainsi continuer l'exécution. S'il s'est trompé sur la prédiction, il doit alors annuler les instructions déjà exécutées et reprendre l'exécution des autres instructions. Le temps nécessaire pour la reprise de l'exécution après une mauvaise prédiction dépend donc de la taille du \textit{pipeline} utilisé (plusieurs dizaines de cycles).
+La prédiction de branchement peut être implémentée par deux méthodes.
+Le processeur peut posséder un matériel spécifique, appelé prédicteur de branchement (\textit{branch predictor}), qui utilise des méthodes de statistiques. Lorsqu’un branchement est faux plusieurs fois d’affilés, il peut estimer qu'il y a une grande probabilité qu'il le soit aussi à l’itération suivante et éviter d’attendre le résultat du test pour continuer l’exécution. Le processeur peut aussi, à partir de l'adresse de destination, comprendre si la condition et le saut est utilisé dans une boucle ou si c'est un retour de fonction. Une mauvaise prédiction pouvant fortement impacter l'exécution, les processeurs implémentent des prédicteurs de branchement toujours plus complexes. Ce matériel représente une part non négligeable du processeur, et des travaux ont pour objectif d'en comprendre leur fonctionnement \cite{Milenkovic2002}.
+La deuxième façon d'implémenter la prédiction est réalisé statiquement, par le compilateur. À la lecture du code, le compilateur peut deviner qu'une boucle ne verra sont branchement vrai qu'a la fin de son parcours. Il peut alors calculer le nombre d’itération à réaliser et éviter le test à chaque itération.
+Comme pour le mécanisme d'exécution dans le désordre, la complexité apportée par le prédicteur de branchement a donné lieu à une importante faille de sécurité découverte en 2018 par les chercheurs de Google appelée Spectre \cite{kocher2018spectre}.
 
 
-\subsection{Exécuter les instructions en parallèles}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Exécuter les instructions en parallèles} \label{sec:para}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 La loi de Moore à assurer aux processeurs un gain constant de transistors chaque année. Ils peuvent être utilisés pour implémenter de nouvelles fonctionnalités matériels permettant d'exécuter les instructions en parallèles pour accélérer les applications. Les processeurs ont reçu de nombreuses améliorations dont les principales sont présentées dans cette section: 
-
 \begin{itemize}
     \item Le pipeline
-    \item Les Floating Point Units et les instructions vectorielles
     \item Les processeurs superscalaire
     \item Les coeurs
 \end{itemize}
@@ -474,40 +373,10 @@ Le fait de partager l'exécution d'une instruction en sous étapes permet de com
 
 
 \paragraph{Taille du pipeline.}
-En 1939 IBM conçoit le premier processeur avec pipeline. Ce n'est qu'en 1985 qu'Intel produira le siens (Intel 80386). Le nombre d'étapes, ou profondeur du pipeline, était de 2 à l'origine et a augmenté au fil du temps atteignant 31 étapes pour l'architecture du Pentium 4 Prescott d'Intel en 2004. 
+En 1939 IBM conçoit le premier processeur avec pipeline. Ce n'est qu'en 1989 qu'Intel produira le siens (Intel 80486). Le nombre d'étapes, ou profondeur du pipeline, était de 2 à l'origine et a augmenté au fil du temps atteignant 31 étapes pour l'architecture du Pentium 4 Prescott d'Intel en 2004. 
 
 \paragraph{Complexité de la gestion du pipeline.}
-L'utilisation d'un \textit{pipeline} n'est pas toujours optimale et plusieurs facteurs peuvent affecter sa performance. le principe du pipeline repose sur le concept de commencer à exécuter des instructions avant que la précédente ne soit terminée. Cela peut être rendu impossible par la dépendance entre deux instructions et par l'utilisation de branchements conditionnels \cite{emma1987characterization}. Lors de l'évaluation d'un tel branchement, le pipeline ne peut pas commencer à exécuter les instructions suivantes sans connaître son résultat. Le processeur doit alors attendre (\textit{stall}) plusieurs cycle avant de continuer. Une optimisation de prédiction de branchement a été implémentée pour éviter ces états de \textit{stall} (voir \autoref{sec:branch_predictor}). De plus, pour permettre la bonne utilisation du pipeline des mémoires tampons doivent être disposées entre chaque étapes pour mémoriser les différents résultats intermédiaires. Lorsque le processeur exécute plusieurs processus, il doit veiller à terminer l'exécution des instructions avant de commencer celles du processus suivant. La complexité de sa gestion le rend vulnérable aux attaques informatiques (voir \autoref{sec:out_of_order}). 
-
-\cite{emma1987characterization}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Niveau 2 - L'assembleur}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Niveau 3 - Les instructions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Niveau 4 - Le système d'exploitation}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+L'utilisation d'un \textit{pipeline} n'est pas toujours optimale et plusieurs facteurs peuvent affecter sa performance. le principe du pipeline repose sur le concept de commencer à exécuter des instructions avant que la précédente ne soit terminée. Cela peut être rendu impossible par la dépendance entre deux instructions et par l'utilisation de branchements conditionnels \cite{emma1987characterization}. Lors de l'évaluation d'un tel branchement, le pipeline ne peut pas commencer à exécuter les instructions suivantes sans connaître son résultat. Le processeur doit alors attendre (\textit{stall}) plusieurs cycle avant de continuer. Une optimisation de prédiction de branchement a été implémentée pour éviter ces états de \textit{stall} (voir \autoref{sec:branch_predictor}). De plus, pour permettre la bonne utilisation du pipeline, des mémoires tampons doivent être disposées entre chaque étapes pour mémoriser les différents résultats intermédiaires. Lorsque le processeur exécute plusieurs processus, il doit veiller à terminer l'exécution des instructions avant de commencer celles du processus suivant. La complexité de sa gestion le rend vulnérable aux attaques informatiques (voir \autoref{sec:out_of_order}). 
 
 
 
@@ -515,11 +384,106 @@ L'utilisation d'un \textit{pipeline} n'est pas toujours optimale et plusieurs fa
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Niveau 5 - Le langage et le compilateur}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+\subsubsection{Processeur superscalaire} \label{sec:superscalar}
+%%%%%%%%%%%%%%%%%%%%%%
+
+Le pipeline apporte un niveau de parallélisation horizontale. Les processeurs ont reçus une autre amélioration apportant au pipeline une parallélisation verticale. 
+
+\paragraph{Principe}
+Un processeur est dit \textit{superscalaire} s'il est capable d'exécuter plus d'une instruction simultanément. Le nombre d'instruction par cycle d'holorge (IPC) peut alors être supérieur à 1. Le principe est d'implémenter un second pipeline (ou plus) capable d'exécuter les instructions tel que sur la \autoref{pic_pip_yes}. Intel proposa son premier processeur superscalaire en 1989 avec le processeur Intel 80486. Il possédait un pipeline à cinq étages proche de celui présenté dans la section précédente. 
+Pour pouvoir l'utiliser, le processeur doit déterminer si deux instructions peuvent être exécutées en parallèle (sans dépendance et utilisant des ressources matériels différentes). La \autoref{pic_superscalar} montre comment une implémentation superscalaire du pipeline fonctionne. 
+
+\begin{figure}
+    \center
+    \includegraphics[width=8cm]{images/Chapitre1/superscalar.png}
+    \caption[Processeur superscalaire]{Fonctionnement d'un processeur superscalaire possédant deux pipelines.\protect\footnotemark. \label{pic_superscalar} }
+\end{figure}
+\footnotetext{source: \url{https://fr.wikipedia.org/wiki/Processeur_superscalaire}}
+
+\paragraph{Implémentation}
+Il existe deux façons de transformer un processeur scalaire en superscalaire. La première est de dupliquer matériellement chaque étape pour obtenir deux pipelines distincts (processeurs \textit{superpipeline}). On peut citer le processeur Intel Pentium dont la totalité du pipeline n'est pas dupliqué. Le processeurs à une fenêtre de plusieurs instructions prêtes à être exécutées. Seule la phase d'exécution est dupliquée.  Il possédait deux unités d'exécution \textit{u} et \textit{v} qui pouvait exécuter des instructions de types différents (opérations flottantes ou entières) en parallèle. 
+Le deuxième moyen d'implémenter le parallélisme d'instruction d'un processeur superscalaire repose sur le fait qu'une étape peut nécessiter moins d'un demi cycle d'horloge pour être exécutée. Une étape (ou micro-instruction) du pipeline peut donc s'occuper de deux instructions différentes pendant un cycle d'horloge, en utilisant sa propre horloge interne. Cette méthode à le bénéfice de ne pas avoir a dupliquer le pipeline matériellement. 
+
+Les principales limitations à l'implémentation d'un pipeline sont les dépendances et les conflits. Cela peut être une dépendance entre les données de plusieurs instructions ou un conflits d'accès à une même ressource (ALU, FPU). Le processeur est alors en charge d'orchestrer les différentes instructions pour rendre possible le parallélisme en utilisant des \textit{stratégie d'iméssion} \cite{johnson1989super} des instructions. Cette stratégie doit veiller à conserver la validité du programme en veillant aux ordres: de lecture des instructions, de leur exécution et de leur actualisation des registres (ou de la mémoire). 
+
+
+\paragraph{Exemple du Pentium 4}
+Pour bien comprendre le déroulement de l'exécution du pipeline d'un processeur superscalaire, nous choisissons de détailler le fonctionnement de processeur Intel Pentium 4 \cite{stallings2003organisation} donc le schéma de la micro-architecture est présenté sur la \autoref{cpu_superscalar_pentium}. Le processeur exécute les \textit{micro-ops} en utilisant un pipeline d'au moins 20 étages en veillant à respecter les dépendances, dont les principales étapes sont décrites ici: 
+
+\begin{enumerate}
+    \item Le processeur lit les instructions (CISC) depuis le cache L2 par groupe de 64 octets dans l'ordre du programme pour profiter de l'effet de localité. Bien que la prédiction de branchement puisse modifier cet ordre. 
+    \item Chaque instruction (pouvant être de taille différente) est décodé et traduite en une à quatre instructions RISC de 118 bits (\textit{micro-ops}). \item Ces micro-ops sont ensuite stockées dans un buffer (\textit{Trace Cache}) permettant l'utilisation de l'exécution dans le désordre (voir \autoref{sec:out_of_order}).
+    \item Ensuite, le processeur possède au renommage des registres. Il existe 16 registres architecturaux (utilisable pas le code) mais 128 registres physique sont réellement implémentés. Les \textit{micro-ops} peuvent ensuite être stockée dans deux listes d'attente distinctes utilisant une discipline \textit{FIFO}.
+    \item L'ordonnanceur choisi ensuite dans les deux files les instructions qui possèdent leurs opérandes et dont l'exécution peut être réalisée. Suivant le type d'instruction elle sont envoyées (jusqu'à 6 à la fois) vers l'unité d'exécution correspondante (calcul entier ou flottant) en utilisant les différents ports. 
+\end{enumerate}
+     
+
+\begin{figure}
+    \center
+    \includegraphics[width=13cm]{images/cpu_superscalar_pentium.png}
+    \caption[Diagramme en bloc du Pentium 4]{Diagramme en bloc du Pentium 4 \cite{stallings2003organisation}
+    \label{cpu_superscalar_pentium}}
+\end{figure}
+
+
+
+Les architectures actuelles otn beaucoup évoluées depuis le premier pentium. Le détail de la micro-architecture Skylake d'Intel peut être consultée sur la \autoref{pic:cpu_skylake_architecture}. L'unité d'exécution peut être utilisée par 8 \textit{ports} différents. Chaque port est relié à des composants différents de l'ALU qui peut exécuter jusqu'à 4 instructions par cycles (ou 2 opérations flottantes).
+
+
+
+
+
+
+\subsubsection{Processeur multi-coeurs} \label{sec:multicore}
+%%%%%%%%%%%%%%%%%%%%%%
+
+
+\paragraph{Motivation.}
+La vitesse de calcul d'un processeur est lié à sa fréquence qui a largement contribué à l'évolution de leur performance. Cependant, certaines limites physiques empêchent l'augmentation infinie des fréquences (discuté dans la partie \ref{sec:frequence}). Il a donc fallu trouver d'autres moyens d'améliorer la performance des processeurs, sans pouvoir accélérer leur fréquence. L'apparition des processeurs multi-coeurs est une réponse à ce challenge. Pour comprendre leur intérêt l'analogie suivante peut être utilisée \cite{tanenbaum2016structured}: la construction d'un processeur avec une fréquence de 1000 GHz est probablement impossible. Par contre l'utilisation de 1000 processeurs avec une fréquence de 1 Ghz est possible pour obtenir la même performance. Ce gain de performance peut alors être utilisé pour réduire la fréquence des processeurs. En réduisant la fréquence de 30\%, l'énergie nécessaire est elle réduite de 35\% \cite{mattsson2014haven}. En utilisant deux coeurs à 70\% de la fréquence initiale permet cependant d'obtenir un gain de 140\% de la puissance de calcul. C'est ce constat qui motive l'utilisation du parallélisme dans toute l'architecture d'un supercalculateur (voir \autoref{sec:parallelisme}). Ainsi, avant l'apparition des processeurs mutli-coeurs, l'utilisation du multitraitement symétrique (SMP) utilisant plusieurs processeurs en parallèles était le principale moyen d'accéder au parallélisme. Cependant, les serveurs devenant toujours plus gros, et avec le désir d'avoir des processeurs plus puissant pour les ordinateurs personnelles et les téléphones, les processeurs multi-coeurs ont été inventés.
+
+
+\paragraph{Multi-coeur.}
+Le terme de processeur multi-coeur est employé pour désigner tout processeur possédant entre deux et quelques dizaines de coeurs (on parle de processeurs \textit{manycore} au delà). Les différents coeurs sont disposés sur la même puce d'où l'autre appellation utilisée pour désigner ces processeurs de Chip Multiprocessor (CMP).
+Les différents coeurs sont généralement identiques en tout point (processeur homogène) bien qu'ils puissent être différents (processeur hétérogène). Les processeurs homogènes sont plus faciles à utiliser car tous les coeurs peuvent répondre au même besoin et leur design est plus simple. Les processeurs hétérogènes sont cependant plus performant pour certaines application. 
+Généralement, chaque coeur du processeur n'est pas relié directement à la mémoire. Un niveau de cache est généralement interposé entre le coeur et la mémoire. La hiérarchie mémoire est présentée dans la \autoref{sec:hierarchie}.
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/cpu_multicore.jpg}
+    \caption{\label{processeur_archi} Exemple de processeur multi-coeur (Intel Core i7-2600K)  partageant le troisième niveau de cache.\protect\footnotemark}
+\end{figure}
+
+\footnotetext{source: \url{https://www.anandtech.com/show/4083/the-sandy-bridge-review-intel-core-i7-2600k-i5-2500k-core-i3-2100-tested}}
+
+
+
+
+L’avantage principale de dupliquer un coeur plutôt que de doubler la fréquence d’un seul coeur est la consommation électrique et donc la puissance dégagée par effet Joule. En effet, la puissance dissipée est quadruplée quand la fréquence est doublé alors qu'elle ne fait que doubler lorsque que le nombre de coeur est doublé. On obtient ainsi un processeur utilisant moins d’énergie et nécessitant moins de refroidissement pour une même performance qu'un processeur plus rapide.
+Comme pour le pipeline (voir \autoref{sec:pipeline}), le gain de performance apporté par l’ajout de coeur s’appuie sur l’amélioration du parallélisme d'instruction (Instruction Level Parallélisme (ILP)).
+
+La difficulté d’utilisation de processeurs multi-coeurs vient des programmes qui ne sont pas capables par nature d’utiliser ce niveau de parallélisme. Ils doivent donc être programmés pour pouvoir en profiter. Cette tâche, quoique difficile à ses début, est aujourd'hui facilitée par l’utilisation de librairies prévues telles que \textit{Pthread} ou \textit{OpenMP}. 
+
+Les coeurs partageant des niveaux communs de cache (généralement le dernier), la bonne programmation des applications et l'implémentation d'une micro-architecture efficace sont alors des facteurs déterminant de la performance obtenue:
+\begin{itemize}
+    \item Pour maximiser l'utilisation des caches, il est primordiale de prévoir leur partages entre les différents coeurs pour minimiser les conflits. Des méthodes de placements plus ou moins efficaces peuvent alors être utilisées \cite{mazouz2011performance}: laisser le système d'exploitation peut donner des performances très variable entre deux exécutions identiques, alors que le placement manuel permet d'obtenir les meilleurs résultats. 
+    \item Le choix du réseaux utilisé par les coeurs est alors important pour la performance des codes et repose principalement sur quatre paramètres \cite{peh2009chip} : la topologie, les algorithmes de routages, le protocole de contrôle de flux et le routage de la micro-architecture. La topologie indique comment les coeurs sont connectés et quels sont les chemins empruntable pas un message pour rejoindre sa destination. Ce choix est réalisé par l’algorithme de routage. Le contrôle de flux s’occupe de l'envoi des messages (ordre et date d’envoie) qui est ensuite réalisé par la micro-architecture. Les choix réalisés pour ces quatre paramètres ont un impact sur la performance du processeur (latence, bande passante) et sur son prix. 
+
+\end{itemize}
+
+
+Le nombre de coeurs par processeur a beaucoup évolué dans les quinze dernières années. Si les premiers processeurs multi-coeurs n'en possédaient que deux, il n'est pas rare que les supercalculateur utilisent des processeurs avec plus de vingt coeurs. Intel à même annoncé en 2019 un nouveau processeur doté de 56 coeurs \footnote{\url{https://ark.intel.com/content/www/us/en/ark/products/194146/intel-xeon-platinum-9282-processor-77m-cache-2-60-ghz.html}}. Cependant, l'ajout de coeurs supplémentaires n'est pas forcément bénéfique pour les applications à cause de la vitesse des mémoires qui peinent à évoluer au même rythme. Ce constat est discuté dans la \autoref{sec:memorygap}.
+
+
+
+
+
+
+
 
 
 
