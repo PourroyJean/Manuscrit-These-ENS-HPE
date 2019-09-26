@@ -1,2 +1,467 @@
 \section{DML MEM: benchmark mémoire}\label{sec:dmlmem}
 
+    Nous présentons dans cette section un benchmark mémoire appelé \textit{Demonstrate Memory Limit} ou \textit{DML\_MEM}. Cet outil permet de vérifier le bon comportement de la hiérarchie mémoire lors d'accès mémoire à un jeu de donnée par sauts de taille constante (\textit{strides}) (voir \autoref{pic:dml_strides_acces}). Ce motif d'accès est très utilisée par les applications de calcul hautes performances, notamment par les algorithmes de stencils. Les algorithmes parcourant des matrices en colonne génèrent aussi des accès mémoire par saut de taille constante (multiple d'une taille d'une ligne). La \autoref{pic:dml_strides_acces_main} expose un exemple simple de tels accès. Pour ces applications, il est primordiale que l'architecture soit capable de délivrer de bonnes performances et que le pré-lecteur mémoire (\textit{memory prefetch}) anticipe ces accès. L'objectif de \textit{DML\_MEM} est de mesurer la performance du système mémoire pour ce type d'accès. La performance variant avec la taille du jeu de données, le benchmark teste différentes tailles de sauts pour différentes taille de jeu de donnée. Nous ne sommes pas au courant d'un tel benchmark existant dans la littérature et l'utilisation de cet outil nous a permis de caractériser plusieurs plateformes différentes et de déceler des bugs majeurs dans certaines d'entre elles.
+
+    \begin{figure}
+        \centering
+            \begin{subfigure}[b]{0.25\linewidth}
+            \includegraphics[width=\linewidth]{images/dml_strides_acces_matrix.png}
+            \caption{Accès en ligne ou en colonne à une matrice.}
+            \label{pic:dml_strides_acces_matrix}
+            \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+        %(or a blank line to force the subfigure onto a new line)
+            \begin{subfigure}[b]{0.60\linewidth}
+            \includegraphics[width=\linewidth]{images/dml_strides_acces.png}
+            \caption{Les accès en ligne ou en colonne implique des sauts en mémoire de différentes tailles.}
+            \label{pic:dml_strides_acces}
+            \end{subfigure}
+        \caption{Exemple d'une application réalisant des accès en colonne à une matrice. Ces accès impliquent en réalité des sauts entre les adresses mémoire utilisées.}\label{pic:dml_strides_acces_main}
+    \end{figure}
+        
+
+\subsection{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    % \subsubsection{Motivations}
+        Les applications nécessitant suffisamment de calculs sur une donnée transférée pour masquer le temps de l'accès mémoire sont très rare. Comme les processeurs utilisés en HPC possèdent beaucoup de coeurs (souvent plus de 15), la performance de la grande majorité des codes est limitée par la performance du bus mémoire. Bien utiliser cette ressource est alors cruciale dans le travail d'optimisation d'application. 
+
+        Un objectif des benchmarks est de mesurer les performances maximales atteignables par une plate-forme. Ainsi, il est possible de quantifier la performance d'une application réelle en la comparant à cette première valeur. Le système mémoire étant le goulot d'étranglement de la performance d'une majorité d'application, de nombreux travaux ont été réalisés pour sa caractérisation et son optimisation. Un benchmark très connu (STREAM) permet de mesurer la bande passante maximale atteignable par 4 kernels de calculs différents. Il est donc possible d'utiliser ces résultats pour analyser la performance d'applications utilisant les mêmes familles d'algorithmes.
+
+        L'industrie de la recherche pétrolière est un grand consommateur de calculs haute performance. Les applications utilisées utilisent des algorithmes de Stencil. Cette famille de code, implique des accès mémoire réguliers mais non contiguës. Au moment de la réalisation de cette thèse, nous n'avons pas connaissance d'un benchmark permettant de réaliser ce genre d'accès.  D'autres algorithmes peuvent réaliser ce genre d'accès par \textit{strides} comme les multiplications de matrices, les transformées de Fourrier ou le parcours d'un tableau de structures pour accéder à certains champs. Si les objets sont stockés continûment en mémoire, l'accès à un même champ de chaque objet réalise en réalité des accès mémoire par saut de taille fixes. Ces sauts sont aussi appelé \textit{strides}.
+
+        Le motif d'accès par \textit{stride} est donc très courant dans le calcul haute performance. La distance entre deux accès peut varier d'une application, ou d'un jeu de données, à l'autre. Pour caractériser les plate-formes pour ces applications il est donc nécessaire de posséder un benchmark paramétrable permettant de faire varier la taille du jeu de données et du saut. Dans cette section, nous présentons un tel benchmark mémoire permettant de caractériser le sous-système mémoire. Grâce à de nombreuses options, différentes partie de la micro-architectures peuvent être testée: caches, TLB, bus mémoire. 
+
+
+
+    \subsubsection{Objectifs}
+        Le premier objectif est de caractériser la micro-architecture et mesurer les performances atteignables. Il sera ensuite possible de prouver l’efficacité de l’utilisation du sous-système mémoire pour une application étudiée. Nous montrons dans nos expériences que la saturation du bus mémoire n’est pas un gage d’efficacité de l'application et qu’il est nécessaire de comparer ses activités (en écriture et lecture) à ce que le code doit effectivement faire. Cette démarche est présentée dans le \autoref{chap:methodo}.
+        
+        Le deuxième objectif est d'attirer l'attention du programmeur sur la complexité des architectures et de son impact sur les performances d'un code. En appréhendant cette complexité, il sera plus simple pour le programmeur d'apporter les bonnes modifications à son codes pour tirer la pleine performance du bus mémoire.
+        
+        Une autre utilisation de notre outil peut aussi être réalisée par les concepteurs d'architectures qui veulent vérifier le bon fonctionnement du système mémoire pour ce type d'application. En effet, en utilisant ce benchmark nous avons trouvé certains dysfonctionnements majeurs dans un accélérateur prévu pour ce type d'applications. Grâce à notre outil, nous avons pu prouver que les performances théoriques de la plate-forme n'étaient pas accessibles par l'application. 
+
+
+
+\subsection{Le benchmark DML\_MEM}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \subsubsection{Concept}
+    %%%%%%%%%%%%%%%%
+        
+        Le principe du benchmark est d'accéder à un tableau en utilisant différentes tailles de strides. Pour chaque stride une mesure de performance est réalisée. Une fois toutes les tailles de stride mesurée, le benchmark augmente la taille du jeu de données utilisé. La vitesse d'évolution de la taille des strides et du jeu de données peut être paramétrée. Les accès peuvent être réalisés en lecture, écriture ou les deux. Ainsi, les différents niveaux de la hiérarchie mémoire peuvent être caractérisés.
+        
+       
+
+    
+    \subsubsection{Développement}
+    %%%%%%%%%%%%%%%%
+
+        Le benchmark se déroule en deux étapes: la configuration et l'exécution du benchmark.
+        
+            Lors de la configuration les différents paramètres nécessaires pour l'exécution du benchmark sont extraits de la ligne de commande ou utilisent, le cas échéant, des valeurs par défaut. Les différentes versions du benchmark (mode d'accès, taille du déroulement des boucles) sont toutes compilées, l'initialisation utilise un pointeur de fonction vers la bonne version requise par l'utilisateur. Ensuite, le jeu de données est initialisé avec la valeur 1 ou 2 suivant si l'accès est en lecture ou écriture. Pour vérifier le bon fonctionnement du benchmark, chaque valeur est ajoutée dans un compteur permettant de compter le nombre d'accès réalisés. Sans optimisations, les écritures compte pour deux accès, car la ligne de cache est lue avant d'être écrite. Ainsi, nous évitons les optimisations du compilateurs qui pourraient, en comprenant l'artificialité du code, supprimer certaines instructions. 
+            
+            La deuxième étape consiste a exécuter le benchmark et a mesurer ses performances. Pour une taille de jeu de donnée, la performance des différentes tailles de strides est mesurée. Pour mesurer la bande passante effective, pour mesurons le temps nécessaire pour réaliser le benchmark. Celui ci, renvoie le nombre d'accès réalisés grâce à l'initialisation du tableau durant la première étape. 
+            \begin{verbatim}
+time1 = get_micros();
+num_ops = p->m_BENCHMARK();
+time2 = get_micros();
+            \end{verbatim}
+            
+            Ces mesures sont affichées au fur et à mesure de l'avancée du benchmark ainsi que dans un fichier de log. Ce fichier, peut ensuite être utilisé par un script pour afficher un graphique montrant l'évolution de la performance de chaque stride en fonction de la taille du jeu de donnée. 
+            
+            \begin{verbatim}
+Stride         7040       8050       9090      10000      10100      20285
+83.7 MiB      17.07      66.03      29.30      66.16      66.10      66.57
+85.6 MiB      17.32      65.87      27.16      66.11      66.14      66.62
+87.6 MiB      17.12      65.94      25.33      66.15      66.12      66.48
+...
+            \end{verbatim}
+
+  
+
+    \subsubsection{Les options}
+    %%%%%%%%%%%%%%%%
+        Le benchmark \textit{DML\_MEM} accepte de nombreuses options. Grâce à celles-ci différentes configurations peuvent être utilisées pour tester différents scénarios sur différentes parties de la micro-architecture. Nous décrivons ici les options les plus utiles pour l'utilisateur. Les nombreuses options peuvent être affichées avec l'option \textit{--help}.
+        
+
+       \paragraph{MPI}
+            - besoin de charger plusieurs coeurs simultanément
+                - Open MP vs MPI ?
+            - Le même code avec ou sans pragma
+   
+    
+    \subsubsection{Validation des résultats}
+    %%%%%%%%%%%%%%%%
+
+
+    \subsubsection{Comparaison avec l'existant}
+
+
+\subsection{Résultat}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    Dans cette section nous présentons les principaux résultats obtenus avec le benchmark DML\_MEM présenté précédemment. L'objectif est de montrer au lecteur les différentes mesures rendu possible par l'utilisation de l'outil. Les tests sont principalement réalisés sur l'architecture des processeurs Intel Skylake. 
+
+
+    \subsubsection{Choix du compilateur}
+    %%%%%%%%%%%%%%%%
+    
+        Contrairement au benchmark du générateur de kernel (voir \autoref{sec:kg}), le code de DML\_MEM n'est pas écrit directement en assembleur. La qualité du compilateur peut donc avoir un impact significatif sur ses performances. Avant de réaliser plus d'expérimentations, nous avons testé deux compilateurs (GCC 8.2 et ICC 19.0) avec différents drapeaux de compilation. Avec d'ancienne version de GCC (telle que la version 4.8), nous avons mesuré une amélioration d'un facteur deux en utilisant les drapeaux \verb|-O3 -march=skylake-avx512|. Le compilateur ayant reçu de nombreuses améliorations depuis, nous n'avons trouvé aucun drapeau permettant d'améliorer les performances de ce dernier. Nous l'avons comparé avec la version 19.0 du compilateur d'Intel ICC couplé avec le drapeau \verb|-O3|. Les performances mesurées dans les différents niveaux de la hiérarchie mémoire sont présentées dans le \autoref{tab:dml_compiler}.
+
+        \begin{table}[]
+        \centering
+        \begin{tabular}{|l|c|c|}
+        \hline
+        Perf. GB/s & GCC 8.2 & ICC 19.0 \\ \hline
+        L1 & 58 & 310 \\ \hline
+        L2 & 56 & 161 \\ \hline
+        L3 & 26 & 26 \\ \hline
+        Memory & 12.5 & 12.5 \\ \hline
+        \end{tabular}%
+        \caption{Performance du benchmark DML\_MEM compilé avec les compilateurs GCC et ICC mesurée en GB/s. Le drapeau d'optimisation \text{-O3} est utilisé dans les deux cas.}
+        \label{tab:dml_compiler}
+        \end{table}
+
+        Lorsque le jeu de données tient dans le premier niveau de cache, nous avons mesuré des différences de performances du benchmark pouvant aller jusqu'à un facteur 8. Cet écart de performance entre les deux compilateurs se réduit lorsque la taille du jeu de données augmente. En effet, la performance du bus mémoire pour les deux compilateurs est équivalente. Nous expliquons cet écart de performance dans les premiers niveaux de cache par la mauvaise performance du code généré par le compilateur GCC. Le premier niveau de cache des processeurs Skylake est capable de fournir 128 octets par cycle, soit une bande passante de 345 GB/s. Le code généré par GCC ne parvient pas à utiliser plus de 58 GB/s. Nous avons mesuré que le benchmark compilé par GCC utilisé deux fois plus d'instructions que celui compilé par ICC. Le benchmark GCC n'est alors pas \textit{memory bound} mais \textit{compute bound}. La bande passante disponible se réduisant lorsqu'on remonte dans la hiérarchie mémoire, l'impact de la qualité du code est elle aussi réduite. Les performances du benchmark compilé par ICC étant toujours supérieures à celles produites par GCC, nous utiliserons le compilateur d'Intel dans les prochaines expérimentations. Lorsque de nouvelles versions sont disponibles ou que d'autres architectures sont étudiées nous conseillons de toujours tester les différentes versions de compilateurs avec les drapeaux de compilation adéquats.
+    
+    
+        %TODO comparer le code généré
+    
+    \subsubsection{Mesurer la taille d'une ligne de cache}
+    %%%%%%%%%%%%%%%%
+        Connaître la taille d'une ligne de cache de l'architecture est nécessaire pour obtenir les mesures correctes par le benchmark. Cette taille peut aussi être nécessaire lors du développement d'une application pour disposer les données de façon optimale. Nous montrons dans cette expérimentation comme celle-ci peut être retrouvée en utilisant le benchmark DML\_MEM. Pour cela, nous désactivons le \textit{memory prefetch} pour l'empécher d'anticiper le chargement d'une ou plusieurs ligne de cache avant son accès. Le jeu de données utilisé doit quand à lui plus grand que le dernier niveau de cache. La taille des lignes de cache des architectures modernes est généralement compris entre 32 et 256 bytes. Nous utilisons le benchmark pour mesurer la performance du système mémoire en utilisant des strides de puissance de 2 allant de 8 à 256 bytes. Les performances ainsi mesurées sont présentées dans le \autoref{tab:dml_cache_line}.
+    
+        \begin{table}[]
+        \centering
+        \begin{tabular}{|l|c|c|c|c|c|c|}
+        \hline
+        Taille de la stride (byte) & 8 & 16 & 32 & 64 & 128 & 256 \\ \hline
+        Bande passante (GB/s) & 31.58 & 25.84 & 14.50 & 7.62 & 7.65 & 7.62 \\ \hline
+        \end{tabular}%
+        \caption{}
+        \label{tab:dml_cache_line}
+        \end{table}
+        
+         L'interprétation de ces résultats doit être la suivante. Pour des strides de 64, 128 ou 256 bytes, la performance est la même. Ceci indique que pour ces trois cas, le processeur attend une ligne de cache pour réaliser un accès. Le prochain accès étant situé sur une autre ligne de cache, leur performance est équivalente. Lorsqu'une stride de 32 bytes est utilisée, la performance double, indiquant que la taille d'une ligne de cache est de 64 bytes. En effet, le processeur est capable de réaliser deux fois plus d'accès. Ceci est possible car lorsqu'un premier accès est réalisé sur une ligne de cache, le suivant le sera aussi. La donnée est alors déjà présente dans le cache L1. L'utilisation d'une stride de 16 bytes améliore encore la performance du benchmark sans doubler pour autant. En effet, comme dans la première expérimentation le code devient \textit{compute bound}. Le benchmark additionne des nombres flottants et la performance du code est alors limitée par l'ALU. 
+    
+    
+    \subsubsection{Performances de différentes tailles de strides}
+    %%%%%%%%%%%%%%%%
+        
+        Un objectif principal de notre benchmark est de vérifier le bon comportement du processeur lors d'accès mémoire utilisant des sauts mémoire constant. Pour cela, nous avons développé un script qui permet d'exécuter le benchmark avec un grand nombre de strides et d'afficher leur performance dans un graphique. La \autoref{pic:dml_strides_bad} montre le résultat d'une telle exécution. Pour chaque stride et chaque taille de jeu de données une mesure est réalisée. Pour faciliter la lecture du graphique nous avons coloré les strides en fonction de leur tailles en allant du bleu (pour les strides les plus petites) au rouge (pour les plus grandes). Nous remarquons que les strides de grande taille (plusieurs MiB) ont de meilleurs performances que celle de petite taille. En effet, même pour des tailles de jeu de données de plusieurs centaines de mégaoctets (ne pouvant pas tenir dans le cache), le benchmark mesure des performances similaires à si le jeu de données se trouvait dans le cache. En réalité, pour des grandes tailles de strides, le jeu de données réellement utilisé par le benchmark peut être contenu dans les différents niveaux de cache. 
+      
+        \begin{figure}
+        \center
+        \includegraphics[width=12cm]{images/dml_strides_bad.png}
+        \caption{\label{pic:dml_strides_bad} Performance du benchmark pour différentes tailles de strides (couleurs).  }
+        \end{figure}
+        
+        Nous remarquons sur la \autoref{pic:dml_strides_bad} que certaines strides ont des comportements différentes que des strides de tailles proches (donc de couleurs proches aussi). En effet, des groupes de strides ont des performances bien plus faibles que d'autres et les mêmes résulats sont obtenus en utilisant des pages large pour réduire l'impact sur la TLB. Nous avons isolé certaines d'entre elles et affiché leur performance dans le  \autoref{tab:dml_bad_strides}. Pour réaliser ces mesures la commande suivante a été utilisée: 
+        \begin{verbatim}
+./dml --steplog 0.01 --unroll 8 --mode special --type read --cacheline 64 
+      --stride 73704,73728,77816,77824,81928,81920 --measure 10 --matrixsize 10000
+        \end{verbatim}
+        
+        Le benchmark qui utilise une \textit{mauvaise} stride est \textit{latency bound}. En effet, nous avons réaliser différentes mesures tel que le nombre de \textit{miss} du dernier niveau de cache ou l'activité du bus mémoire. On remarque que l'IPC est plus faible et que le nombre de \textit{miss} est lui plus élevé pour ces strides. L'analyse de l'activité du bus mémoire montre qu'il est loin d'être saturé. Si la ligne de cache n'est pas présente dans un des niveau de cache, et que le bus n'est pas saturé c'est que le processeur l'attend et n'a pas anticipé son manque. La question est alors de savoir pourquoi pour une certaine taille la ligne de cache est présente dans le cache et que pour une stride plus grande de quelques bytes elle n'y soit pas. L'explication vient de la taille des strides utilisées. Nous avons utilisé des strides de taille $ Stride_{n+1} = Stride_n + 16 bits$ avec $Stride_0 = 16 bytes$. En utilisant des tailles de multiple de 16 certaines d'entre elles génèrent des conflits avec la politique de remplacement de lignes de caches. Ainsi, certaines d'entre elles mettent la pression seulement sur une partie du cache, le rendant inefficace. La processeur doit donc attendre pour une majorité des accès que la ligne de cache soit transféré depuis la mémoire rendant le code \textit{latency bound}.
+        
+        
+        
+  
+        
+        
+        
+        \begin{table}[]
+        \centering
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \rowcolor[HTML]{EFEFEF} 
+        Taille de la stride (byte) & Bande passante (GB/s) & Nb. inst. & IPC & LLC Miss \\ \hline
+        \rowcolor[HTML]{FFFFC7} 
+        73704 & 24.54 & 690071400 & 0.34 & 21100474 \\ \hline
+        \rowcolor[HTML]{FFFFC7} 
+        73728 & 2.04 & 690064918 & 0.22 & 30612018 \\ \hline
+        \rowcolor[HTML]{E8FFFE} 
+        77816 & 24.53 & 688909428 & 0.33 & 21152403 \\ \hline
+        \rowcolor[HTML]{E8FFFE} 
+        77824 & 4.01 & 688905576 & 0.27 & 30144907 \\ \hline
+        \rowcolor[HTML]{E6FFE6} 
+        81928 & 24.76 & 690692156 & 0.33 & 21194483 \\ \hline
+        \rowcolor[HTML]{E6FFE6} 
+        81920 & 4.03 & 690693382 & 0.27 & 30794354 \\ \hline
+        \end{tabular}%
+        \caption{Différence de performance de trois couples de stride}
+        \label{tab:dml_bad_strides}
+        \end{table}
+        
+        
+        Nous avons ensuite réalisé la même expérimentation en décalant la taille des strides utilisées en commençant avec une stride minimale $Stride_0 =  8 bytes$. Ainsi, aucune stride utilisée n'est multiple de 32, et aucune d'entre elle obtient de performance inattendue (voir \autoref{pic:dml_strides_good}).
+        
+        
+        \begin{figure}
+        \center
+        \includegraphics[width=12cm]{images/dml_strides.png}
+        \caption{\label{pic:dml_strides_good} Performance du benchmark pour différentes tailles de strides (couleurs).  }
+        \end{figure}
+        
+        À travers cette expérimentation, nous avons voulu montrer qu'un code aussi simple qu'il soit, peut avoir des performances inattendues. La complexité des architectures modernes est telle qu'elle peut avoir une incidence forte sur la performance des applications. Pour des strides aussi longues (plusieurs MiB), le \textit{memory prefetcher} ne semble pas arriver à anticiper ces accès. Si une application réalise ce type d'accès, le programmeur doit s'assurer de ne pas réaliser des strides de cette taille en ajoutant du \textit{padding} (remplissage) pour décaler artificiellement les données accédées. Une autre optimisation lors d'accès à certains champs d''objets contenus dans un tableau est de regrouper ces mêmes champs dans une structure spécifique. Ainsi, ces champs sont contiguës en mémoire. 
+        
+        
+        
+
+    \subsubsection{Saturation du bus mémoire}
+    %%%%%%%%%%%%%%%%
+        Que ce soit pour notre modèle de performance ou d'autres de type \textit{Roofline}, il est nécessaire de connaître la bande passante maximale atteignable par un processeur. Pour cela, nous avons exécuté le benchmark en utilisant différents nombre de coeurs. Les résultats sont visible sur le graphique de la \autoref{pic:dml_bw_mpi}. Sur ce processeur, notre benchmark arrive à obtenir une bande passante mémoire maximale de 109 GB/s. La loi de Little ne permet pas à un seul coeur de saturer la totalité du bus mémoire. Nous montrons à travers cette expérimentation qu'il faut au moins 15 coeurs pour le saturer. Les coeurs supplémentaires ne permettent pas ensuite d'améliorer le débit mémoire car le bus est saturé. Pour des codes \textit{memory bound} il peut alors être intéressant d'en désactiver certains ou de ne pas investir dans des processeurs avec plus de coeurs. 
+        
+        \begin{figure}
+        \center
+        \includegraphics[width=10cm]{images/dml_bw_mpi.png}
+        \caption{\label{pic:dml_bw_mpi} Bande passante mémoire atteinte pour différent nombre de coeurs  }
+        \end{figure}
+        
+    
+    
+    
+
+    \subsubsection{Vérifier le bon fonctionnement des caches}
+    %%%%%%%%%%%%%%%%
+        Les caches des architectures modernes se sont complexifiés et sont devenus très efficace pour accélérer les accès mémoires. Cependant, sur des architectures différentes que celles utilisées communément, il peut être intéressant de vérifier leur bon fonctionnement. Nous montrons dans cette expérimentations les tests pouvant être réalisés.
+        
+        La première vérification est de s'assurer de l'indépendant des caches propres à chaque coeur. Dans le cas des processeurs Skylake, les deux premiers niveaux sont privés à chaque coeur. Nous avons implémenté une option pour annoter la taille de niveau de cache sur le graphique final. Les résultats de deux exécutions sur 1 et 20 coeurs sont présentés sur la \autoref{pic:dml_cache}. La performance lorsque le jeu de donnée est contenu dans le cache L1 et L2 n'est pas impacté par l'utilisation d'autres coeurs. Les performances se dégradent lorsque le jeu de données commencent à remplir le dernier niveau de cache, commun à tous les coeurs. La même expérimentation peut être menée sur les différents cache L3 de plusieurs processeurs d'un même serveur.
+        
+        \begin{figure}
+        \centering
+            \begin{subfigure}[b]{0.47\linewidth}
+            \includegraphics[width=\linewidth]{images/dml_cache_1core.png}
+            \caption{1/20 coeur actif}
+            \label{pic:dml_cache_1core}
+            \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+        %(or a blank line to force the subfigure onto a new line)
+            \begin{subfigure}[b]{0.47\linewidth}
+            \includegraphics[width=\linewidth]{images/dml_cache_20core.png}
+            \caption{20/20 coeurs actifs}
+            \label{pic:dml_cache_20core}
+            \end{subfigure}
+        \caption{Performance du benchmark lorsqu'un ou la totalité des coeurs sont actifs. Les résultats montrent que les cache L1 et L2 ne sont pas affectés par l'utilisation d'autres coeurs.}\label{pic:dml_cache}
+        \end{figure}
+        
+        Une deuxième expérimentation pouvant être menée au niveau des caches est la vérification du fonctionnement du cache L3. Pour cela, nous utilisons un jeu de donnée dont la taille évolue jusqu'à remplir le dernier niveau de cache.  En parallèle, nous mesurons l'activité sur le bus mémoire avec l'outil YAMB (voir \autoref{pic:dml_L3_sharing}). Cette expérimentation peut être réalisée avec les commandes suivantes:
+        \begin{verbatim}
+./monitoring_bw_main.sh --start
+./dml --steplog 0.01 --unroll 2 --type read --cacheline 64 --stride 64  
+      --matrixsize 100 --measure 1000 --minlog 6.1 --annotate log_mem.annotate
+./monitoring_bw_main.sh --stop
+        \end{verbatim}
+        
+         \begin{figure}
+        \center
+        \includegraphics[width=14cm]{images/dml_L3_sharing.png}
+        \caption{\label{pic:dml_L3_sharing} Évolution de l'activité du bus mémoire en fonction de la taille du jeu de donnée.}
+        \end{figure}
+        
+        Nous montrons ainsi que pour un cache L3 de 28 MiB ne parvient pas à garder la totalité d'un jeu de donnée dépassant les 16 MiB. Au dela de cette taille, YAMB mesure de l'activité sur le bus mémoire pouvant atteindre les 3 GB/s pour un jeu de donnée de la taille du L3 (28MiB). 
+        
+        
+        Cette mauvaise utilisation du cache peut être dû au phénomène de coloration de page discuté dans les expérimentations suivantes. Cette caractéristique impact la performance de chaque coeurs car certaines données sont éjectées du cache et génère un évènement de \textit{miss}. Nous avons réalisé une seconde expérimentation en utilisant deux jeux de données de 20 et 28 Mib. Pour chaque jeu, nous utilisons progressivement la totalité des coeurs. Le résultat présenté sur la \autoref{pic:dml_bw_cacheL3} montre que le phénomène de \textit{trash} est encore plus fort lorsque plusieurs coeurs sont utilisés. Le trafic généré atteint les 19 GB/s pour 6 coeurs travaillant sur un jeu de données de 28 MiB. Cependant, la performance entre les deux benchmark est identique, permettant de conclure du bon fonctionnement du \textit{memory prefetcher}. Si une architecture ne possède pas un composant aussi efficace il peut alors être intéressant de réduire la taille des jeux de données utilisés. Pour certaines optimisations, tel que le \textit{cache blocking}, nos expérimentations nous ont montrés que qu'utiliser 80\% de la capacité du dernier niveau de cache était le plus efficace.
+        
+        \begin{figure}
+        \center
+        \includegraphics[width=14cm]{images/dml_bw_cacheL3.png}
+        \caption{\label{pic:dml_bw_cacheL3} Évolution du traffic mémoire pour deux jeux de données de 20 et 28 MiB. Chaque jeu est accédé par 1 à 20 coeurs.}
+        \end{figure}
+        
+        
+
+    \subsubsection{Memory prefetcher}
+    %%%%%%%%%%%%%%%%
+        
+        Dans l'expérimentation précédente nous montrons que le \textit{memory prefetcher} permet de maintenir le bonne performance du benchmark même lorsque des données sont évincées du cache. Dans cette partie, nous vérifions le fonctionnement de l'\textit{adjacent prefetch} et questionnons son activation permanente. 
+        
+        Le processeur dispose d'une unité de pré-chargement de ligne de cache (\textit{memory prefetch unit}). Un mécanisme courant de cette unité est appelé le pré-chargement adjacent. Lors d'un accès mémoire, celui ci anticipe les futurs accès en chargeant aussi la ligne de cache suivante. Les codes parcourent souvent la mémoire de façon contiguë (données d'un tableau, instruction d'un programme). Ainsi, ce mécanisme permet d'éviter un grand nombre de \textit{miss}.
+        
+        Le benchmark \textit{DML\_MEM} a été utilisé pour réaliser des accès à un jeu de donnée ne pouvant pas être stocké dans le plus grand niveau de cache. Le \autoref{tab:dml_prefetch} montre les résultats du benchmark lorsque le mécanisme de pré-chargement adjacent est activé ou non. Pour une \textit{stride} de 64 byte (soit une ligne de cache), la bande passante atteinte est 60\% plus élevée. Le \textit{prefetcher} permet de commencer à charger la deuxième ligne avant qu'elle ne soit réellement accédée. Grâce à l'utilisation d'une \textit{stride} de 128 bytes, nous montrons que le mécanisme de pré-chargement n'a aucun impact sur les performances. Nous pouvons conclure que le \textit{prefetcher} ne pré-charge que la ligne adjacent et pas la suivante. Les performances sont même supérieur, car le bus mémoire n'est pas affecté par le transport de ligne de cache inutile. 
+        
+        \begin{table}[]
+        \centering
+        \begin{tabular}{l|
+        >{\columncolor[HTML]{ECF4FF}}c |
+        >{\columncolor[HTML]{DAE8FC}}c |}
+        \cline{2-3}
+         & Stride 64 & Stride 128 \\ \hline
+        \multicolumn{1}{|l|}{Prefetch ON} & 13.45 & 8.11 \\ \hline
+        \multicolumn{1}{|l|}{Prefetch OFF} & 8.81 & 8.80 \\ \hline
+        \end{tabular}%
+        \caption{Bande passante en (GB/s) mesurée pour l'accès à un jeu de donnée de 300 MiB avec des stride de 64 et 128 bytes lorsque le pré-chargement adjacent est actif ou non.}
+        \label{tab:dml_prefetch}
+        \end{table}
+
+        Si une architecture possède un \textit{prefetcher} défaillant, il peut être intéressant de vérifier si les coeurs du processeur sont capable de générer suffisamment de requête mémoire pour saturer le bus. En utilisant la version \textit{MPI} du benchmark, nous avons mesuré la performance du benchmark avec le mécanisme de pré-chargement adjacent actif ou non, avec différent nombre de coeurs. La \autoref{pic:dml_prefetch_mpi} montre que si le pré-chargement adjacent est désactivé la totalité des coeurs ne suffisent pas à saturer le bus mémoire. 
+        
+        %todo avec 16 pointeurs
+        
+        \begin{figure}
+        \center
+        \includegraphics[width=14cm]{images/dml_prefetch_mpi.png}
+        \caption{\label{pic:dml_prefetch_mpi} Performance du benchmark pour un jeu de données de 300 MiB avec un et plusieurs coeurs actifs lorsque le pré-chargement adjacent activé ou non.}
+        \end{figure}
+        
+        Il semble donc que la désactivation de ce mécanisme de pré-chargement n'ai aucun bénéfice. Dans l'expérimentation suivante, le benchmark \textit{DML\_MEM} est utilisé pour montrer que de nombreux motifs d'accès sont dégradé par ce mécanisme. En effet, le pré-chargement de la ligne de cache adjacente est bénéfique si elle est réellement utilisée. Lorsqu'un seul coeur est actif, le chargement de cette ligne de cache n'impact pas la performance du benchmark car le bus est loin d'être saturé (voir \autoref{tab:dml_prefetch}). La version parallèle de \textit{DML\_MEM} peut être utilisé pour charger la totalité des coeurs du processeur pour réaliser un accès mémoires toutes les deux lignes de cache (\textit{stride} 128 bytes). La désactivation du pré-chargement permet d'atteindre des performances 16\% supérieures (91 GB/s contre 73 GB/s lorsque le pré-chargement est actif). Ce type d'accès plus grand que deux lignes de cache est très courant dans les applications. Il peut donc être avantageux de le désactiver le pré-chargement de la ligne de cache adjacente pour ces portions de codes. De plus, le pré-chargement de données peut être réalisé manuellement grâce à des instructions telle que \verb| __builtin_prefetch (&a[i+j]); |.
+        
+        
+    
+    \subsubsection{Déroulement de boucle}
+    %%%%%%%%%%%%%%%%
+    Pour améliorer les performances du benchmark \textit{DML\_MEM}, l'optimisation du déroulement de boucle à été utilisée. Au vue des de l'amélioration des performances obtenues, cette section présente comment l'optimisation est implémentée et comment les applications peuvent en tirer partie. 
+    Le déroulement de boucle est une optimisation permettant de réduire l'impact de code permettant le contrôle de la boucle (test, incrémentation). Le principe est de développer manuellement le code de plusieurs itérations dans la boucle et d'incrémenter ensuite la boucle de même nombre de déroulement. Ainsi, la proportion de code responsable du contrôle de la boucle est réduite par rapport à l'intérieur de la boucle. Une première version du code utilisé pour réaliser le déroulement est présenté dans l'\autoref{lst:dml_unroll_orig}. Pour permettre au processeur commencer les accès mémoire grâce au mécanisme d'exécution dans le désordre, 4 pointeurs différents sont utilisés. Chaque pointeur pointe vers une stride et la valeur est sommée dans la variable \verb|sum|. Les résultats obtenus par cette première version sont mauvaises, notamment pour des jeux de données situés dans les premiers niveaux de cache (baisse de la performance d'un facteur trois). Cette effondrement de performance vient de l'incapacité du compilateur à appliquer sa propre optimisation de déroulement de boucle. Cette première version étant plus mauvaise, la performance est fortement dégradée. Par ce premier résultat, nous souhaitons attirer l'attention du programmeur sur le fait que le compilateur réalise déjà certaines optimisations. Il peut être contre-productif de la réaliser soit même. 
+    
+    \begin{lstlisting}[label=lst:dml_unroll_orig ,language=C, caption=Première version du déroulement de la boucle par 4.]
+for (rep = 0; rep < repeat; rep++) {
+    BM_DATA_TYPE *p1 = mat;
+    BM_DATA_TYPE *p2 = p1 + step;
+    BM_DATA_TYPE *p3 = p2 + step;
+    BM_DATA_TYPE *p4 = p3 + step;
+    for (steps = 0; steps < ops_per_scan; steps++) {
+        sum += *p1;
+        p1 += xstep;
+        sum += *p2;
+        p2 += xstep;
+        sum += *p3;
+        p3 += xstep;
+        sum += *p4;
+        p4 += xstep;
+    }
+}
+\end{lstlisting}
+
+
+    L'erreur dans la première version du déroulement est l'utilisation d'une unique variable de sommation. En effet, cette unique variable qui doit être incrémentée à chaque lecture d'une stride créée une dépendance empéchant le code d'exécuter deux opérations d'addition par cycle. L'\autoref{lst:dml_unroll_spe} présente la version \textit{special} de l'optimisation du déroulement qui utilise autant de variables de sommation que de déroulements réalisés. Avec cette version, la performance du benchmark dans les caches L1 et L2 est améliorer respectivement de 12\% et 30\%. 
+    
+    \begin{lstlisting}[label=lst:dml_unroll_spe ,language=C, caption=Deuxième version du déroulement par 4 utilisant 4 variables sum.]
+for (rep = 0; rep < repeat; rep++) {
+    BM_DATA_TYPE *p1 = mat;
+    BM_DATA_TYPE *p2 = p1 + step;
+    BM_DATA_TYPE *p3 = p2 + step;
+    BM_DATA_TYPE *p4 = p3 + step;
+    for (steps = 0; steps < ops_per_scan; steps++) {
+        sum1 += *p1;
+        p1 += xstep;
+        sum2 += *p2;
+        p2 += xstep;
+        sum3 += *p3;
+        p3 += xstep;
+        sum4 += *p4;
+        p4 += xstep;
+    }
+}
+return sum1 + sum2 + sum3 + sum4;
+\end{lstlisting}
+    
+    La suite de cette expérimentation s'intéresse au nombre de déroulement de la boucle et de son impacte sur la performance de benchmark. Pour cela, le benchmark a été exécuté en utilisant entre 1 et 64 déroulements sur un jeu de données remplissant 80\% du cache de niveau 2. Les résultats obtenus sont présentés dans le \autoref{dml_unroll_bench}. Nous vérifions que l'optimisation du déroulement est bénéfique pour la performance du benchmark améliorant les performances progressivement de 117.8 GB/s à 337 GB/s pour un déroulement de boucle allant de 2 à 8 fois. On remarque que moins d'instructions sont exécutées et que le nombre d'instructions exécutées chaque cycle augmente de 2 à 3.22. Au delà de 8 déroulements, la performance du benchmark se dégrade progressivement. Avec 64 déroulements de la boucle, le nombre d'instructions exécutées double et les performance s'effondre à 140 GB/s. De nouveau, nous montrons ici que la mesure du nombre d'instructions exécutées chaque cycle n'est pas un bon indicateur pour évaluer la performance d'un code. 
+    
+        % Please add the following required packages to your document preamble:
+    % \usepackage{graphicx}
+    % \usepackage[table,xcdraw]{xcolor}
+    % If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+    \begin{table}[]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+    \rowcolor[HTML]{EFEFEF} 
+    \multicolumn{1}{|l|}{\cellcolor[HTML]{EFEFEF}Nb. de déroulements} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}Bande passante (GB/s)} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}Nb. d'instructions exécutée} & \multicolumn{1}{l|}{\cellcolor[HTML]{EFEFEF}Instruction par cycle} \\ \hline
+    1 & 117.8 & 4204612342 & 2 \\ \hline
+    2 & 235.47 & 3159994082 & 2.99 \\ \hline
+    4 & 311.07 & 2634059908 & 3.28 \\ \hline
+    8 & 337.96 & 2380891060 & 3.22 \\ \hline
+    16 & 306.66 & 2483260088 & 3.07 \\ \hline
+    32 & 315.17 & 2513084995 & 3.19 \\ \hline
+    64 & 140.98 & 4993000253 & 2.87 \\ \hline
+    \end{tabular}%
+    \caption{Performance du benchmark \textit{DML\_MEM} utilisant plusieurs taille de déroulement de la boucle pour un jeu de donnée atteignant 80\% du cache L2.}
+    \label{tab:dml_unroll_bench}
+    \end{table}
+    
+    Pour comprendre la mauvaise performance du code lorsqu'il est déroulé plus de 8 fois, nous avons extrait leur code assembleur. L'\autoref{lst:unroll4} montre comment le code du benchmark est généré lorsque 4 déroulements sont réalisés. On remarque que les 4 opérations d'additions sont vectorisées et qu'elles se suivent dans le code permettant à l'exécution dans le désordre de les exécuter deux par deux. On remarque aussi que 16 des 32 registres \verb|%xmm| sont utilisés. L'\autoref{lst:unroll16} expose le code assembleur du benchmark déroulant 16 fois la boucle. Le processeur utilise alors la totalité des 32 registres \verb|%xmm|. Cependant, ce n'est pas suffisant pour réaliser tout les traitements et il est obligé de stocker et charger certains élements depuis la pile. L'exécution des operations d'additions vectorisées est alors ralentie. Pour comprendre l'effondrement des performances lors de 64 déroulements, l'analyse du code assembleur est une fois de plus précieuse. Lorsque 64 déroulements sont utilisés, le compilateur ne parvient plus à générer d'additions vectorielles. Les performances sont alors divisée par deux, alors que l'IPC est presque similaire. 
+    
+
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[
+label=lst:unroll4,
+basicstyle={\scriptsize\ttfamily},
+identifierstyle={\color{black}},
+language={[x86masm]Assembler},
+tabsize=2,
+numbersep=8pt,
+frame=tlbr,framesep=2pt,framerule=0pt,
+morekeywords ={class,run},
+caption=Boucle déroulée 4 fois.
+]
+vmovhpd (%r14,%r11,8),%xmm8,%xmm9
+lea     (%rsi,%r12,8),%r14
+vmovhpd (%r15,%r11,8),%xmm10,%xmm11
+lea     (%r12,%r11,2),%r12
+vmovsd  (%r15),%xmm14
+vmovhpd (%r14,%r11,8),%xmm12,%xmm13
+vmovhpd (%r15,%r11,8),%xmm14,%xmm15
+vaddpd  %xmm9,%xmm3,%xmm3
+vaddpd  %xmm11,%xmm2,%xmm2
+vaddpd  %xmm13,%xmm1,%xmm1
+vaddpd  %xmm15,%xmm0,%xmm0
+\end{lstlisting}
+\end{minipage}%%
+\hfill
+%&
+%
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[
+label=lst:unroll16,
+basicstyle={\scriptsize\ttfamily},
+identifierstyle={\color{black}},
+tabsize=2,
+language={[x86masm]Assembler},
+numbersep=8pt,
+xleftmargin=0.5cm,frame=tlbr,framesep=2pt,framerule=0pt,
+morekeywords ={class,run},
+caption=Boucle déroulée 16 fois.
+]
+vmovsd  (%r15),%xmm30
+vmovhpd (%r15,%r9,8),%xmm30,%xmm30
+lea     (%r14,%rdx,8),%r15
+vaddpd  %xmm30,%xmm31,%xmm31
+vmovsd  (%r15),%xmm30
+vmovhpd (%r15,%r9,8),%xmm30,%xmm30
+lea     (%r11,%rdx,8),%r15
+vaddpd  %xmm30,%xmm3,%xmm3
+. 
+. 
+. 
+\end{lstlisting}
+\end{minipage}
+    
+    
+    Pour mieux apprécier les performances de chaque déroulement, nous exécuter le benchmark dans les différents niveaux de la hiérarchie mémoire. Les résultats sont présentés sur le graphique de la \autoref{pic:dml_unroll_best}. Dans le cache L1, l'utilisation 4 et 8 pointeurs permet d'améliorer la performance de 40 GB/s. On remarquera aussi la mauvaise performance de deux déroulements de la boucle dans ces premiers niveaux de caches. Cette expérimentation permet de montrer que la manière optimale d'accéder à un jeu de données présent dans les caches est d'utiliser entre 8 et 16 pointeurs différents. Au delà, le nombre de restreint de registres disponibles pour le processeur détériore la performance. La performance dans les caches des versions avec 4, 8 ou 16 déroulements est supérieur à celle du compiltateur \verb|ICC| (déroulement de 1). Lorsque les données sont dans la mémoire, le déroulement n'améliore pas les performances. 
+    
+     
+    \begin{figure}
+    \center
+    \includegraphics[width=16cm]{images/dml_unroll_best.png}
+    \caption{\label{pic:dml_unroll_best} Performance de plusieurs déroulements pour une stride de 8 bytes (lecture de tous les éléments).}
+    \end{figure}
+    
+    
+    \subsubsection{Large page}
+    %%%%%%%%%%%%%%%%
+    - retrouver expérimentation pas bonne pour big data set
+    
+    
+    \subsubsection{Impact de la fréquence sur la bande passante}
+    %%%%%%%%%%%%%%%%
+    
+    
+    \subsubsection{Page Coloring}
+    %%%%%%%%%%%%%%%%
+    
+    
+
+\subsection{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
