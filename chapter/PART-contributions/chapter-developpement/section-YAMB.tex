@@ -1,1 +1,94 @@
 \section{Monitoring du bus mémoire}\label{sec:yamb}
+
+Yet Another Memory Bandwidth profiling tool, YAMB, which measures the memory bus activity (see figure Figure 3). YAMB profiles each memory controller by measuring the number of transactions (read and write) and also the number of misses in the Last Level of Cache (LLC). Then it uses a python script to draw a unique graph showing the evolution of both metrics: the bandwidth (read, write and aggregated) and the number of misses. To correlate the bus activity with the parts of the code that are responsible for it, the graph can easily be annotated directly with a C/C++/Fortran API. Figure 3 shows the memory activity during the execution of the Stream beanchmark.
+
+
+\subsection{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    \paragraph{Importance de bien utiliser le bus mémoire}
+    - Le bus mémoire est le bottle neck de beaucoup d'application
+    - Le bus mémoire est une ressource partagé par les différents coeurs du processeur. Étant une ressource limitante pour la performance des applications, le bus mémoire doit être utilisé de façon optimale. Dans le cas contraire, sa mauvaise gestion par certain coeurs affecterai la performance des autres coeurs.
+
+
+    \paragraph{Les verrous}
+    - Le système d'exploitation n'a généralement pas connaissance de l'évolution des accès mémoire, contrairement à d'autres ressources comme les I/O où le système d'exploitation réalise l'intermédiaire avec l'application. Mis à part certaines tâches comme la gestion des pages, les accès mémoire sont réalisés par un matériel appelé contrôleur mémoire. 
+    - Le contrôleur mémoire peut posséder des compteurs matériels permettant de suivre ses performances mais ils sont difficile à programmer (inconnus, non-portables, inaccessibles).
+
+
+
+    \subsubsection{Objectifs}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+        \paragraph{Étudier l'utilisation du bus}
+        - Il est nécessaire de posséder les outils permettant d'analyser l'utilisation du bus mémoire pour comprendre comment la ressource est utilisée par l'application: est ce que le bus est toujours saturé ? est ce seulement pendant certaines periodes de burst et inactif le reste du temps ? en lecture ou écriture ?
+
+Le programmer à travers les hardware compteurs aurait rendu le portable et la maintenabilité du code trop difficile
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    \subsubsection{Analyse de l'existant}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    \paragraph{Expliquer les différents accès avec les HC}
+    
+    \paragraph{PCM}
+    - Only Intel il me semble https://github.com/opcm/pcm
+
+MemGuard [17], the most recent work in this area, incorporates memory bandwidth measurements through performance
+counters, but has only been tested on Core2Quad and Sandy Bridge
+processors, which, while recent, are based on different microarchitectures and thus might exhibit different behavior than Skylake.
+
+
+    \paragraph{Programmation des compteurs matériels.} Les compteurs matériels responsables du comptage des évènements relatifs au trafic mémoire ne sont pas situés sur les coeurs directement. Ces évènements dits \textit{uncore} ou \textit{off-core} peuvent être programmés grâce aux PMUs du processeur (\textit{on-chip PMU)}. Sur des architectures modernes tels que les processeurs Intel Skylake, ces compteurs comptent précisément tous les accès mémoire réalisés en distinguant la lecture et  l'écriture. Cependant, comme les compteurs ne sont associés à aucun coeur, il est impossible de faire correspondre un accès mémoire au coeur et donc au processus qui en est responsable. Pour des outils nécessitant plus de précision \cite{Larysch2016a}, l'utilisation de ces compteurs n'est donc pas possible. Notre outil a pour objectif d'analyser l'activité d'applications HPC qui utilisent généralement tous les coeurs des processeurs pour la même application. Cette particularité n'est donc pas un verrou majeur pour notre développement. 
+
+    \paragraph{Autres compteurs matériels.} Pour mesurer l'activité du bus mémoire, certains travaux tel que Memguard \cite{Yun2013} ou \cite{Bellosa1997} se base sur la mesure d'autres évènements tels que les \textit{miss} du dernier niveau de cache. Le trafic mémoire est ensuite calculé à partir de ces mesures. Si cette approche était encore valide sur d'anciennes architectures, elle n'est plus adapté au processeurs modernes possédant des matériels de pré-chargement mémoire. L'objectif de ce dernier est d'anticiper les appels mémoires avant que les données ne \textit{manquent} dans le cache, elles sont alors transférées sur le bus sans qu'un évènement de \textit{miss} puisse être mesuré.
+
+    
+
+    
+
+\subsection{YAMB}
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+        \subsubsection{Solution choisie}
+        %%%%%%%%%%%%%%%%%%%%%%%%
+            On la basé sur perf car on espère qu’il soit disponible sur la majorité des plateformes
+            
+            Le programmer à travers les hardware compteurs aurait rendu le portable et la maintenabilité du code trop difficile
+            
+            Aucun outil de répond à nos exigences: code libre de droits, portable pour utilisateurs sans privilège administrateur (\textit{root}).
+            
+            * Si on construit un outil la dessus:
+    * On est dépendant que les utilisateurs soient à jours
+    * On se base sur perf, donc très solide, ne devrait pas disparaitre de suite
+    * Le code à développer est moindre: script bash + python pour visu
+    * Dans le noyau 3.10 (red hat 7.4), perf supporte les événements un-core. 

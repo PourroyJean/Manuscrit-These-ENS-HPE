@@ -1,0 +1,68 @@
+\section{Introduction} \label{sec:dev_intro}
+
+
+\subsection{Motivations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+- Résumer la partie précédente, état de l'art etc.\\
+
+
+\subsection{Objectifs}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\subsection{Travaux existants}\label{sec:dev_existant}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Les outils de monitoring}
+
+- Critique de l'existant\\
+
+
+\subsubsection{Les benchmarks}
+
+    Un objectif des benchmarks est de mesurer les performances maximales atteignables par une plate-forme. Ainsi, il est possible de quantifier la performance d'une application réelle en la comparant à cette première valeur. Le système mémoire étant le goulot d'étranglement de la performance d'une majorité d'application, de nombreux travaux ont été réalisés pour sa caractérisation et son optimisation. Un benchmark très connu (STREAM) permet de mesurer la bande passante maximale atteignable par 4 kernels de calculs différents. Il est donc possible d'utiliser ces résultats pour analyser la performance d'applications utilisant les mêmes familles d'algorithmes.
+
+
+
+    \paragraph{STREAM}
+        Le benchmark STREAM est surement un des benchmarks les plus connus et les plus utilisé au monde. Il a été développé et est maintenu par John McCalpin surnommé "Dr. Bandwidth". Le benchmark mesure la bande passante soutenanble pour quatre noyaux vectoriels simples. Les résulats sont donnés en GB/s et contiennent à la fois les opérations de lecture et d'écriture. Pour ces quatre opérations STREAM fonctionne en générant un tableau de nombres aléatoires d'une taille spécifiée (qui est ensuite stocké en RAM) et effectue quatre types d'opérations: \textit{copy, scale, add, triad}.  Le benchmark utilise \textit{OpenMP} pour utiliser la totalité des coeurs disponibles. Ces différents tests étaient à l'origine destinés pour caractériser la performance des architectures vectorielle. La performance mémoire pouvait alors varier d'une opération à l'autre. Aujourd'hui, la performance calculatoire des architectures n'est plus la contrainte principale et les quatre micro-benchmark obtiennent des performances équivalentes. Il est généralement accepté que la mesure donnée pour l'opération de \textit{triad} correspond à la bande passante maximale atteignable par l'architecture. On remarque que le noyeau de calcul du \textit{triad} est relativement simple et ne consiste qu'en la lecture de deux éléments et l'écriture du résultat. Les applications réelles utilisant des motifs d'accès bien plus complexes, cette mesure n'est pas représentative de la performance réellement atteignable par celles-ci \footnote{\url{https://www.intel.ru/content/dam/doc/white-paper/resources-xeon-7500-measuring-memory-bandwidth-paper.pdf}}
+        
+
+    \paragraph{lmbench} 
+        Le benchmark \textit{lmbench}\cite{Staelin2004} a été développé par deux ingénieurs des HP Labs d'Israel en 2004. Ce code est en fait une suite de micro-benchmark permettant de mesurer la performance de plusieurs aspects d'une architecture: lecture d'un jeu de données, ouverture de fichiers, création de pipe, fréquence mémoire, taille d'une ligne de cache, taille de la TLB, bande passante mémoire (Stream). L'ensemble des codes peut être exécuté pour caractériser la mémoire d'un système partagé ou distribué \cite{Staelin2002}.
+        \textit{Lmbench} facilite l'ajout de nouveau micro-benchmarks et mesure leur performance en donnant la latence par instruction et le débit mémoire. Le framework s'occupe de leur exécution pour atteindre des mesures de performances ayant une performances d'au moins 1\%. Écrit en ANSI-C et respectant la norme POSIX le benchmark a été développé pour maximiser sa portabilité. Cependant, sa compilation sur des architectures récentes peut être plus difficile \cite{Yotov2004}. En raison de son incapacité à mesurer les performances du cache distant et les transactions de cohérence du cache, le benchmark \textit{x86-membench} benchmark \cite{Molka2017b} a été développé pour supporter la mesure de la bande passante et de la latence du cache local ou distant mais aussi de la mémoire. Le benchmark n'utilise aucune méthode de parallélisme empêchant une caractérisation poussée des architectures modernes. 
+        
+    
+    \paragraph{P-ray} 
+        Pour remédier à l'incapacité de \textit{lmbench} de caractériser les plateformes multi-coeurs, le benchmark P-ray a été développé \cite{Duchateau2008}. Pour cela il étend les micro-benchmarks existant pour trouver le niveau des caches partagés, la topologie d’interconnexion, la bande passante effective ou la taille des blocs pour la gestion de cohérence des caches. Pour éviter les optimisations du compilateur (\textit{pointer chaising}), le benchmark utilise un système de liste chaînée lors de l'initialisation. Les résultats obtenus sont eux très précis et s'approchent souvent des maximums théoriques attendus.
+
+    \paragraph{X-Ray} X-RAY \cite{Yotov2004} est un \textit{framework} utilisé pour implémenter des micro-benchmark destinés à mesurer des paramètres utile pour l’auto-optimisation. Pour cela il génère plusieurs benchmark gràce à un framework \textit{Nano-benchmark Generator}. Cette génération est dynamique car les benchmarks à générer varient en fonction de ceux déjà exécutés. Par exemple, le calcul de latence à besoin de connaître la fréquence du processeur pour donner un résulat en cycles
+
+   Il existe de nombreux benchmarks permettant de caractériser différentes parties du système mémoire: les accès mémoires concurrents de systèmes multi-processeurs\cite{Mandal2010}, polices de mappage mémoire des systèmes NUMA \cite{Diener2015}, prédiction de la bande passante mémoire en fonction du placement des coeurs \cite{Wang2016a}, caractérisation de la hiérarchie mémoire \cite{Cooper2011}.
+    
+    The real problem is that the current synthetic benchmarks do not always show the strengths of all platforms thus not even allowing some CPUs to be considered for the application benchmarking.
+    
+    
+\subsection{Contributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+- Délimiter les besoins auxquels nous répondons\\
+- Motiver notre façon de développer\\
+
+    Ces outils sont destinés aux développeurs soucieux de comprendre précisément la performance de son code. Pour réaliser cette analyse, il doit avoir accès au code source ainsi qu'aux compteurs responsable de l’activité du bus mémoire.
+    
+    Nous avons développé ces outils pour qu'ils soient aussi simple que possible répondant chacun à une question simple. Contrairement à d’autres outils déjà existant, il ne s'agit pas d’un gros outils permettant de tout faire. Leur efficacité réside dans la faculté de l’utilisateurs de les utiliser indépendamment pour mener son travail d'analyse
+
+    Tous les outils que nous développons sont distribués en Open Source pour que le développeur puisse les modifier, se les approprier et réaliser des modifications pour ses propres besoins mais aussi pour les adapter sur des plateformes pas encore supportés.
+    
+    Beaucoup d’outils permettent de récupérer de nombreuses informations à travers les hardware counters. Cependant, il est souvent très difficile d’en tirer des conclusions: un grand nombre de miss dans le cache ne veut pas forcément dire que le code n’est pas efficace.
+            --> les outils sont efficaces avec la bonne méthodologie
+     
+    La simplicité de ces outils doit permettre aux programmeurs de s’approprier le code pour l’adapter à ses besoins spécifiques 
+    
+    - Présenter ce chapitre\\
