@@ -66,3 +66,28 @@
     La simplicité de ces outils doit permettre aux programmeurs de s’approprier le code pour l’adapter à ses besoins spécifiques 
     
     - Présenter ce chapitre\\
+
+
+https://patentimages.storage.googleapis.com/f6/6c/60/8d079cef591498/US8225291.pdf
+
+    - To bridge the productivity gap between hardware complex ity and Software limitations of current and next-generation high performance computing systems, performance tools should allow users at any level of experience to conduct performance analysis and tune Scientific applications. Tradi tional performance tools, however, offer little support for the non-expert user. Thus, non-expert users must seek the assis tance of performance tuning experts to improve application performance on their systems. While these tuning experts may improve application performance and help a few non expert users, the number of such experts is very limited. Consequently, many non-expert users do not have access to these experts.
+    
+    - Without the support of effective performance tools, users of these high performance computing systems will see this productivity gap continue to grow. Performance tools need to simplify the complexity of performance tuning and apply automatic, intelligent, and predictive technologies to mitigate the burden on today's Scientists and programmers. Currently, no solutions exist that automate and simplify the performance analysis and tuning cycle. The only known solutions for determining application performance bottlenecks today are Solutions that involve manual intervention by users.
+    
+    
+https://patents.google.com/patent/US9032375B2/en
+    - During performance analysis, an analyst determines a computer program's behavior based upon information gathered as that program is executed by a processor of a computer. For example, the analyst determines sections of code of the computer program that the processor is running inefficiently, such as sections of code that are taking longer than expected to execute and/or occupying more memory than expected. 
+    
+    
+https://patents.google.com/patent/US9111032B2/en  
+    -A bottleneck is a region of a program (e.g., program code) where significant execution time is spent. Typically, software developers use a profiling tool to collect program execution profiles such as the timing information for each method, routine, process, etc. With the help of such a profiling tool, the developer can sort, e.g., methods by the time spent on them. The methods that consume an amount of time greater than a threshold defined by, e.g., the developer may be treated as bottlenecks. However, the effectiveness of this approach depends on the program's runtime characteristics. Many programs, such as large enterprise commercial applications, do not have obvious bottlenecks. Therefore, their profiles contain a large amount of routines, processes, or methods where the execution time is spent relatively evenly (e.g., within a threshold). This type of profile is often referred to as a “flat profile” because no method dominates the execution time.
+    
+    
+https://patents.google.com/patent/US9753731B1/en
+    - herefore, execution of a program code may suffer from unpredictability and uncertainty. A user may not be able to expect consistency or predictability of performance among repeated executions of even the same program code on the same hardware. Moreover, a user may not be able to predict the performance of a program code on a new hardware system, even if the user measures the performance on a previous hardware system. For example, executing a program code on a new processor with twice the speed of a previous processor may not result in reducing the total execution time by half.
+    
+    - Such uncertainties and unpredictabilities may cause practical or financial hardships to users. For instance, in some performance sensitive applications, a user may err on the side of caution by using expensive hardware that has a much higher speed than the minimum required hardware for meeting the performance requirements. Alternatively, a user may not be able to predict the performance of the execution within some uncertainty limits. Adding predictability and certainty to the execution of a program code will reduce such hardships.
+    
+    
+https://patents.google.com/patent/US8639697B2/en
+    - The invention recognizes that, for many application programs that comprise functions, hotspots may not be at an instruction, function or module level, but at instruction blocks (instruction clusters) that are, for example, larger than one instruction and smaller than a function/module. Furthermore, besides hotspots, there may be code areas with large instruction blocks that are intensively executed even though each instruction may only consume a few of cycles. Such code areas may not comprise any hotspot, but cover a significant large address span and have performance improvement potential as well. Herein, these areas are also referred as to large warm areas. Although large warm areas may have room for optimization, they are prone to be omitted by existing instruction-sorting performance analysis tools, and can not be identified within the sorted list of instruction, function or module based performance statistics provided by those tools.

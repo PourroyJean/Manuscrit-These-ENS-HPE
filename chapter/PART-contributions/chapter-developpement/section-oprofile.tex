@@ -1,2 +1,324 @@
 \section{Profile de l'exécutions d'instructions}\label{sec:oprofile}
 
+
+Cette section présente l'outil \verb=Oprofile++= qui fonctionne en deux étapes: le suivi de performance et l'extraction des noyaux de calculs. Il permet de donner le profile réel des boucles critiques en reliant les évènements mesurés (nombre de cycles et nombre d'instructions exécutées) aux instructions assembleurs associées et de mesurer leur IPC. Il est ensuite possible de quantifier des opportunités d'amélioration, mais aussi de prédire leur performance en fonction d’une amélioration du matériel ou du logiciel.
+
+
+\begin{lstlisting}[label=lst:dev_op_example, caption=L'outil Oprofile++ permet d'extraire les instructions des noyaux de calculs à partir du code binaire de l'application et d'y associer des mesures d'évènements.]
+./oprofile++.sh myapp
+    //1\\ START PROFILING
+        Starting ... the profiler is now running...
+        
+    //2\\ EXECUTION 
+        Executing ./myapp on CPU #0
+        End..
+    
+    //3\\ STOP PROFILING
+    
+    //4\\ ANALYSIS 
+    cpu_clk_unhalt|       %|  inst_retired|       %|  app_name
+               218    50.67            151    26.77   no-vmlinux
+               181    42.00            363    64.36   assembly
+    
+    //5\\ KERNEL EXTRACTION
+
+Kernel from the app name (assembly) 
+hot spot with the symbole name (myBench) which takes 64.36% of the profiling
+-------------------------------------------------------------------------------
+SUM*4       IPC  CYCLES   INSTS   ADDRESS    ASSEMBLY
+-------------------------------------------------------------------------------
+ 1571 |   0.316      38      12    4018f7    vfmadd231pd %zmm0,%zmm1,%zmm2
+ 1966 |    1.27     594     756    4018fd    vfmadd231pd %zmm0,%zmm1,%zmm3
+ 1372 |    1.32     503     664    401903    vfmadd231pd %zmm0,%zmm1,%zmm4
+  869 |    1.84     436     804    401909    vfmadd231pd %zmm0,%zmm1,%zmm5
+  433 |    1.75     433     758    40190f    sub    $0x1,%eax
+    0 |       0       0       0    401912    jne    4018f7 <myBench>
+-------------------------------------------------------------------------------
+LOOP from 401912 to 4018f7 size= 27
+    sum(cycles)= 2004 sum(inst)= 2994 #inst= 6 IPC= 1.49 cycles/LOOP= 4.02
+-------------------------------------------------------------------------------
+\end{lstlisting}
+
+\subsection{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+    \subsubsection{Motivations}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        En 1971, Donald Knuth affirmait que la majorité de l’exécution de l’application se déroulait dans une fraction des lignes de codes\cite{knuth1971empirical}. Cela est d’autant plus vrai pour les applications de calcul haute performance. Cette affirmation est aussi connu sous le nom de principe de Pareto ou du 80/20. Ce principe empirique constate que 80\% des effets sont le produit de 20\% des causes. Dans le domaine le l’analyse de performance ces 20\% des lignes de code de l'application sont appelées \textit{hot spots}.
+        
+        Pour mener à bien le travail de portage et d'optimisation d’une application, il est important de détecter ces \textit{hot spots} et d'identifier les parties du code responsables. Les travaux de Mihail Popov \cite{popov:tel-01412638}  montrent l’importance de les isoler du reste de l’application pour s’y consacrer indépendamment. En effet, les \textit{hot spots} ayant des caractéristiques propres (types d'accès mémoire, pression arithmétique), leur optimisation sera différente. Pour atteindre la performance ultime d’une application, on peut potentiellement porter chaque \textit{hot spot} sur un accélérateur adapté et l’optimiser indépendamment des autres.
+        
+        De nombreuses applications utilisées dans les systèmes d'informations ne présentent pas ce type de profil et  n'ont pas de goulots d'étranglement évidents. Par conséquent, leurs profils contiennent un grand nombre de fonctions ou de processus dont le temps d'exécution est passé de façon relativement uniforme\cite{Amaral2015}. Ce type de profil est souvent appelé "profil plat" (\textit{flat profil}), car aucune méthode ne domine le temps d'exécution. Dans le calcul haute performance, les \textit{hot spots} sont souvent facilement identifiables, car la majorité du temps d'exécution se déroule dans ces parties du code. 
+        
+        Le travail d'optimisation d'application est très difficile, notamment sur des applications de calcul haute performance dont le code dépasse souvent les plusieurs milliers de lignes. Il est donc indispensable pour le programmeur d'avoir un outil lui permettant de localiser les \textit{hot spots} de son application.
+        
+
+    
+    \subsubsection{Objectifs}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        Le programmeur désirant optimiser une application de calcul haute performance doit avoir à sa disposition un outil lui permettant d'obtenir son profil d'exécution détaillant le temps passé dans les différentes parties du code. Une fois ces \textit{hot spots} repérés, l'utilisateur doit connaître précisément comment le code se comporte sur le processeur: type d'instructions utilisées, nombre de cycles par instruction. Utiliser le code source pour cela n'est pas suffisant, car la qualité du code généré par le compilateur peut fortement impacter sa performance (utilisation d'instructions vectorielles). Le second objectif de l'outil proposé doit alors présenter le code assembleur ainsi que les évènements associés pour permettre à l'utilisateur d'identifier la nature du goulot d'étranglement du noyau étudié.
+        
+        
+
+
+
+    \subsubsection{Travaux existants}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        De nombreux outils existent pour réaliser l'étude de performance du code, cependant une grande partie ne respecte pas nous pré-requis exprimés en début de chapitre. 
+        
+        Maqao \cite{Barthou2010} est un outil développé dans le cadre du projet Mont Blanc \cite{Puzovic2012} en source libre.  \verb=MAQAO= permet de détecter les boucles responsables des \textit{hot spots} et d’en analyser leur performance. \verb=MAQAO= comprend le développement de l’outil CQA \cite{Charif-Rubial2014} permettant d’évaluer la qualité du code assembleur et de projeter la performance maximale pour une architecture donnée.  Il est ainsi possible de connaître  les opportunités de vectorisation et des gains potentiels pour les \textit{hot spots} de l'application. Cette analyse nécessite de connaître beaucoup de spécificités de l'architecture utilisée et suppose de que les données soient directement accessibles dans le cache L1. Cet outil est très orienté sur l'analyse de performance de calculs (\textit{FLOP}). Aussi, \verb=MAQAO= permet de réaliser une analyse statique du programme et donne des conseils pour utiliser les drapeaux de compilation adaptés.
+        Nous avons eu des difficultés pour l'utiliser: le dépôt \textit{Git} ne permet pas de s'inscrire facilement pour poser des questions, l'absence de page d'informations \textit{wiki} est aussi un manque. L'outil est dépendant de plusieurs librairies qui n'étaient pas disponibles sur les plateformes utilisées. 
+        
+        Intel propose d'utiliser son compilateur \verb=icc= pour annoter automatiquement les fonctions (\verb=-profile-functions=) ou les boucles (\verb=-profile-loops=) d'une application en instrumentant l'entrée et la sortie de ces parties avec l'instruction \verb=rdtsc=\footnote{\url{https://software.intel.com/en-us/cpp-compiler-developer-guide-and-reference-profile-function-or-loop-execution-time}}. Cette méthode permet d'obtenir une vue d'ensemble de l'utilisation des cycles dans l'application. Il faut cependant posséder le compilateur \verb=icc= et cette méthode n'est compatible qu'avec les plates-formes du constructeur. 
+        
+        
+        \paragraph{Difficultés et verrous.} Le développement d'outil d'analyse de performance est rendu difficile par la faiblesse des compteurs matériels exposée dans la \autoref{sec:edl_hc_conclusion}. Pour assurer un fonctionnement sur une majorité d'architectures, l'outil doit dépendre du minimum possible d'évènements. Il n'est donc pas possible de pouvoir suivre des évènements complexes bien qu'ils puissent être utiles dans l'analyse de performance. La difficulté vient donc de l'impossibilité de développer un outil complet suffisamment portable pour être utilisé sur une majorité d'architectures. 
+        
+
+\subsection{Développement}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    L'outil d'analyse de performance de Linux (Oprofile) permet de réaliser un échantillonnage des évènements lors de l'exécution de l'application. Le code source ainsi que le code assembleur peut ensuite être annoté. Cet outil constitue la base du développement de notre version améliorée \verb=Oprofile++=.
+    
+    \subsubsection{Étape 1: Configuration et activation du profiler}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        La première étape qui suit le lancement de l'outil est la collecte d'informations de l'exécution de l'application étudiée. Pour cela, un premier script est utilisé pour activer le \textit{profiler}. Pour faciliter le portage et l'utilisation du profiler sur le plus grand nombre d'architectures nous avons choisi de ne suivre l'évolution que de deux évènements: le nombre de cycles et le nombre d'instructions exécutées. Dans cette première étape, l'outil \verb=Oprofile++= s'occupe de paramétrer le profiler pour compter ces deux évènements à une fréquence qui peut être adaptée pour améliorer la précision de la mesure ou réduire l'impact de l'outil sur les performances de l'application étudiée. 
+
+        Lorsque l'analyse de performance est terminée, un premier fichier est généré contenant les informations de suivie de performance (voir \autoref{lst:dev_op_oprofile_out}). Ce fichier contient pour chaque instruction, son adresse mémoire virtuelle et le nombre d'échantillons mesurés pour les deux évènements. 
+        
+\begin{lstlisting}[label=lst:dev_op_oprofile_out, caption=Le premier fichier contient les données de performance pour les deux évènements étudiés.]
+vma       samples         %    samples         %   app name     symbol name
+00402961       20    0.6553         23    0.3100      app_1     matrix_mult
+  00402961      6   30.0000          2    8.6957
+  00402964      3   15.0000          3   13.0435
+\end{lstlisting}   
+  
+  
+        
+    \subsubsection{Étape 2: correspondance des évènements et des instructions}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    La première étape a permis d'obtenir le profile de l'application avec la répartition des deux évènements mesurés. Cependant, aucune information n'est donnée concernant le type des instructions responsables, seule leur adresse mémoire est indiquée. Le but de la deuxième étape est de retrouver l'instruction assembleur correspondante. Pour cela, un deuxième fichier est généré à l'aide de la commande \verb=objdump=. Couplé à l'option \verb=d= cette commande permet de désassembler le binaire de l'application\footnote{\verb=objdump= - \url{https://linux.die.net/man/1/objdump}}. Dans ce fichier est contenue chaque adresse des instructions de l'application avec l'instruction assembleur correspondante.
+
+\begin{lstlisting}[label=lst:dev_op_obj_out, caption=La commande objdump permet de désassembler le fichier binaire de l'application.]
+0000000000401690 <_init>:
+  401694:	48 8b 05 5d 29 20 00 	mov    0x20295d(%rip),%rax
+\end{lstlisting}  
+
+        Notre première contribution est le développement d'un outil permettant de faire correspondre les adresses mémoires des instructions des deux fichiers. Ainsi, nous possédons dans un même fichier de l'instruction assembleur et des deux compteurs d'évènements associés. 
+        
+
+        Les instructions sont regroupées par fonction et les fonctions sont triées par le temps passé à leur exécution. Ce tri en ordre décroissant est très utile lors de l'analyse de performance réalisée par le programmeur, car il commence directement par accéder aux instructions des fonctions les plus longues de l'application. Il est ainsi possible de vérifier que le compilateur a utilisé des instructions vectorielles par exemple. 
+
+
+    \subsubsection{Étape 3: Extraction des noyaux et analyse de performance}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+        Les noyaux de calculs (\textit{hot spots}) peuvent se trouver des fonctions différentes du code. Le code assembleur généré peut être très long. Ces deux facteurs rendent l'analyse du programmeur très complexe. Notre deuxième contribution est le développement d'un module permettant d'extraire les noyaux de calculs et de présenter les plus gourmands à l'utilisateur (\autoref{lst:dev_op_extract_out}).
+      
+\begin{lstlisting}[label=lst:dev_op_extract_out, caption=L'outil Oprofile++ permet de faire correspondre les adresses mémoires des deux fichiers.]
+======================================
+_FUNCTION_ANALYSIS_ from the app name (assembly) hot spot from the symbole name (myBench) which takes 81.9463% of the profiling
+======================================
+SUM*4 SUM*3   SUM*2     IPC  CYCLES  INSTS  ADDRESS   ASSEMBLY  
+-------------------------------------------------------------------------------
+ 1657  1221     908 |  2.24     211    472  4201849   vaddsd %xmm0,%xmm1,%xmm2
+ 1662  1446    1010 |  2.48     697   1731  4201853   vaddsd %xmm0,%xmm1,%xmm3
+ 1593   965     749 |  3.44     313   1077  4201857   vaddsd %xmm0,%xmm1,%xmm4
+ 1280  1280     652 |  2.57     436   1122  4201861   vaddsd %xmm0,%xmm1,%xmm5
+  844   844     844 |  2.86     216    618  4201865   vaddsd %xmm0,%xmm1,%xmm6
+  628   628     628 |  3.14     628   1971  4201869   sub    $0x1,%eax
+-------------------------------------------------------------------------------
+LOOP from 401d90 to 401d79:
+ sum(cycles)= 2501 sum(inst)= 6991 #inst= 7 IPC= 2.79528 cycles/LOOP= 2.50
+-------------------------------------------------------------------------------
+\end{lstlisting} 
+
+        Les \textit{hot spots} des applications sont souvent caractérisés par la présence de boucles dans le code. Pour extraire ces noyaux de calcul , notre outil recherche les instructions de saut (\textit{jump}) dans le code en parcourant les instructions dans l'ordre du fichier généré lors de l'étape 2. Ainsi, les premiers résultats affichés sont généralement les boucles critiques de l'application. Lorsqu'une boucle est détectée elle est affichée suivie des informations suivantes calculées grâce aux deux compteurs d'évènements: le nombre d'instructions, le nombre de cycles, l'IPC et le nombre de cycles par boucle. 
+        
+        \paragraph{Sommation d'instruction.} Les processeurs utilisés sont tous superscalaires. Ils sont donc capables d'exécuter plusieurs instructions en un seul cycle. Trouver les instructions exécutées simultanément ainsi que leur nombre n'est pas évident. Pour aider la lecture des résultats, l'outil essaie de sommer le nombre de cycles d'une instruction avec ceux de l'instruction précédente (jusqu'à 4 instructions). Ce calcul permet de mettre en évidence des blocs d'instructions exécutées simultanément comme sur l'\autoref{} de code suivant:
+        
+        \paragraph{Utilisation recommandée.} La performance d'une application peut sensiblement varier en fonction du jeu de données utilisé. Il est important de réaliser plusieurs profiles avec des jeux différents pour isoler les parties du code les plus intéressantes à optimiser. Il est souvent intéressant d'utiliser différents drapeaux de compilation et mesurer leur impact sur le code généré. 
+        
+
+\subsection{Résultats}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    Les tests suivant sont réalisés sur un processeur Intel Skylake Gold capable d'exécuter 4 instructions par cycle dont au maximum deux instructions de calculs flottant. Le turbo du processeur est désactivé. 
+
+
+    \subsubsection{Impact des dépendances}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        La performance de nombreuse applications sont détériorée par la présence de dépendances entre les instructions. La seule solution est alors de repenser l'algorithme pour en supprimer le plus possible. Dans cet exemple nous montrons comment la dépendance entre instructions impacte la performance et comment utiliser l'outil \verb=Oprofile++= pour le diagnostiquer. 
+        
+        L'\autoref{lst:dev_op_dependance} montre le code d'un noyau de calcul généré grâce à l'outil \verb|Kernel Generator| (voir \autoref{sec:kg}). Le noyau consiste en l'exécution de 8 instructions dont chacune utilise comme opérande le résultat de la précédente. À cause de ces dépendances, la performance du noyau est limté par la latence de calcul d'une instruction (4 cycles). La performance maximale atteignable par un tel code est de une instruction tous les 4 cycles, soit un IPC de 0.25. Ce résultat théorique est bien celui mesuré par notre outil. 
+        
+        
+ \begin{lstlisting}[label=lst:dev_op_dependance, caption=Noyau de calcul présentant une dépendance entre chaque instruction.]
+-------------------------------------------------------------------------------
+    IPC     CYCLES     INSTS     ADDRESS    ASSEMBLY                         
+-------------------------------------------------------------------------------
+...
+  0.262        825       216      401c27    vfmadd231pd %zmm0,%zmm2,%zmm3
+   0.24        800       192      401c2d    vfmadd231pd %zmm0,%zmm3,%zmm4
+  0.228        886       202      401c33    vfmadd231pd %zmm0,%zmm4,%zmm5
+  0.236        787       186      401c39    vfmadd231pd %zmm0,%zmm5,%zmm6
+   0.25        809       202      401c3f    vfmadd231pd %zmm0,%zmm6,%zmm7
+  0.271        756       205      401c45    vfmadd231pd %zmm0,%zmm7,%zmm8
+  0.232        841       195      401c4b    vfmadd231pd %zmm0,%zmm8,%zmm9
+   0.26        759       197      401c51    vfmadd231pd %zmm0,%zmm9,%zmm10
+  0.229        808       185      401c57    vfmadd231pd %zmm0,%zmm10,%zmm11
+  0.232        772       179      401c5d    vfmadd231pd %zmm0,%zmm11,%zmm12
+  0.218        856       187      401c63    vfmadd231pd %zmm0,%zmm12,%zmm13
+  0.244        798       195      401c69    vfmadd231pd %zmm0,%zmm13,%zmm14
+  0.226        805       182      401c6f    vfmadd231pd %zmm0,%zmm14,%zmm15
+  0.244        782       191      401c75    vfmadd231pd %zmm0,%zmm15,%zmm16
+  0.254        784       199      401c7b    sub    $0x1,%eax
+      0          0         0      401c7e    jne    4018f7 <myBench>
+-------------------------------------------------------------------------------
+_7_ LOOP from 401c7e to 4018f7 size= 903 
+    sum(cycles)= 120060 sum(inst)= 30436 #inst= 152 IPC= 0.254 cycles/LOOP= 600
+-------------------------------------------------------------------------------
+\end{lstlisting}
+
+        Ce type de dépendance est très courant dans les algorithmes d'application HPC tel que celles réalisant du calcul polynomiales. La solution pour optimiser ce type de noyau est présentée dans la \autoref{sec:kg_out_of_order_dependency}. L'optimisation est réalisée à l'aide du module d'exécution dans le désordre du processeur. Pour en profiter, il est nécessaire de donner suffisamment d'instructions à exécuter à celui-ci. Deux itérations de boucle étant indépendante il est possible de dérouler plusieurs itérations pour calculer plusieurs \textit{streams} à la fois (voir explication dans la \autoref{sec:kg_out_of_order_dependency}). L'\autoref{lst:dev_op_dependance_8_streams} présente le profil de la performance du noyau modifié pour exécuter le calculs de 8 chaînes indépendantes. Appliquer cette optimisation à un code réel peut demander une lourde restructuration du code mais elle est indispensable pour atteindre la performance crête de l'architecture (2 instructions flottantes par cycle).
+        
+
+ \begin{lstlisting}[label=lst:dev_op_dependance_8_streams, caption=L'optimisation du noyau précedent permet de présenter au processeur 8 chaînes de calculs indépendantes.]
+-------------------------------------------------------------------------------
+    IPC     CYCLES     INSTS     ADDRESS    ASSEMBLY                         
+-------------------------------------------------------------------------------
+...
+   2.05        108       221      401c21    vfmadd231pd %zmm0,%zmm9,%zmm2
+   1.81         96       174      401c27    vfmadd231pd %zmm0,%zmm10,%zmm3
+    2.2        102       224      401c2d    vfmadd231pd %zmm0,%zmm11,%zmm4
+   2.56         77       197      401c33    vfmadd231pd %zmm0,%zmm12,%zmm5
+   2.32         97       225      401c39    vfmadd231pd %zmm0,%zmm13,%zmm6
+   1.89        102       193      401c3f    vfmadd231pd %zmm0,%zmm14,%zmm7
+   2.56         86       220      401c45    vfmadd231pd %zmm0,%zmm15,%zmm8
+   2.05         92       189      401c4b    vfmadd231pd %zmm0,%zmm16,%zmm9
+   2.06         93       192      401c51    vfmadd231pd %zmm0,%zmm2,%zmm10
+   2.09         81       169      401c57    vfmadd231pd %zmm0,%zmm3,%zmm11
+   1.94        108       210      401c5d    vfmadd231pd %zmm0,%zmm4,%zmm12
+   1.92         97       186      401c63    vfmadd231pd %zmm0,%zmm5,%zmm13
+   1.97        110       217      401c69    vfmadd231pd %zmm0,%zmm6,%zmm14
+   2.61         56       146      401c6f    vfmadd231pd %zmm0,%zmm7,%zmm15
+   1.73        117       202      401c75    vfmadd231pd %zmm0,%zmm8,%zmm16
+   2.06         94       194      401c7b    sub    $0x1,%eax
+      0          0         0      401c7e    jne    4018f7 <myBench>
+-------------------------------------------------------------------------------
+_7_ LOOP from 401c7e to 4018f7 size= 903 
+    sum(cycles)= 15023 sum(inst)= 30413 #inst= 152 IPC= 2.02 cycles/LOOP= 75.1
+-------------------------------------------------------------------------------
+
+\end{lstlisting}   
+
+
+
+
+    \subsubsection{Mesure de l'IPC}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+        L'IPC est une métrique souvent utilisée pour décrire la performance d'une application. L'exemple précédent utilise un noyau artificiel ne comportant que des instructions de calcul. Dans cette seconde expérimentation, nous montrons que conclure de la bonne ou mauvaise performance d'un code à partir de la mesure de l'IPC n'est pas trivial. Le processeur utilisé peut théoriquement exécuter 4 instructions par cycle. Il semble donc évident d'utiliser cette valeur comme la performance maximale à atteindre par l'application. Cependant, il est important de rappeler que si les architectures Skylake peuvent exécuter 4 instructions par cycles, un maximum de deux instructions de calculs flottant peuvent être exécutées. Pour illustrer nos propos, la performance du noyau présenté dans l'\autoref{lst:dev_op_ipc_missleading} a été mesuré grâce à notre outil \verb=Oprofile++=.
+
+\begin{lstlisting}[label=lst:dev_op_ipc_missleading, caption=Noyau de calcul n'exécutant qu'une opération de calcul par cycle.]
+-------------------------------------------------------------------------------
+CYCLES       INSTS     ADDRESS    ASSEMBLY                         
+-------------------------------------------------------------------------------
+  128          145      4018f7    vfmadd231pd %zmm0,%zmm1,%zmm2
+  132         1276      4018fd     mov    %bl,%bh
+  119          305      4018ff     mov    %cl,%ch
+  128          243      401901     mov    %dl,%dh
+  105          229      401903    vfmadd231pd %zmm0,%zmm1,%zmm3
+  109          189      401909     mov    %bl,%bh
+  129         1370      40190b     mov    %cl,%ch
+  142          186      40190d     mov    %dl,%dh
+  119          256      40190f    vfmadd231pd %zmm0,%zmm1,%zmm4
+  135          235      401915     mov    %bl,%bh
+  136         1384      401917     mov    %cl,%ch
+  138          231      401919     mov    %dl,%dh
+  117          199      40191b    vfmadd231pd %zmm0,%zmm1,%zmm5
+  117         1109      401921     mov    %bl,%bh
+  137          829      401923     mov    %cl,%ch
+  127          274      401925     mov    %dl,%dh
+  146          303      401927    vfmadd231pd %zmm0,%zmm1,%zmm6
+  128          406      40192d     mov    %bl,%bh
+  127         1308      40192f     mov    %cl,%ch
+  109          222      401931     mov    %dl,%dh
+  138          142      401933    vfmadd231pd %zmm0,%zmm1,%zmm7
+  119          303      401939     mov    %bl,%bh
+  126         1409      40193b     mov    %cl,%ch
+  124          209      40193d     mov    %dl,%dh
+  123          242      40193f    sub    $0x1,%eax
+    0            0      401942    jne    4018f7 <myBench>
+-------------------------------------------------------------------------------
+_7_ LOOP from 401942 to 4018f7 size= 75 
+    sum(cycles)= 3158 sum(inst)= 13004 #inst= 26 IPC= 4.12 cycles/LOOP= 6.31
+-------------------------------------------------------------------------------
+\end{lstlisting} 
+        
+        
+        Dans cet exemple, nous mesurons l'IPC d'un noyau de calculs dont la performance est de 4.12 instructions par cycle. L'IPC mesurée est supérieur à la performance théorique du processeur car l'instruction de branchement (\verb=jne=) de boucle n'est jamais réellement exécutée grâce au prédicteur de branchement. Contrairement à ce qu'indique cette valeur, la performance du code est très mauvaise car la micro-architecture n'exécute en fait qu'une instruction de calcul par cycle. Le processeur utilise donc la moitié de la performance disponible.
+    
+        Une architecture exécute toujours un programme donné au maximum de sa capacité. Cependant, la programmation de l'algorithme ainsi que la génération du code peut être de mauvaise qualité. L'outil \verb=Oprofile++= est donc très important pour montrer au programmeur que le code réellement exécuté peut être transformé. L'amélioration des performances d'une application est alors dépendant de la capacité du programmeur à imaginer une autre façon de réaliser ses calculs en utilisant un autre algorithme ou en réordonnant certaines instructions. Dans cette exemple factice, nous pouvons imaginer que la réorganisation des structures de données permettent de supprimer les instructions de déplacement mémoire \verb=mov=. Le code ainsi obtenu est présenté dans  l'\autoref{lst:dev_op_ipc_missleading_ok}. 
+    
+\begin{lstlisting}[label=lst:dev_op_ipc_missleading_ok, caption=Noyau de calcul exécutant deux opérations de calcul par cycle.]
+-------------------------------------------------------------------------------
+CYCLES   INSTS     ADDRESS    ASSEMBLY                         
+-------------------------------------------------------------------------------
+   87      111      4018f7    vfmadd231pd %zmm0,%zmm1,%zmm2
+  381      457      4018fd    vfmadd231pd %zmm0,%zmm1,%zmm3
+  342      708      401903    vfmadd231pd %zmm0,%zmm1,%zmm4
+  403      860      401909    vfmadd231pd %zmm0,%zmm1,%zmm5
+  231      694      40190f    vfmadd231pd %zmm0,%zmm1,%zmm6
+  335      444      401915    vfmadd231pd %zmm0,%zmm1,%zmm7
+  236      725      40191b    sub    $0x1,%eax
+    0        0      40191e    jne    4018f7 <myBench>
+-------------------------------------------------------------------------------
+_7_ LOOP from 40191e to 4018f7 size= 39
+    sum(cycles)= 2015 sum(inst)= 3999 #inst= 8 IPC= 1.99 cycles/LOOP= 4.031
+-------------------------------------------------------------------------------
+\end{lstlisting}
+
+        Après cette transformation, la mesure de l'IPC est alors de 2 instructions par cycle, soit deux fois moins que celui de la version précédente. Pourtant, le noyau exécutent bien deux fois plus d'instructions de calculs flottants par cycle. Cette première expérimentation n'a pour seul objectif d'attirer l'attention de l'utilisateur sur la précaution à prendre pour conclure de la performance d'un code seulement en utilisant la mesure de l'IPC. 
+        
+
+
+    \subsubsection{Impact d'une division ou Kernel de RTM}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    \textit{dans cette exemple on peut trouver un exemple d'un code avec une division par une constante qui impact fortement le code.}\\
+    \textit{On montre astuce d'optimisation en remplacant la division pas la mutliplaction de l'inverse}\\
+    
+
+
+
+
+
+
+
+\subsection{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    Dans cette section nous proposons un nouvel outil \verb|Oprofile++| qui permet d'extraire les principaux noyaux de calculs d'une application et de donner à l'utilisateur son profile de performance. Contrairement à d'autres outils existant (Vtune, TAU), nous avons voulu développer un outil nécessitant le minimum de dépendances vers des librairies ou des compteurs matériel. Les dépendances et la complexités des outils est en effet un frein à l'utilisation d'outils plus complexes. En ne dépendant que de deux compteurs présent sur la majorité des architectures et de l'outil de profilage de Linux, nous assurons sa compatibilité avec le plus grand nombre de plateforme. 
+
+    L'augmentation exponentielle de la complexité des architectures et la diversité des applications rend la tâche d'analyse de performance très difficile. Chaque nouvelle configuration (application / architecture) apporte de nouveaux problèmes. Le développement d'un outil réalisant le travail d'analyse de performance automatiquement est ainsi très difficile. Avec \verb|Oprofile++|, nous avons choisi de développer un outil basique mais qui apporte suffisamment d'informations au programmeur pour qu'il puisse, à l'aide de sa créativité, apporter les modifications nécessaire à l'amélioration du code. L'outil \verb|Opofile++| n'a besoin que du fichier binaire pour pouvoir fonctionner bien que l'accès au code source soit recommandé pour pouvoir appliquer les transformations requises. Si cet outil s'adresse aux programmeurs particulièrement chevronnés, il n'en pas moins un outil essentiel et puissant lorsqu'il est bien utilisé. 
+    
+    Le profile généré par \verb|Oprofile| permet de localiser les fonctions les modules utilisant le plus de ressources. À partir de ces informations et du profile des évènements enregistrés (nombre de cycle et nombre d'instructions), l'outil \verb|Oprofile++| extrait les noyaux de calculs principaux sur lesquels l'analyse de performance doit se faire. Le profile généré par l'outil permet d'obtenir deux informations essentiels: le type d'instructions exécutées et leur performance. Grâce à cet outil, l'utilisateur peut estimer le gain de performance potentiel d'une optimisation du code. Cette information est essentiel car les restructurations du code peuvent être difficile et demander beaucoup d'efforts. Avoir une idée du gain de performance est donc primordiale pour motiver la modification du code. 
+
+
+    \paragraph{Futures travaux.} L'outil \verb|Oprofile++| peut être difficile à appréhender pour des utilisateurs novices. Nous souhaitons faciliter la lecture du profile des noyaux en apportant d'avantages d'informations à l'utilisateur. Par exemple, nous allons développer une fonctionnalité permettant de calculer la performance maximale théorique du noyau en comptant les instructions de calculs.
+    

@@ -1,6 +1,8 @@
 \section{Caractérisation des architectures}\label{sec:caracterisation}
 
 
+\textbf{TODO}
+- lecture thèse - 1 Décomposition automatique des programmes parallèles pour l’optimisation et la prédiction de performance. Mihail Popov\\
 
 
 
@@ -117,8 +119,25 @@ Le code de P-Ray n'est cependant pas libre de droit.
 
 
 
+\paragraph{Likwid}
+\textbf{TODO}
+
+Runs in user-space. Uses common kernel interfaces or perf_event
+ Counts per HW thread (knowledge about processes)
+ Derives metrics out of raw counter values
+
+https://www.tdx.cat/bitstream/handle/10803/666955/TMR1de1.pdf?sequence=1
+
+ A Toolset for performance-oriented developers/users
+ Get system topology
+ Place threads according system topology (affinity domains)
+ Run micro-benchmarks to check system features
+ Measure hardware events during application runs
+ Determine energy consumption
+ Manipulate CPU/Uncore frequencies
 
 
+The LIKWID tool suite [17] includes the likwid-bench microbenchmarking framework, which provides a set of assembly language kernels. They cover a vari- ety of streaming access schemes. In addition the user can extend the framework by writing new assembly code loop bodies. likwid-bench takes care of loop counting, thread parallelism, thread placement, ccNUMA page placement and performance (and bandwidth) measurement. It does not, however, perform hardware event count- ing. For the HPM measurements we thus use likwid-perfctr, which is also a part of the LIKWID suite. It uses a simple command line interface but provides a comprehensive set of features for the users. Likwid-perfctr supports almost all interesting core and uncore events for the supported CPU types. In order to relieve the user from having to deal with raw event counts, it supports performance groups, which combine often used event sets and corresponding formulas for computing de- rived metrics (e.g., bandwidths or FLOP rates). Moreover, likwid-perfctr pro- vides a Marker API to instrument the source code and restrict measurements to certain code regions. Likwid-bench already includes the calls to the Marker API in order to measure only the compute kernel.
 
 
 
