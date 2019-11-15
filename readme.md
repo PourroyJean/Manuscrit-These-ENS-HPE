@@ -1,3 +1,7 @@
+![alt text](https://newsroom.univ-grenoble-alpes.fr/medias/photo/article-bu-sciences-2016_1478088274973-jpg)
+
+
+
 Use this template as you wish. Feel free to modify it and/or diffuse it. If you want to acknowledge, do not hesitate to put the website address http://olivier.commowick.org/thesis_template.php somewhere. Anyway, this is not mandatory.
 
 This template was originally designed for compilation using latex followed by dvipdfm. It should work using pdflatex directly. The series of commands to compile the example is provided in compileThese. If you want to use pdflatex, just replace latex by pdflatex in this script and remove the dvipdfm line.
