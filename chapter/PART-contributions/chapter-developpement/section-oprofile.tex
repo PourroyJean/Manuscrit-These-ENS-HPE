@@ -1,4 +1,4 @@
-\section{Profile de l'exécutions d'instructions}\label{sec:oprofile}
+\section{Profile de l'exécution d'instructions}\label{sec:oprofile}
 
 
 Cette section présente l'outil \verb=Oprofile++= qui fonctionne en deux étapes: le suivi de performance et l'extraction des noyaux de calculs. Il permet de donner le profile réel des boucles critiques en reliant les évènements mesurés (nombre de cycles et nombre d'instructions exécutées) aux instructions assembleurs associées et de mesurer leur IPC. Il est ensuite possible de quantifier des opportunités d'amélioration, mais aussi de prédire leur performance en fonction d’une amélioration du matériel ou du logiciel.
@@ -107,7 +107,7 @@ vma       samples         %    samples         %   app name     symbol name
     \subsubsection{Étape 2: correspondance des évènements et des instructions}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    La première étape a permis d'obtenir le profile de l'application avec la répartition des deux évènements mesurés. Cependant, aucune information n'est donnée concernant le type des instructions responsables, seule leur adresse mémoire est indiquée. Le but de la deuxième étape est de retrouver l'instruction assembleur correspondante. Pour cela, un deuxième fichier est généré à l'aide de la commande \verb=objdump=. Couplé à l'option \verb=d= cette commande permet de désassembler le binaire de l'application\footnote{\verb=objdump= - \url{https://linux.die.net/man/1/objdump}}. Dans ce fichier est contenue chaque adresse des instructions de l'application avec l'instruction assembleur correspondante.
+    La première étape a permis d'obtenir le profile de l'application avec la répartition des deux évènements mesurés. Cependant, aucune information n'est donnée concernant le type des instructions responsables, seule leur adresse mémoire est indiquée. Le but de la deuxième étape est de retrouver l'instruction assembleur correspondante. Pour cela, un deuxième fichier est généré à l'aide de la commande \verb=objdump=. Couplé à l'option \verb=d= cette commande permet de désassembler le binaire de l'application\footnote{objdump - \url{https://linux.die.net/man/1/objdump}}. Dans ce fichier est contenue chaque adresse des instructions de l'application avec l'instruction assembleur correspondante.
 
 \begin{lstlisting}[label=lst:dev_op_obj_out, caption=La commande objdump permet de désassembler le fichier binaire de l'application.]
 0000000000401690 <_init>:
@@ -143,11 +143,11 @@ LOOP from 401d90 to 401d79:
 -------------------------------------------------------------------------------
 \end{lstlisting} 
 
-        Les \textit{hot spots} des applications sont souvent caractérisés par la présence de boucles dans le code. Pour extraire ces noyaux de calcul , notre outil recherche les instructions de saut (\textit{jump}) dans le code en parcourant les instructions dans l'ordre du fichier généré lors de l'étape 2. Ainsi, les premiers résultats affichés sont généralement les boucles critiques de l'application. Lorsqu'une boucle est détectée elle est affichée suivie des informations suivantes calculées grâce aux deux compteurs d'évènements: le nombre d'instructions, le nombre de cycles, l'IPC et le nombre de cycles par boucle. 
+        Les \textit{hot spots} des applications sont souvent caractérisées par la présence de boucles dans le code. Pour extraire ces noyaux de calcul , notre outil recherche les instructions de saut (\textit{jump}) dans le code en parcourant les instructions dans l'ordre du fichier généré lors de l'étape 2. Ainsi, les premiers résultats affichés sont généralement les boucles critiques de l'application. Lorsqu'une boucle est détectée elle est affichée suivie des informations suivantes calculées grâce aux deux compteurs d'évènements: le nombre d'instructions, le nombre de cycles, l'IPC et le nombre de cycles par boucle. 
         
         \paragraph{Sommation d'instruction.} Les processeurs utilisés sont tous superscalaires. Ils sont donc capables d'exécuter plusieurs instructions en un seul cycle. Trouver les instructions exécutées simultanément ainsi que leur nombre n'est pas évident. Pour aider la lecture des résultats, l'outil essaie de sommer le nombre de cycles d'une instruction avec ceux de l'instruction précédente (jusqu'à 4 instructions). Ce calcul permet de mettre en évidence des blocs d'instructions exécutées simultanément comme sur l'\autoref{} de code suivant:
         
-        \paragraph{Utilisation recommandée.} La performance d'une application peut sensiblement varier en fonction du jeu de données utilisé. Il est important de réaliser plusieurs profiles avec des jeux différents pour isoler les parties du code les plus intéressantes à optimiser. Il est souvent intéressant d'utiliser différents drapeaux de compilation et mesurer leur impact sur le code généré. 
+        \paragraph{Utilisation recommandée.} La performance d'une application peut sensiblement varier en fonction du jeu de données utilisé. Il est important de réaliser plusieurs profils avec des jeux différents pour isoler les parties du code les plus intéressantes à optimiser. Il est souvent intéressant d'utiliser différents drapeaux de compilation et mesurer leur impact sur le code généré. 
         
 
 \subsection{Résultats}
@@ -155,14 +155,14 @@ LOOP from 401d90 to 401d79:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    Les tests suivant sont réalisés sur un processeur Intel Skylake Gold capable d'exécuter 4 instructions par cycle dont au maximum deux instructions de calculs flottant. Le turbo du processeur est désactivé. 
+    Les tests suivant sont réalisés sur un processeur Intel Skylake Gold capable d'exécuter 4 instructions par cycle dont au maximum deux instructions de calculs flottants. Le turbo du processeur est désactivé. 
 
 
     \subsubsection{Impact des dépendances}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        La performance de nombreuse applications sont détériorée par la présence de dépendances entre les instructions. La seule solution est alors de repenser l'algorithme pour en supprimer le plus possible. Dans cet exemple nous montrons comment la dépendance entre instructions impacte la performance et comment utiliser l'outil \verb=Oprofile++= pour le diagnostiquer. 
+        La performance de nombreuses applications est détériorée par la présence de dépendances entre les instructions. La seule solution est alors de repenser l'algorithme pour en supprimer le plus possible. Dans cet exemple nous montrons comment la dépendance entre instructions impacte la performance et comment utiliser l'outil \verb=Oprofile++= pour le diagnostiquer. 
         
-        L'\autoref{lst:dev_op_dependance} montre le code d'un noyau de calcul généré grâce à l'outil \verb|Kernel Generator| (voir \autoref{sec:kg}). Le noyau consiste en l'exécution de 8 instructions dont chacune utilise comme opérande le résultat de la précédente. À cause de ces dépendances, la performance du noyau est limté par la latence de calcul d'une instruction (4 cycles). La performance maximale atteignable par un tel code est de une instruction tous les 4 cycles, soit un IPC de 0.25. Ce résultat théorique est bien celui mesuré par notre outil. 
+        L'\autoref{lst:dev_op_dependance} montre le code d'un noyau de calcul généré grâce à l'outil \verb|Kernel Generator| (voir \autoref{sec:kg}). Le noyau consiste en l'exécution de 8 instructions dont chacune utilise comme opérande le résultat de la précédente. À cause de ces dépendances, la performance du noyau est limité par la latence de calcul d'une instruction (4 cycles). La performance maximale atteignable par un tel code est d’une instruction tous les 4 cycles, soit un IPC de 0.25. Ce résultat théorique est bien celui mesuré par notre outil. 
         
         
  \begin{lstlisting}[label=lst:dev_op_dependance, caption=Noyau de calcul présentant une dépendance entre chaque instruction.]
@@ -230,7 +230,7 @@ _7_ LOOP from 401c7e to 4018f7 size= 903
     \subsubsection{Mesure de l'IPC}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-        L'IPC est une métrique souvent utilisée pour décrire la performance d'une application. L'exemple précédent utilise un noyau artificiel ne comportant que des instructions de calcul. Dans cette seconde expérimentation, nous montrons que conclure de la bonne ou mauvaise performance d'un code à partir de la mesure de l'IPC n'est pas trivial. Le processeur utilisé peut théoriquement exécuter 4 instructions par cycle. Il semble donc évident d'utiliser cette valeur comme la performance maximale à atteindre par l'application. Cependant, il est important de rappeler que si les architectures Skylake peuvent exécuter 4 instructions par cycles, un maximum de deux instructions de calculs flottant peuvent être exécutées. Pour illustrer nos propos, la performance du noyau présenté dans l'\autoref{lst:dev_op_ipc_missleading} a été mesuré grâce à notre outil \verb=Oprofile++=.
+        L'IPC est une métrique souvent utilisée pour décrire la performance d'une application. L'exemple précédent utilise un noyau artificiel ne comportant que des instructions de calcul. Dans cette seconde expérimentation, nous montrons que conclure de la bonne ou mauvaise performance d'un code à partir de la mesure de l'IPC n'est pas trivial. Le processeur utilisé peut théoriquement exécuter 4 instructions par cycle. Il semble donc évident d'utiliser cette valeur comme la performance maximale à atteindre par l'application. Cependant, il est important de rappeler que si les architectures Skylake peuvent exécuter 4 instructions par cycles, un maximum de deux instructions de calculs flottant peut être exécuté. Pour illustrer nos propos, la performance du noyau présenté dans l'\autoref{lst:dev_op_ipc_missleading} a été mesurée grâce à notre outil \verb=Oprofile++=.
 
 \begin{lstlisting}[label=lst:dev_op_ipc_missleading, caption=Noyau de calcul n'exécutant qu'une opération de calcul par cycle.]
 -------------------------------------------------------------------------------
@@ -291,14 +291,14 @@ _7_ LOOP from 40191e to 4018f7 size= 39
 -------------------------------------------------------------------------------
 \end{lstlisting}
 
-        Après cette transformation, la mesure de l'IPC est alors de 2 instructions par cycle, soit deux fois moins que celui de la version précédente. Pourtant, le noyau exécutent bien deux fois plus d'instructions de calculs flottants par cycle. Cette première expérimentation n'a pour seul objectif d'attirer l'attention de l'utilisateur sur la précaution à prendre pour conclure de la performance d'un code seulement en utilisant la mesure de l'IPC. 
+        Après cette transformation, la mesure de l'IPC est alors de 2 instructions par cycle, soit deux fois moins que celui de la version précédente. Pourtant, le noyau exécute bien deux fois plus d'instructions de calculs flottants par cycle. Cette première expérimentation a pour seul objectif d'attirer l'attention de l'utilisateur sur la précaution à prendre pour conclure de la performance d'un code seulement en utilisant la mesure de l'IPC. 
         
 
 
     \subsubsection{Impact d'une division ou Kernel de RTM}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    \textit{dans cette exemple on peut trouver un exemple d'un code avec une division par une constante qui impact fortement le code.}\\
+    \textit{dans cet exemple on peut trouver un exemple d'un code avec une division par une constante qui impacte fortement le code.}\\
     \textit{On montre astuce d'optimisation en remplacant la division pas la mutliplaction de l'inverse}\\
     
 
@@ -313,12 +313,12 @@ _7_ LOOP from 40191e to 4018f7 size= 39
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    Dans cette section nous proposons un nouvel outil \verb|Oprofile++| qui permet d'extraire les principaux noyaux de calculs d'une application et de donner à l'utilisateur son profile de performance. Contrairement à d'autres outils existant (Vtune, TAU), nous avons voulu développer un outil nécessitant le minimum de dépendances vers des librairies ou des compteurs matériel. Les dépendances et la complexités des outils est en effet un frein à l'utilisation d'outils plus complexes. En ne dépendant que de deux compteurs présent sur la majorité des architectures et de l'outil de profilage de Linux, nous assurons sa compatibilité avec le plus grand nombre de plateforme. 
+    Dans cette section nous proposons un nouvel outil \verb|Oprofile++| qui permet d'extraire les principaux noyaux de calculs d'une application et de donner à l'utilisateur son profil de performance. Contrairement à d'autres outils existants (Vtune, TAU), nous avons voulu développer un outil nécessitant le minimum de dépendances vers des librairies ou des compteurs matériels. Les dépendances et la complexité des outils sont en effet un frein à l'utilisation d'outils plus complexes. En ne dépendant que de deux compteurs présents sur la majorité des architectures et de l'outil de profilage de Linux, nous assurons sa compatibilité avec le plus grand nombre de plateformes. 
 
-    L'augmentation exponentielle de la complexité des architectures et la diversité des applications rend la tâche d'analyse de performance très difficile. Chaque nouvelle configuration (application / architecture) apporte de nouveaux problèmes. Le développement d'un outil réalisant le travail d'analyse de performance automatiquement est ainsi très difficile. Avec \verb|Oprofile++|, nous avons choisi de développer un outil basique mais qui apporte suffisamment d'informations au programmeur pour qu'il puisse, à l'aide de sa créativité, apporter les modifications nécessaire à l'amélioration du code. L'outil \verb|Opofile++| n'a besoin que du fichier binaire pour pouvoir fonctionner bien que l'accès au code source soit recommandé pour pouvoir appliquer les transformations requises. Si cet outil s'adresse aux programmeurs particulièrement chevronnés, il n'en pas moins un outil essentiel et puissant lorsqu'il est bien utilisé. 
+    L'augmentation exponentielle de la complexité des architectures et la diversité des applications rend la tâche d'analyse de performance très difficile. Chaque nouvelle configuration (application / architecture) apporte de nouveaux problèmes. Le développement d'un outil réalisant le travail d'analyse de performance automatiquement est ainsi très difficile. Avec \verb|Oprofile++|, nous avons choisi de développer un outil basique, mais qui apporte suffisamment d'informations au programmeur pour qu'il puisse, à l'aide de sa créativité, apporter les modifications nécessaires à l'amélioration du code. L'outil \verb|Opofile++| n'a besoin que du fichier binaire pour pouvoir fonctionner bien que l'accès au code source soit recommandé pour pouvoir appliquer les transformations requises. Si cet outil s'adresse aux programmeurs particulièrement chevronnés, il n'en pas moins un outil essentiel et puissant lorsqu'il est bien utilisé. 
     
-    Le profile généré par \verb|Oprofile| permet de localiser les fonctions les modules utilisant le plus de ressources. À partir de ces informations et du profile des évènements enregistrés (nombre de cycle et nombre d'instructions), l'outil \verb|Oprofile++| extrait les noyaux de calculs principaux sur lesquels l'analyse de performance doit se faire. Le profile généré par l'outil permet d'obtenir deux informations essentiels: le type d'instructions exécutées et leur performance. Grâce à cet outil, l'utilisateur peut estimer le gain de performance potentiel d'une optimisation du code. Cette information est essentiel car les restructurations du code peuvent être difficile et demander beaucoup d'efforts. Avoir une idée du gain de performance est donc primordiale pour motiver la modification du code. 
+    Le profile généré par \verb|Oprofile| permet de localiser les fonctions les modules utilisant le plus de ressources. À partir de ces informations et du profil des évènements enregistrés (nombre de cycle et nombre d'instructions), l'outil \verb|Oprofile++| extrait les noyaux de calculs principaux sur lesquels l'analyse de performance doit se faire. Le profile généré par l'outil permet d'obtenir deux informations essentielles: le type d'instructions exécutées et leur performance. Grâce à cet outil, l'utilisateur peut estimer le gain de performance potentiel d'une optimisation du code. Cette information est essentielle, car les restructurations du code peuvent être difficiles et demander beaucoup d'efforts. Avoir une idée du gain de performance est donc primordial pour motiver la modification du code. 
 
 
-    \paragraph{Futures travaux.} L'outil \verb|Oprofile++| peut être difficile à appréhender pour des utilisateurs novices. Nous souhaitons faciliter la lecture du profile des noyaux en apportant d'avantages d'informations à l'utilisateur. Par exemple, nous allons développer une fonctionnalité permettant de calculer la performance maximale théorique du noyau en comptant les instructions de calculs.
+    \paragraph{Futurs travaux.} L'outil \verb|Oprofile++| peut être difficile à appréhender pour des utilisateurs novices. Nous souhaitons faciliter la lecture du profil des noyaux en apportant d'avantages d'informations à l'utilisateur. Par exemple, nous allons développer une fonctionnalité permettant de calculer la performance maximale théorique du noyau en comptant les instructions de calculs.
     

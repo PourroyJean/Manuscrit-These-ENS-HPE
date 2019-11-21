@@ -1,3 +1,50 @@
-\chapter{Conclusion}
+\chapter{Conclusion et perspectives}
 \label{chap:conclusion}
 \minitoc
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    We developed these tools to be as simple as possible, each answering a simple question. The effectiveness lies in the ability for the user to use them independently to carry out his analysis. We try to reduce as much as possible the code dependencies to other libraries. The ease of usage (installation and usability) and maintenance of the code seems to us to be key to making the tools the most widely used. All the tools are distributed in Open Source, any developer can modify them and extend the features in particular targeting future processors, like ARM or RISC-5. Many tools allow you to retrieve lot of information through hardware counters. However, it is often very difficult to draw any conclusion from this; a large number of misses in the cache does not necessarily mean that the code is not optimal. Our methodology involves modeling the code and comparing the expected performance with the real data retrieved using the tools. 
+    These tools are used to analyze the performance of codes or micro-architectures. Their influence on the performance of the measured code should be as small as possible (less than 5\%).
+    %Whenever possible, we have developed tools that do not require any changes to the application's source code. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Perspectives}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+La prochaine étape est d’appliquer notre méthodologie pour la caractérisation de plateformes telles que les processeurs AMD, ARM ou les accélérateurs NEC. Ce travail est réalisé en particulier pour répondre à un appel d’offres pour la société ARAMCO (recherche pétrolière). Pour cela, un générateur de benchmark code de stencil  sera créé permettant de caractériser les architectures pour ces codes. Nous souhaitons pouvoir exécuter les benchmarks à intervalles réguliers sur un cluster de calculs permettant de générer des traces. Grâce à des méthodes statistiques et de machine learning, ces données nous aideront à découvrir et anticiper les pannes matérielles. Enfin, comme la réussite de ce projet repose sur l’aide de la communauté, nous avons prévu d’autres formations et sensibilisation à cette démarche auprès de nombreux clients industriels ainsi que des spécialistes avant-vente HPC.
+
+
+  \cite{Straatsma2017} indique qu’une grande difficulté pour les outils d’analyses utilisés sur les architectures exascales sera de retirer une informations utiles de toutes ces mesures. Lire les compteurs sur des milliers de coeurs, synchroniser ces mesures est déjà une difficulté. Mais il faudra aussi tirer un valeur de ces valeurs qui ne pourra pas être fait par des humains. Il faut donc se tourner vers des algorithmes statistiques ou des techniques de machines learning (source ?).
+
+
+
+Conclusion
+	* On commence a développer sur Xeon:
+		Indeed, even if our current analysis is done on Intel Xeon plateforms, our project is to analyze and characterize applications on any multi-cores processor. Thus, it would be counter productive to use hardware counters that would not be available on all, present and future processors.
+		    * Pourtant on à dit que la partie critique des codes ira sur les accélérateurs
+		    * Pour l’instant c’est ce qu’on a sur la main, on a de l’expérience et les moyens d’écrire les outils qu’il nous faut
+		    * On se sert de cette expérimentation comme démonstrateur
+		        * Oprofile: on se base sur des compteurs très simple (nb cycle, nb instruction) en espérant que ce soit les premiers compteurs disponibles sur des nouvelles architectures
+	Conclusion
+		1. Seulement x86 pour le moment: 
+			    1. c’est pour cela qu’on a choisi l’open source: multitude de plateforme à supporter. 
+			    2. Pour cela aussi qu’on a du se restreindre à peu d’hardware compteurs
+			    3. La structure du benchmark a ete prévu de telle sorte que de nouvelles implémentation pour d’autres architectures soit possible car le but et de ciblé l’hétérogénéité et mesurer la performance d’éventuelles architectures non x86
+				        * Le génarateur de kernel peut facilement être adapté à un nouveau langage assembleur
+				        * Oprofile: on se base sur des compteurs très simple (nb cycle, nb instruction) en espérant que ce soit les premiers compteurs disponibles sur des nouvelles architectures
+			    * FLOP et instructions par cycle
+				        * permettant de faiclement comparé des marques differentes
+				        * comparer avec d’autres benchamrk ou son application
+			* On est concient que pour le moment seulement x86, mais on se sert de cela comme démonstrateur, et nous allons poursuivre le ddéveloppement sur d’autres architectures. Le mettre en Open Source aussi devrait permettre cela.
+		Dans ce papier on montre un démonstrateur, mais cela doit être appliqué à tous les composants
