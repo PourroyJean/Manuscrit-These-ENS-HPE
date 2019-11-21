@@ -1,4 +1,4 @@
-\documentclass[11pt,twoside, french]{StyleThese}
+\documentclass[12pt,twoside, french]{StyleThese}
 
 
 
@@ -9,7 +9,6 @@
 \usepackage{subcaption} %subfigure
 %\usepackage{subfig}
 \setlength{\biblabelsep}{0pt}
-
 
 
 
@@ -25,56 +24,56 @@
 
 %%% TEMPLATE POUR PARTIE EN BLEU
 \iffalse
-\usepackage{fourier}% change to lmodern if fourier is no available
-\usepackage{tikz}
-\usepackage[explicit]{titlesec}
-
-\definecolor{mybluei}{RGB}{0,173,239}
-\definecolor{myblueii}{RGB}{63,200,244}
-\definecolor{myblueiii}{RGB}{199,234,253}
-
-\renewcommand\thepart{\arabic{part}}
-
-\newcommand\partnumfont{% font specification for the number
-  \fontsize{380}{130}\color{myblueii}\selectfont%
-}
-
-\newcommand\partnamefont{% font specification for the name "PART"
-  \normalfont\color{white}\scshape\small\bfseries 
-}
-
-\titleformat{\part}
-  {\normalfont\huge\filleft}
-  {}
-  {20pt}
-  {\begin{tikzpicture}[remember picture,overlay]
-  \fill[myblueiii] 
-    (current page.north west) rectangle ([yshift=-13cm]current page.north east);   
-  \node[
-      fill=mybluei,
-      text width=2\paperwidth,
-      rounded corners=6cm,
-      text depth=18cm,
-      anchor=center,
-      inner sep=0pt] at (current page.north east) (parttop)
-    {\thepart};%
-  \node[
-      anchor=south east,
-      inner sep=0pt,
-      outer sep=0pt] (partnum) at ([xshift=-20pt]parttop.south) 
-    {\partnumfont\thepart};
-  \node[
-      anchor=south,
-      inner sep=0pt] (partname) at ([yshift=2pt]partnum.south)   
-  {\partnamefont PART};
-  \node[
-      anchor=north east,
-      align=right,
-      inner xsep=0pt] at ([yshift=-0.5cm]partname.east|-partnum.south) 
-  {\parbox{.7\textwidth}{\raggedleft#1}};
-  \end{tikzpicture}%
-  }
-  \fi
+        \usepackage{fourier}% change to lmodern if fourier is no available
+        \usepackage{tikz}
+        \usepackage[explicit]{titlesec}
+        
+        \definecolor{mybluei}{RGB}{0,173,239}
+        \definecolor{myblueii}{RGB}{63,200,244}
+        \definecolor{myblueiii}{RGB}{199,234,253}
+        
+        \renewcommand\thepart{\arabic{part}}
+        
+        \newcommand\partnumfont{% font specification for the number
+          \fontsize{380}{130}\color{myblueii}\selectfont%
+        }
+        
+        \newcommand\partnamefont{% font specification for the name "PART"
+          \normalfont\color{white}\scshape\small\bfseries 
+        }
+        
+        \titleformat{\part}
+          {\normalfont\huge\filleft}
+          {}
+          {20pt}
+          {\begin{tikzpicture}[remember picture,overlay]
+          \fill[myblueiii] 
+            (current page.north west) rectangle ([yshift=-13cm]current page.north east);   
+          \node[
+              fill=mybluei,
+              text width=2\paperwidth,
+              rounded corners=6cm,
+              text depth=18cm,
+              anchor=center,
+              inner sep=0pt] at (current page.north east) (parttop)
+            {\thepart};%
+          \node[
+              anchor=south east,
+              inner sep=0pt,
+              outer sep=0pt] (partnum) at ([xshift=-20pt]parttop.south) 
+            {\partnumfont\thepart};
+          \node[
+              anchor=south,
+              inner sep=0pt] (partname) at ([yshift=2pt]partnum.south)   
+          {\partnamefont PART};
+          \node[
+              anchor=north east,
+              align=right,
+              inner xsep=0pt] at ([yshift=-0.5cm]partname.east|-partnum.south) 
+          {\parbox{.7\textwidth}{\raggedleft#1}};
+          \end{tikzpicture}%
+          }
+\fi
 
 %WORK
 \iffalse
@@ -239,10 +238,10 @@
 %\renewcommand{\familydefault}{\sfdefault}
 \usepackage{geometry}
 \geometry{
-	left=30mm,
-	top=30mm,
-	right=30mm,
-	bottom=30mm
+	left=25mm,
+	top=15mm,
+	right=20mm,
+	bottom=20mm
 }
 \usepackage{xcolor}
 \definecolor{bordeau}{rgb}{0.3515625,0,0.234375}
@@ -300,7 +299,7 @@
 
 %%% JURY
 
-% Lors du premier dépôt de la thèse le nom du président nest pas connu, le choix du président se fait par les membres du Jury juste avant la soutenance. La précision est apportée sur la couverture lors du second dépôt / Choice of the jury's president is made during the defense. Thus, it must be specified only for the second file deposition in ADUM.
+% Lors du premier dépôt de la thèse le nom du président nest pas connu, le choix du président se fait par les membres du Jury juste avant la soutenance. La précision est apportée sur la couverture lors du second dépôt / Choice of the jury's president is made during the defense. Thus, it must be specified onlly for the second file deposition in ADUM.
 % Tous les membres du juty listés doivent avoir été présents lors de la soutenance / All the jury members listed here must have been present during the defense.
 
 %%% Membre n°1 (Président) / Member n°1 (President)
@@ -533,21 +532,23 @@ A faire en dernier :-)
 \mainmatter
 
 %\bibliographystyle{StyleThese}
+%\iffalse
 
+    %% INTRO %%
+    \include{chapter/chapter-introduction}
+    
+    %% PART 1 %%
+    \part{État de l'art}
+    \include{chapter/PART-StateOfTheArt/PART-StateOfTheArt}
+    
+    %% PART 2 %%
+    \part{Contributions et résultats}
+    \include{chapter/PART-contributions/PART-contributions}
 
-%% INTRO %%
-\include{chapter/chapter-introduction}
-
-%% PART 1 %%
-\part{État de l'art}
-\include{chapter/PART-StateOfTheArt/PART-StateOfTheArt}
-
-%% PART 2 %%
-\part{Contributions et résultats}
-\include{chapter/PART-contributions/PART-contributions}
-
-%% CONLUSION %%
-\include{chapter/chapter-conclusion}
+%\fi
+    
+    %% CONLUSION %%
+    \include{chapter/chapter-conclusion}
 
 \appendix
 

@@ -46,7 +46,7 @@
                 \caption{Aujourd'hui la FPU est positionnée directement sur chaque coeur du processeur.}
                 \label{pic_cpu_fpu_recent}
             \end{subfigure}
-            \caption{La FPU d'un processeur est un co-processeur permettant d'exécuter efficacement des instructions de calculs arithmétiques. }\label{fig:cacheinclusionpolicy}
+            \caption{La FPU d'un processeur est un coprocesseur permettant d'exécuter efficacement des instructions de calculs arithmétiques. }\label{fig:cacheinclusionpolicy}
         \end{figure}
         
        
@@ -58,9 +58,9 @@
     %%%%%%%%%%%%%
     
         L'objectif principal de cet outil est de caractériser finement les performances des unités de calcul en virgule flottante (FPU). 
-        La première caractéristique pouvant être mesurée est la performance maximale atteignable par la FPU pour un certain type d'instruction. Cette performance est mesurée en $FLOPS$ et peut être mesurée pour des types et des tailles d'instructions différentes. L'avantage de cette unité est de rendre les résultats du Kernel Generator comparable avec ceux d'autres benchmarks (tel que \textit{HPL}). 
+        La première caractéristique pouvant être mesurée est la performance maximale atteignable par la FPU pour un certain type d'instruction. Cette performance est mesurée en $FLOPS$ et peut être mesurée pour des types et des tailles d'instructions différents. L'avantage de cette unité est de rendre les résultats du Kernel Generator comparable avec ceux d'autres benchmarks (tel que \textit{HPL}). 
         La deuxième caractéristique mesurable est la latence des instructions. Il peut être intéressant de connaître celle-ci lors de l'exécution d'instructions dépendantes.
-        D'autres comportements doivent être caractérisés pour anticiper la performance de certaines applications. Parmi eux, celui de l'unité d'exécution dans le désordre. Certains codes comportant beaucoup de dépendances sont limités par la faculté du processeur à exécuter plusieurs chaînes de dépendances. Cet outil vise plus particulèrement les développeurs d'application dont la performance est limitée par l'exécution d'instructions de calcul (\textit{compute bound}). Bien que la performance des processeurs soit souvent limitée par la bande passante mémoire, une partie significatives des codes est purement \textit{compute bound}. L'outil du \textit{Kernel Generator} est principalement destiné pour ce type d'applications.
+        D'autres comportements doivent être caractérisés pour anticiper la performance de certaines applications. Parmi eux, celui de l'unité d'exécution dans le désordre. Certains codes comportant beaucoup de dépendances sont limités par la faculté du processeur à exécuter plusieurs chaînes de dépendances. Cet outil vise plus particulièrement les développeurs d'application dont la performance est limitée par l'exécution d'instructions de calcul (\textit{compute bound}). Bien que la performance des processeurs soit souvent limitée par la bande passante mémoire, une partie significative des codes est purement \textit{compute bound}. L'outil du \textit{Kernel Generator} est principalement destiné pour ce type d'applications.
 
 
         
@@ -90,7 +90,9 @@
             \caption{\label{pic_kg_workflow} Déroulement de l'exécution du générateur de kernels.}
             \end{figure}
     
-            Le générateur de kernels accepte plusieurs options lui permettant de produire différents benchmarks. La commande suivante montre un exemple d'utilisation du générateur: \verb|./kg   -P double -W 128  -O aamm|. Cette commande permet de générer un kernel de calculs utilisant quatre instructions vectorielles de 128 bits sur des nombres flottants en double précision. Le kernel est composé de quatre instructions (deux additions et deux multiplications):
+            Le générateur de kernels accepte plusieurs options lui permettant de produire différents benchmarks. La commande suivante montre un exemple d'utilisation du générateur:\\
+            \verb|./kg   -P double -W 128  -O aamm|.\\
+            Cette commande permet de générer un kernel de calculs utilisant quatre instructions vectorielles de 128 bits sur des nombres flottants en double précision. Le kernel est composé de quatre instructions (deux additions et deux multiplications):
         \begin{verbatim}
 "vaddpd %%xmm0, %%xmm1, %%xmm2;"
 "vaddpd %%xmm0, %%xmm1, %%xmm3;"
@@ -187,7 +189,7 @@ _value_|      240000000000      44.7         2.69                5.37      1.99
         
         
         %#TODO enelver le compteur je pense qu'il est NDA pour HPE
-        \paragraph{Validation du nombre d'instructions.} La première valeur à valider est de s'assurer que le bon nombre d'instructions a été exécuté par le benchmark. Le benchmark affiche le nombre d'instructions qui devrait être exécutées. Un moyen de le vérifier est d'utiliser les compteurs matériels. L'outil \textit{perf} permet de mesurer le nombre d'évènements d'un compteur en utilisant son adresse (une instruction FMA compte pour deux). La ligne de commande suivante permet de compter les opérations flottantes réalisées par le benchmark: \verb|perf stat -e /rffc7 ./benchmark|. Le résultat du benchmark ci-dessus prévoyait l'exécution de 240,000,000,000 opérations. La commande \verb|perf stat| retourne une valeur de 240,000,210,024 opérations. Pour comprendre d'où proviennent les instructions supplémentaires, nous avons mesuré différentes versions du benchmark avec différentes longueurs de boucle (5000, 10000 et 20000). Le \autoref{tab:kg_vs_perf} donne les résultats affichés par le benchmark et par la commande précédente utilisant l'outil \textit{perf}. Les résultats de \textit{perf} mesure le bon nombre d'instructions avec 2124 opérations supplémentaires à chaque fois. Ces instructions supplémentaires correspondent en fait au traitement des résultats..
+        \paragraph{Validation du nombre d'instructions.} La première valeur à valider est de s'assurer que le bon nombre d'instructions a été exécuté par le benchmark. Le benchmark affiche le nombre d'instructions qui devrait être exécuté. Un moyen de le vérifier est d'utiliser les compteurs matériels. L'outil \textit{perf} permet de mesurer le nombre d'évènements d'un compteur en utilisant son adresse (une instruction FMA compte pour deux). La ligne de commande suivante permet de compter les opérations flottantes réalisées par le benchmark: \verb|perf stat -e /rffc7 ./benchmark|. Le résultat du benchmark ci-dessus prévoyait l'exécution de 240,000,000,000 opérations. La commande \verb|perf stat| retourne une valeur de 240,000,210,024 opérations. Pour comprendre d'où proviennent les instructions supplémentaires, nous avons mesuré différentes versions du benchmark avec différentes longueurs de boucle (5000, 10000 et 20000). Le \autoref{tab:kg_vs_perf} donne les résultats affichés par le benchmark et par la commande précédente utilisant l'outil \textit{perf}. Les résultats de \textit{perf} mesurent le bon nombre d'instructions avec 2124 opérations supplémentaires à chaque fois. Ces instructions supplémentaires correspondent en fait au traitement des résultats.
     
         \begin{table}[h!]
         \centering
@@ -415,7 +417,7 @@ time_total += timeEnd - timeStart;
 }
 \end{lstlisting}
     
-     La microarchitecture Haswell est capable d'exécuter deux multiplication par cycle. Cependant, l'utilisation du générateur de kernel nous a montré que le processeur n'était pas capable d'exécuter des additions au même rythme que les multiplications. Les résultats présentés dans le \autoref{tab:mul_vs_add} montrent que la microarchitecture Haswell est capable d'exécuter deux multiplications contre une seule addition par cycle.
+     La microarchitecture Haswell est capable d'exécuter deux multiplications par cycle. Cependant, l'utilisation du générateur de kernel nous a montré que le processeur n'était pas capable d'exécuter des additions au même rythme que les multiplications. Les résultats présentés dans le \autoref{tab:mul_vs_add} montrent que la microarchitecture Haswell est capable d'exécuter deux multiplications contre une seule addition par cycle.
 
     \begin{table}[h!]
     \centering
@@ -619,12 +621,9 @@ time_total += timeEnd - timeStart;
 \subsection{Conclusion}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    Le générateur de kernel assembleur est un outil très précis pour la caractérisation des FPUs. Le principal avantage de l'utilisation de l'assembleur est d'éliminer les optimisations du compilateur. Le benchmark doit assurer à l'utilisateur qu'il mesure bien la performance du code qu'il a choisi de générer et qu'il n'a pas été modifié durant la compilation. Il nous a permis d'atteindre des performances souvent égales aux performances théoriques. 
+    Le générateur de kernel assembleur est un outil très précis pour la caractérisation des FPUs. Le principal avantage de l'utilisation de l'assembleur est d'éliminer les optimisations du compilateur. Le benchmark doit assurer à l'utilisateur qu'il mesure bien la performance du code qu'il a choisi de générer et qu'il n'a pas été modifié durant la compilation. Il nous a permis d'atteindre des performances souvent égales aux performances théoriques. En utilisant le générateur, le programmeur peut être amené à découvrir des particularités de la microarchitecture (comme celle de l'exécution dans le désordre). En comprenant précisément le fonctionnement de la FPU, il pourra même trouver des optimisations pour sa propre application.
     
     Pour le moment, seul l'ISA x86 est supporté, mais l'outil a été codé de façon à faciliter l'ajout d'une nouvelle ISA. Nous avons choisi de commencer à le développer pour des processeurs dont nous connaissons bien le comportement pour valider son bon fonctionnement. L'exemple de la FPU du processeur Intel Xeon 4110, nous a permis de montrer que même sur des architectures que nous connaissons bien, certaines spécificités nous échappent encore. L'utilisation du générateur permet d'en comprendre toutes les particularités.
     
-    Il est connu que la performance des applications actuelles est principalement limitée par le système mémoire. Ainsi, nous avons constaté le manque d'outils permettant de caractériser les unités de calculs arithmétiques. 
     
-    En utilisant le générateur, le programmeur peut être amené à découvrir des particularités de la microarchitecture (comme celle de l'exécution dans le désordre). En comprenant précisément le fonctionnement de la FPU, il pourra même trouver des optimisations pour sa propre application.
-    
-    La suite du travail comprend la fin du développement de l'option permettant de mixer différentes tailles d'instructions vectorielles dans le même kernel. Nous pensons aussi permettre de générer des instructions générant des déplacements mémoires pour vérifier qu'elles ne gênent pas l'exécution des instructions de calculs. Enfin, pour mieux caractériser les plate-formes pour certaines applications comme en cryptographie, nous allons ajouter d'autres instructions pouvant être générées (rotation, décalage...).
+    \paragraph{Futures travaux.} La suite du travail comprend la fin du développement de l'option permettant de mixer différentes tailles d'instructions vectorielles dans le même kernel. Nous pensons aussi permettre de générer des instructions générant des déplacements mémoires pour vérifier qu'elles ne gênent pas l'exécution des instructions de calculs. Enfin, pour mieux caractériser les plate-formes pour certaines applications comme en cryptographie, nous allons ajouter d'autres instructions pouvant être générées (rotation, décalage...).
