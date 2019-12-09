@@ -2,6 +2,9 @@
 \label{chap:conclusion}
 \minitoc
 
+https://tel.archives-ouvertes.fr/tel-00984791v4/document
+voir leur structure
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,3 +51,28 @@ Conclusion
 				        * comparer avec d’autres benchamrk ou son application
 			* On est concient que pour le moment seulement x86, mais on se sert de cela comme démonstrateur, et nous allons poursuivre le ddéveloppement sur d’autres architectures. Le mettre en Open Source aussi devrait permettre cela.
 		Dans ce papier on montre un démonstrateur, mais cela doit être appliqué à tous les composants
+		
+		
+Le benchmark des ALU a été ajouté au logiciel HPE Confidence qui permet de valider le bon fonctionnement d’un cluster lors de sa livraison. Grâce à cet ajout, Confidence vérifie les bonnes performances de calculs de chaque processeur et permet d’isoler des composants défectueux. Nous avons réalisé plusieurs formations pour des clients pour les sensibiliser à cette approche et au besoin d’avoir les outils adéquats pour réaliser le travail d’optimisation ou de portage de code. 
+
+
+  En 2018, seulement 28\% des supercalculateurs du Top500 sont associés à un accélérateur. Et 92\% d'entre eux sont des GPU Nvidia.
+    
+    L'hétérogénéité est la plus grande opportunité pour permettre la construction d'une plateforme Exascale utilisable par des applications industrielles.
+    Grâce à de nouvelles technologies comme le protocole Gen-Z, de nombreuses architectures optimisées pour certaines tâche vont pouvoir facilement être associées dans les supercalculateurs. 
+    
+    L'objectif des utilisateurs de calcul haute performance est de choisir l'architecture la plus adaptée pour son application. Les applications industrielles sont souvent constituées de différentes parties avec des besoins matériels différent. La principale difficulté est donc de pouvoir caractériser ces zones et de leur associer un accélérateur adéquat.
+    
+    
+    
+    La complexification de la microarchitecture rend l'analyse de leur  fonctionnement. Le manque de connaissances et d'outils adaptés à ce travail sont les principales causes de la création de la méthodologie présentée dans ce chapitre.
+    
+    
+    Grâce à cette méthodologie, plusieurs deals HPC stratégiques ont pu être remportés. L’un d’entre eux fut lors de l’appel d’offres d’un client de défense français qui autorisait le choix de plateformes spécialisées et la transformation du code. Grâce à notre méthodologie, la performance maximale théorique de l’algorithme pour la plateforme sélectionnée a été atteinte. Plus récemment, nos outils ont permis de comprendre et d’isoler un bug majeur dans une nouvelle architecture prometteuse (alors inconnu par le fabricant) ne délivrant pas la performance attendue. Cette méthode a également été appliquée pour remporter un concours d’optimisation d’applications. Ce concours sponsorisé par Intel avait pour objectif d’optimiser une application de calcul distribué MPI pour la dynamique de systèmes particulaires. En utilisant nos outils, notamment ceux de profiling de performance, une accélération d’un facteur 10 a pu être réalisée.
+    
+    
+    Notre methodologie montre qu'avec des outils très simple, le programmeur peut mener à bien une analyse très complexes et précise de son application
+    En combinant les outils ont améliore notre expertise
+    Image de la méthodologie
+    
+    

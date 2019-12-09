@@ -314,62 +314,6 @@ La loi de Moore a assuré aux processeurs un gain constant de transistors chaque
 \end{itemize}
 
 
-\subsubsection{Le calcul parallèle}
-%%%%%%%%%%%%%%%%%%%%%%
-Afin de motiver l'utilité du calcul parallèle et le gain de performance qu'il peut apporter à une application, cette section présente un exemple simple de l'approximation de la valeur de $\pi$ par le calcul de l'intégral \ref{eq_pi}.
-
-\begin{equation} \label{eq_pi} 
-\int_{0}^{1} \frac{4.0}{1 + x^{2}} 
-\end{equation}
-
-Calculer une intégrale revient à calculer la surface formée par cette courbe et l'axe des abscisses dans le domaine étudié, ici $[0,1]$. Comme la courbe dessinée par cette formule est sinusoïdale, le calcul de sa surface est impossible. On peut cependant approcher sa valeur en utilisant la méthode d'approximation par la méthode des rectangles (ou trapèzes). Cela reviens à dessiner des rectangles sous la courbe et de calculer la surface correspondante. La surface d'un rectangle étant calculable, on pourra donc trouver une approximation de la surface recherchée. En effet, sur la \autoref{pic_pi_1}, on voit qu'en calculant et en sommant la surface de tous les rectangles bleus on trouvera un résultat proche de celui de la surface dessiné par la courbe rouge.
-
-
-\begin{figure}[t!]
-    \centering
-    \begin{subfigure}[t]{0.5\textwidth}
-        \centering
-        \includegraphics[height=1.8in]{images/Chapitre1/pic_pi_rect_1.png}
-        \caption{Approximation avec 4 rectangles \label{pic_pi_1}}
-    \end{subfigure}%
-\begin{subfigure}[t]{0.5\textwidth}
-        \centering
-        \includegraphics[height=1.8in]{images/Chapitre1/pic_pi_rect_2.png}
-        \caption{Approximation avec 14 rectangles \label{pic_pi_2}}
-    \end{subfigure}
-    \caption{Approximation de $\pi$ par la méthode des rectangles. Au plus de rectangles sont utilisés au plus la précision du calcul sera grande.}
-    \label{pic_pi_rect}
-\end{figure}
-
-\begin{lstlisting}[language=C, caption=Implémentions de l'algorithme de calcul d'intégrale par la méthode des rectangles, float,floatplacement=H]
-
-static long num steps = 100000; 
-double step;
-void main ()
-{
-    double largeur, hauteur, pi = 0.0;
-
-    int num_steps = 4;
-    //  num_steps = 14;
-
-    largeur = 1.0 / num_steps;
-
-    for (i = 0; i < num_steps; ++i) {
-        x =  (i) * step;
-        hauteur = ( 4.0/(1.0+x*x));
-        pi += largeur * hauteur;
-    }
-    
-    cout << "Valeur de pi: " << pi << endl;
-
-}
-\end{lstlisting}
-
-Les surfaces des différents rectangles pouvant être calculés indépendamment les unes des autres, l'utilisation de plusieurs unités de calcul permet d'accélérer le calcul de $\pi$. La précision du calcul dépendra du nombre de rectangles choisi. Plus grand sera le nombre de rectangles, plus petite sera l'erreur due à l'écart entre les rectangles et la courbe (\autoref{pic_pi_2}). Cependant, plus le nombre de rectangles est grand, plus long sera le calcul. Cet exemple simpliste permet de montrer comment la précision et la performance d'un code sont liées. Les applications de HPC exécutent des simulations numériques nécessitant de très grandes précisions. Le calcul parallèle est donc la clef de leur succès.
-De plus, cet exemple montre que la demande de ressources de calculs est infinie. Dès lors que l'on voudra avoir des résultats plus rapidement, on aura alors besoin d'ordinateurs plus puissants. Aujourd'hui ces demandes sont réelles, on pourrait évoquer les voitures autonomes qui vont avoir besoin de prendre des décisions précises en quelques millisecondes. 
-
-
-
 \subsubsection{Le pipeline} \label{sec:pipeline}
 %%%%%%%%%%%%%%%%%%%%%%
 
@@ -464,7 +408,7 @@ Le deuxième moyen d'implémenter le parallélisme d'instruction d'un processeur
 Les principales limitations à l'implémentation d'un pipeline sont les dépendances et les conflits. Cela peut être une dépendance entre les données de plusieurs instructions ou un conflit d'accès à une même ressource (ALU, FPU). Le processeur est alors en charge d'orchestrer les différentes instructions pour rendre possible le parallélisme en utilisant des stratégies \textit{d’émission} \cite{johnson1989super} des instructions. Cette stratégie doit veiller à conserver la validité du programme en veillant aux ordres: de lecture des instructions, de leur exécution et de leur actualisation des registres (ou de la mémoire). 
 
 
-\paragraph{Exemple du Pentium 4}
+\paragraph{Exemple du Pentium 4}\autoref{sec:alu_pentium}
 Pour bien comprendre le déroulement de l'exécution du pipeline d'un processeur superscalaire, nous choisissons de détailler le fonctionnement de processeur Intel Pentium 4 \cite{stallings2003organisation} donc le schéma de la microarchitecture est présenté sur la \autoref{cpu_superscalar_pentium}. Le processeur exécute les \textit{micro-ops} en utilisant un pipeline d'au moins 20 étages en veillant à respecter les dépendances, dont les principales étapes sont décrites ici: 
 
 \begin{enumerate}     
