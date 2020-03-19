@@ -1,0 +1,34 @@
+\section{Conlusion}\label{sec:conclusion-hpc}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HPC
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    Ce chapitre a permis de réaliser une large étude du domaine du HPC et de comprendre les principaux challenges à relever pour développer les prochaines générations de supercalculateurs.\\
+    
+    
+    Dans la \autoref{sec:hpc_intro} nous avons commencé par rappeler les origines du calcul haute performance en présentant les simulations numériques. Les applications développées dans ce domaine nécessitent de grandes puissances de calculs qu'elles peuvent obtenir en accédant à d'immenses plateformes, appelées supercalculateur. Nous avons ensuite étudié les différents paradigmes de programmation parallèle permettant aux programmeurs d'accéder aux milliers de ressources de calculs disponibles. Cette section nous a permis d'introduire les concepts de performance en étudiant notamment la scalabilité des applications à l'aide des lois d'Amdahl et de Guftafson.\\
+    
+    
+    Dans la \autoref{sec:edl_evolution} nous nous sommes intéressés à l'étude du classement du Top500. Ce classement réalisé depuis 1993 nous a permis de comprendre les tendances de l'évolution des performances des supercalculateurs. Nous avons ainsi discuté des principaux freins technologiques qui ont donné lieu à un ralentissement de l'évolution des performances au début des années 2010 (lois de Moore et de Dennard) ainsi que du déséquilibre des performances du système mémoire et des capacités de calcul des processeurs. Nous avons ensuite discuté de la nécessité de développer des plateformes plus puissantes permettant d'analyser le tsunami de données produit par les objets connectés, de prendre des décisions plus complexes (intelligence artificielle, simulations numériques précises) et plus rapides. Cette nouvelle génération de supercalculateurs nommés exascale permettra d'atteindre une puissance de calculs dix fois plus grande que celles atteintes par les plateformes actuelles. Pour cela, nous avons discuté des 6 principaux challenges auxquels doit faire face l'industrie du HPC, dont celui de l’énergie. Les 10 premiers supercalculateurs du Top500 consomment entre 7 et 20 MW alors que l’objectif est de construire un supercalculateur dix fois plus puissant consommant entre 20 et 30 MW. Ces contraintes nous obligent à utiliser de nouvelles technologies très différentes de celles utilisées actuellement, mais aussi de repenser en profondeur l'architecture des plateformes.\\
+    
+    
+    Dans la \autoref{sec:oppo} nous avons présenté les principales opportunités disponibles pour répondre aux challenges précédemment évoqués. Pour faire face aux pressions énergétique et économique, des technologies de ruptures sont actuellement développées telles que les mémoires SCM \textit{Storage Class Memory}, les technologies photoniques et le protocole GEN-Z. Grâce à ce protocole, de nombreuses technologies pourront être utilisées pour exécuter les différentes fonctions d’une application de façon optimale. Afin de pouvoir profiter de l'hétérogénéité des solutions disponibles, il est nécessaire de caractériser chacun d'entre elles et d'adapter les applications pour en extraire le maximum de performance.\\
+    
+    Enfin, dans la \autoref{sec:edl_perf_intro} nous nous sommes intéressés au domaine de l'analyse de la performance des applications ainsi qu'à celui de la caractérisation des architectures. Nous avons étudié les principaux travaux existants et relevé les manques. Les 4 outils manquants sont développés dans la suite de ce manuscrit.
+
+\iffalse
+
+    
+    \textbf{TODO}
+    This work is part of this vision where the need for computing power is constantly evolving. The infrastructures to be produced must provide it without exceeding the electrical power already achieved by the largest clusters (envelope between 20 and 30 MW). One of the most viable solutions is to optimize the codes to use the most of the available computational power. But today, there is a need to have a methodology to tackle this task and to have the appropriate tools to do the work.
+    
+    Most of the decisions these objects will have to make will have to be intelligent and made in real time. The entire information system will have to be redesigned if these problems are to be addressed. And new innovations such as those presented in this section will appear: non-volatile memories (RRAM, MRAM, STTRAM), very heterogeneous processors optimized for a workload, and both connected by new photonics networks.
+    
+    
+    Although still more powerful, these infrastructures do not use all the power at their disposal. As the top500 list shows \cite{Top500}, most supercomputers rarely achieve 80\% efficiency on a simple application like Linpack \cite{Dongarra2003}. For real applications this efficiency is even lower, sometimes less than 10\% \cite{Oliker2005}. There is a lot of work to be done to give applications the ability to access all the computing power that is present but not used. To carry out this work, it is necessary to know what are the capacities of these architectures, how they react according to the applications used and if the performance is optimal.
+    
+    
+    Optimizing the performance of an application has an impact on its execution speed, but it  does not translate into an economic gain. The construction of a supercomputer costs millions of dollars, but once it has been built it implies large operational costs, of which the biggest part is the energy it uses. PathForward published the technical requirements for the development of an exascale supercomputer \cite{Ang2016}. This report established a power envelope of 20 to 30 Megawatts. Simply put, if the price of a kilowatt-hour is 0.10\$, a budget of 20 million dollars per year will be needed to power an infrastructure consuming 20 MWatt.
+
+\fi

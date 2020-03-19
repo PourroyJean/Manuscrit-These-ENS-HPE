@@ -46,15 +46,102 @@ Programming Interface}, first={Application
 Programming Interface (API)\glsadd{apig}}}
 
 
+%%
+%%
+%%%%%%%%%%%%%%%%%%%%%% DEFINITION %%%%%%%%%%%
+%%
+%%
 
-  %%% The glossary entry the acronym links to   
-\newglossaryentry{hpcg}{name={HPC},
-    description={Le but du HPC est de paralléliser des applications scientifiques à destination de ressources informatiques telles que les supercalculateurs}}
+
+
+    
+\newglossaryentry{exascale}{
+    name={exascale},
+    description={désigne la nouvelle génération de plateforme capable d'exécuter un exaflops ($10^{18}$ opérations en virgule flottante par seconde)}
+}
+    
+
+\newglossaryentry{thread}{
+    name={thread},
+    description={ou processus léger ou tâche est similaire à un processus. Les threads d'un même processus se partagent le même espace mémoire.},
+    plural={threads}
+}
+    
+
+\newglossaryentry{hotspot}{
+    name={hot spot},
+    description={ Désigne une région d'un programme où une grande proportion d'instructions sont exécutées pendant l'exécution d'une application.},
+    plural={hot spots}
+}
+
+
+\newglossaryentry{benchmark}{
+    name={benchmark},
+    description={ Code, ou un ensemble de codes, permettant de mesurer la performance d'une solution et d'en vérifier ses fonctionnalités.},
+    plural={benchmarks},
+}
+
+
+\newglossaryentry{framework}{
+    name={framework},
+    description={ infrastructure logicielle désignant un ensemble de composants logiciels établissant les fondations d'un logiciel.},
+    plural={frameworks},
+}
+
+
+
+
+
+
+%%
+%%
+%%%%%%%%% ACCRONYME %%%%%%%%%%
+%%
+%%
+% --> liens avec \glsadd
 
 %%% define the acronym and use the see= option
-\newglossaryentry{hpc}{type=\acronymtype, name={HPC}, description={High Performance Computing ou Calcul Haute Performance}, first={Calcul Haute Performance (HPC)\glsadd{hpcg}}}
 
 
+%% GLOBAL %%
+    
+    \newglossaryentry{hpc}{type=\acronymtype, name={HPC}, description={High Performance Computing ou Calcul Haute Performance}, first={Calcul Haute Performance (HPC)\glsadd{hpcg}}}
+    
+    \newglossaryentry{hpcg}{name={HPC},
+    description={Le but du HPC est de paralléliser des applications scientifiques à destination de ressources informatiques telles que les supercalculateurs}}
+
+    \newglossaryentry{FLOP}{type=\acronymtype, name={FLOP}, description={Floating Point Operation ou opérations en virgule flottante}, first={opération en virgule flottante (FLOP))}}
+    
+    \newglossaryentry{FLOPS}{type=\acronymtype, name={FLOPS}, description={Floating Point Operation per second ou nombre d'opérations en virgule flottante par seconde (FLOP/s)}, first={opérations en virgule flottante par seconde (FLOPS)}}
+    
+    \newglossaryentry{exaFLOPS}{type=\acronymtype, name={exaFLOPS}, description={$10^{18}$ FLOPS}, first={$10^{18}$ FLOPS (un exaFLOPS)}}
+    
+    
+
+%% ARCHITECTURE %%
+    
+    \newglossaryentry{gpu}{type=\acronymtype, name={GPU}, description={Graphics Processing Unit ou processeur graphique}, first={processeur graphique (GPU)}}
+    
+    \newglossaryentry{fpga}{type=\acronymtype, name={FPGA}, description={Field Programmable Gate Arrays ou réseaux logiques programmables}, first={réseaux logiques programmables (FPGA)}}
+    
+    \newglossaryentry{dsp}{type=\acronymtype, name={DSP}, description={Digital Signal Processor ou processeur de signal numérique}, first={processeur de signal numérique (DSP)}}
+    
+    \newglossaryentry{asic}{type=\acronymtype, name={ASIC}, description={application-specific integrated circuit ou circuit intégré propre à une application}, first={circuit intégré propre à une application (ASIC))}}
+
+%% LOGICIEL %%
+
+    %\newglossaryentry{mpig}{name={MPI},description={standard de communication pour des programmes parallèles sur des systèmes à mémoire distribuée}}
+    
+    %\newglossaryentry{mpi}{type=\acronymtype, name={MPI}, description={Message Passing Interface}, first={interface de passage de message (MPI))\glsadd(mpig)}}
+  
+
+    
+    \newglossaryentry{mpi}{type=\acronymtype, name={MPI}, description={Message Passing Interface ou interface de passage de message}, first={interface de passage de message (MPI)\glsadd{mpig}}}
+    
+    \newglossaryentry{mpig}{name={MPI},
+    description={Standard de communication pour des programmes parallèles sur des systèmes à mémoire distribuée}}
+    
+  
 
 
 %\newglossaryentry{hpc}{%

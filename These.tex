@@ -10,7 +10,11 @@
 %\usepackage{subfig}
 \setlength{\biblabelsep}{0pt}
 
+%citation avec \say
+\usepackage{dirtytalk}
 
+%lettre grec: mu
+\usepackage{amssymb}
 
 %% TABLEAU %%
 \usepackage{booktabs}
@@ -155,11 +159,16 @@
 
 
 \addto\extrasfrench{%
-  \renewcommand{\equationautorefname}{équation} %Pour avoir une lettre minuscule a Équation
-  %\renewcommand{\lstlistingautorefname}{extrait} %Pour les extrait de code
-  \renewcommand{\lstlistingname}{Extrait} %Pour les extrait de code dans la figure
+    \renewcommand{\equationautorefname}{équation}
+    \renewcommand{\subsectionautorefname}{section}
+    \renewcommand{\subsubsectionautorefname}{section}   
+    \renewcommand{\figureautorefname}{figure}
+    \renewcommand{\itemautorefname}{point}
+    \renewcommand{\lstlistingautorefname}{extrait}
+    \renewcommand{\lstlistingname}{Extrait}
+    \renewcommand{\tableautorefname}{tableau}
+    \renewcommand{\tablename}{Tableau}
 }
-
 
 \usepackage{listings} %citer du code
 
@@ -389,7 +398,7 @@
 %    \else      (Cited on pages~#2.)%
 %    \fi}
 
-\includeonly{chapter/PART-StateOfTheArt/PART-StateOfTheArt}
+%\includeonly{chapter/PART-StateOfTheArt/CHAPTER-2-edl-hpc}
 %\includeonly{chapter/PART-contributions/PART-contributions}
 
 
@@ -535,27 +544,27 @@ A faire en dernier :-)
 \mainmatter
 
 %\bibliographystyle{StyleThese}
-%\iffalse
 
     %% INTRO %%
-    \include{chapter/chapter-introduction}
-    
-    %% PART 1 %%
-    \part{État de l'art}
-    \include{chapter/PART-StateOfTheArt/PART-StateOfTheArt}
-    
-    %% PART 2 %%
-    \part{Contributions et résultats}
-    \include{chapter/PART-contributions/PART-contributions}
+    \include{chapter/CHAPTER-1-introduction}
 
-%\fi
+    %% EDL HPC %%    
+    \include{chapter/PART-StateOfTheArt/CHAPTER-2-edl-hpc}
     
+    %CONTRIBUTION
+    \include{chapter/PART-contributions/chapter-developpement/CHAPTER-3-developpement}
+    \include{chapter/PART-contributions/chapter-methodologie/CHAPTER-4-methodologie}
+
     %% CONLUSION %%
-    \include{chapter/chapter-conclusion}
+    \include{chapter/CHAPTER-5-conclusion}
 
+    %% ANNEXES %%
 \appendix
+\part*{Annexes}
+\addcontentsline{toc}{part}{Annexes}
 
-\include{Annexe1}
+\include{chapter/PART-annexes/PART-ANNEXES}
+
 
 %\bibliographystyle{StyleThese}
 %\bibliography{These}
