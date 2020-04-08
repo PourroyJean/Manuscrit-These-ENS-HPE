@@ -63,7 +63,7 @@ mpirun -np 20 numactl dml_mem  --steplog 0 --unroll 8
     \subsubsection{Performance de calculs}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     
-        Pour mesurer la performance maximale atteignable ($\text{FLOPS}_{max}$) par le processeur, nous utilisons le générateur de benchmark \textit{Kernel\_Generator}. Nous avons paramétré le générateur pour évaluer le nombre maximum d'opérations FMA AVX-512 réalisable sur un nombre flottant à double précision. Pour cela nous avons utilisé la commande présentée ci-dessous. Nous générons un kernel de 14 instructions FMA pour réduire le coût de gestion de la boucle (incrémentation et comparaison) et masquer la latence des instructions.
+        Pour mesurer la performance maximale atteignable ($\text{FLOPS}_{max}$) par le processeur, nous utilisons le générateur de benchmark \textit{Kernel\_Generator}. Nous avons paramétré le générateur pour évaluer le nombre maximum d'opérations \gls{FMA} AVX-512 réalisable sur un nombre flottant à double précision. Pour cela nous avons utilisé la commande présentée ci-dessous. Nous générons un kernel de 14 instructions FMA pour réduire le coût de gestion de la boucle (incrémentation et comparaison) et masquer la latence des instructions.
 
 \begin{lstlisting}
 ./kg -W 512 -O ffffffffffffff -P double -S 100 -L 120000000

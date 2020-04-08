@@ -54,26 +54,6 @@ Programming Interface (API)\glsadd{apig}}}
 
 
 
-    
-\newglossaryentry{exascale}{
-    name={exascale},
-    description={désigne la nouvelle génération de plateforme capable d'exécuter un exaflops ($10^{18}$ opérations en virgule flottante par seconde)}
-}
-    
-
-\newglossaryentry{thread}{
-    name={thread},
-    description={ou processus léger ou tâche est similaire à un processus. Les threads d'un même processus se partagent le même espace mémoire.},
-    plural={threads}
-}
-    
-
-\newglossaryentry{hotspot}{
-    name={hot spot},
-    description={ Désigne une région d'un programme où une grande proportion d'instructions sont exécutées pendant l'exécution d'une application.},
-    plural={hot spots}
-}
-
 
 \newglossaryentry{benchmark}{
     name={benchmark},
@@ -82,11 +62,61 @@ Programming Interface (API)\glsadd{apig}}}
 }
 
 
-\newglossaryentry{framework}{
+
+\newglossaryentry{computebound}{
+    name={compute bound},
+    description={Le terme "limité par le calcul" (\textit{compute bound}) fait référence à une application (ou fonction) dont le temps d'exécution est principalement déterminé par la performance de calcul du processeur. Lorsqu'un code n'est pas \textit{compute bound} il est généralement \gls{memorybound}.}
+}
+    
+\newglossaryentry{exascale}{
+    name={exascale},
+    description={désigne la nouvelle génération de plateforme capable d'exécuter un exaflops ($10^{18}$ opérations en virgule flottante par seconde)}
+}
+ 
+ \newglossaryentry{framework}{
     name={framework},
     description={ infrastructure logicielle désignant un ensemble de composants logiciels établissant les fondations d'un logiciel.},
     plural={frameworks},
 }
+   
+\newglossaryentry{hotspot}{
+    name={hot spot},
+    description={ Désigne une région d'un programme où une grande proportion d'instructions sont exécutées pendant l'exécution d'une application.},
+    plural={hot spots}
+}
+
+
+\newglossaryentry{memorybound}{
+    name={memory bound},
+    description={Le terme "limité par la mémoire" (\textit{memory bound}) fait référence à une application (ou fonction) dont le temps d'exécution est principalement déterminé par la performance du système mémoire. Lorsqu'un code n'est pas \textit{memory bound} il est généralement \gls{computebound}.}
+}
+
+
+\newglossaryentry{memorygap}{
+    name={memory gap},
+    description={Traduit l'écart de performance entre la performance des processeurs et celle du système mémoire.},
+}
+
+\newglossaryentry{prelecteur}{
+    name={prélecteur mémoire},
+    description={Dispositif matériel du processeur permettant d'anticiper les accès mémoire en chargeant les données (ou les instructions) depuis la mémoire vers le processeur (en mémoire cache) avec qu'elles ne soient réellement utilisées. Ce mécanisme, aussi appelé \textit{memory prefetcher}, permet de réduire la latence d'accès.},
+    plural={prélecteurs},
+}
+
+\newglossaryentry{stride}{
+    name={stride},
+    description={Certains algorithmes réalisent des accès mémoires en accédant aux données par des sauts, de taille régulière, en entre deux adresses mémoire. Ces sauts sont appelés des strides.},
+    plural={strides},
+}
+
+
+\newglossaryentry{thread}{
+    name={thread},
+    description={ou processus léger ou tâche est similaire à un processus. Les threads d'un même processus se partagent le même espace mémoire.},
+    plural={threads}
+}
+    
+
 
 
 
@@ -120,13 +150,13 @@ Programming Interface (API)\glsadd{apig}}}
 
 %% ARCHITECTURE %%
     
-    \newglossaryentry{gpu}{type=\acronymtype, name={GPU}, description={Graphics Processing Unit ou processeur graphique}, first={processeur graphique (GPU)}}
+    \newglossaryentry{gpu}{type=\acronymtype, name={GPU}, description={Graphics Processing Unit ou processeur graphique}, first={processeurs graphiques (GPU)}}
     
     \newglossaryentry{fpga}{type=\acronymtype, name={FPGA}, description={Field Programmable Gate Arrays ou réseaux logiques programmables}, first={réseaux logiques programmables (FPGA)}}
     
     \newglossaryentry{dsp}{type=\acronymtype, name={DSP}, description={Digital Signal Processor ou processeur de signal numérique}, first={processeur de signal numérique (DSP)}}
     
-    \newglossaryentry{asic}{type=\acronymtype, name={ASIC}, description={application-specific integrated circuit ou circuit intégré propre à une application}, first={circuit intégré propre à une application (ASIC))}}
+    \newglossaryentry{asic}{type=\acronymtype, name={ASIC}, description={application-specific integrated circuit ou circuit intégré propre à une application}, first={circuit intégré propre à une application (ASIC)}}
 
 %% LOGICIEL %%
 
@@ -140,6 +170,13 @@ Programming Interface (API)\glsadd{apig}}}
     
     \newglossaryentry{mpig}{name={MPI},
     description={Standard de communication pour des programmes parallèles sur des systèmes à mémoire distribuée}}
+    
+    \newglossaryentry{FMA}{
+        type=\acronymtype, 
+        name={FMA}, 
+        description={instruction processeur réalisant une addition et une multiplication entre trois valeurs a, b et c tel que $a = a + b * c$}, first={une multiplication et une addition fusionnées(FMA)}
+    }
+    
     
   
 

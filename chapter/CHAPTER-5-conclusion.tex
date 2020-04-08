@@ -1,77 +1,148 @@
-\chapter{Conclusion et perspectives}
+\chapter{Conclusion générale}
 \label{chap:conclusion}
 
-https://tel.archives-ouvertes.fr/tel-00984791v4/document
-voir leur structure
+    Ce dernier chapitre conclut le manuscrit de cette thèse. Nous commençons par rappeler le contexte et les principales motivations qui ont justifié l'établissement d'une collaboration entre l'École normale supérieure Paris-Saclay et Hewlett Packard Enterprise (HPE). Nous présentons ensuite nos principales contributions et les résultats acquis. Nous terminons par une conclusion générale et exposons les prochaines étapes de nos travaux.
+      
+
+\section{Contexte de la thèse}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+ 
+    %\paragraph{Impact du calcul scientifique pour la société}
+    
+        Depuis plus de 50 ans, les systèmes d’informations participent activement à l’amélioration des connaissances scientifiques et à l’évolution de nos sociétés. Ils deviennent également des vecteurs indispensables pour augmenter la compétitivité et l’innovation des entreprises grâce à l'utilisation de plateformes de calculs puissantes nommées supercalculateurs. Les supercalculateurs sont plateformes de calculs qui rassemblent des milliers de ressources de calculs. Ils sont utilisés pour exécuter des applications complexes provenant de différents domaines. Que ce soit dans le domaine de la physique, de la santé ou pour développer de nouvelles intelligences artificielles, les supercalculateurs jouent un rôle décisif dans l'évolution de notre société.
+ 
+ 
+    %\paragraph{Besoin de plateformes de calculs puissantes}
+        
+        Le domaine du calcul haute performance (HPC) est en pleine croissance et les utilisateurs de supercalculateurs ont un besoin insatiable de puissance de calcul (conduite autonome, recherche sur le climat, villes intelligentes). Des plateformes plus puissantes doivent être développées pour être capables d'analyser le tsunami de données générées par les objets connectés. Ces analyses nécessitent l'utilisation d'algorithmes complexes ne pouvant être exécutés en un temps raisonnable que par des supercalculateurs 10 fois plus puissants que ceux actuellement utilisés. 
+       
+    
+    %\paragraph{Les performances et challenges NRJ} 
+        
+        La performance des supercalculateurs a pu évoluer constamment pendant plusieurs dizaines d'années grâce aux améliorations technologiques (augmentation du nombre de transistors et de la fréquence des processeurs, complexification de la microarchitecture). Cependant, ces leviers ne sont plus disponibles pour permettre d'élaborer des plateformes plus puissantes. La principale contrainte étant celle de l'énergie, qui, pour des raisons de coût et de faisabilité, ne permet plus de poursuivre la stratégie consistant à augmenter le nombre de serveurs pour augmenter linéairement la performance des supercalculateurs. 
+
+    %\paragraph{Les opportunités}
+        Avec le ralentissement de la loi de Moore, nous devons trouver d'autres moyens d'améliorer la performance de ces plateformes. En effet, l’incapacité des technologies actuelles à réaliser efficacement des calculs et l’explosion du nombre de données à traiter nous oblige à repenser les matériels utilisés et l’architecture des systèmes informatiques. Une solution consiste à utiliser des architectures spécialisées pour le traitement optimisé de certains algorithmes.  Ces architectures vont pouvoir être développées grâce à l'utilisation de nouvelles technologies (\textit{storage class memory} (SCM), mémoire 3D, interconnexion photonique). Ces ruptures technologiques sont telles, qu'elles permettront d'améliorer la performance des architectures de plusieurs facteurs. Les gains de performances ne viendront pas seulement par l'utilisation d'accélérateurs puissants, mais de leur diversité et de la capacité des programmeurs de bien les utiliser. Pour une même application, plusieurs accélérateurs spécialisés seront souvent nécessaires (ASIC, FGPA, DSP, GPU). Grâce au développement d'un protocole de communication universel nommé Gen-Z, ces différentes architectures pourront être interconnectées dans un même système pour travailler ensemble à l'exécution d'une application de façon efficace.
+        
+    
+    %\paragraph{These}
+        La capacité à produire plus de résultats avec des ressources limitées devient une nécessité absolue dans un monde hautement compétitif. Cependant, pour réussir, ces accélérateurs, basés sur une technologie de rupture, devront être entièrement caractérisés pour prédire de manière fiable le gain de performance de l'application. Afin d'extraire une large part des performances disponibles de ces architectures (très différentes de celles utilisées actuellement), il est impératif de les caractériser pour en comprendre les forces et les faiblesses. D'un autre côté, il est nécessaire d'analyser les applications exécutées pour utiliser les architectures les plus efficaces pour leur exécution. Malheureusement, l'évolution des microarchitectures tous les deux ans (modèle Tic-Toc d'Intel) ne nécessitait pas une telle approche, et nous constatons que les outils nécessaires à ce travail sont rares. Sans ce travail de caractérisation et d'analyse de performance, ces architectures sont potentiellement condamnées, car peu d'applications pourront les utiliser efficacement.
+      
+         
+         
+
+\section{Problématique et études préliminaires}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         
+         
+    \subsection{Problématique de la thèse}
+    
+        Afin de proposer les meilleures architectures (performance, efficacité énergétique, prix) pour le développement de nouveaux supercalculateurs, une entreprise comme HPE doit être capable d'identifier et caractériser ces nouvelles plateformes. À cet effet, nous proposons dans ce travail de thèse une suite de logiciels de caractérisation et d'analyse des performances qui, avec la méthodologie appropriée, nous permet d'effectuer cette caractérisation et de porter les applications sur ces nouveaux accélérateurs. En rendant les sources des logiciels disponibles, nous voulons sensibiliser les utilisateurs dans leur démarche et poursuivre le travail de caractérisation du nombre croissant de nouvelles plateformes. 
+ 
+
+    \subsection{État de l'art du domaine du calcul haute performance}
+        
+        Afin, d'introduire les contributions apportées dans ce travail de thèse, nous avons débuté dans le \autoref{chap:hpc} par réaliser un large état de l'art du domaine du Calcul Haute Performance. Nous avons ainsi commencé par rappeler les fondements du calcul scientifique et de la programmation parallèle. Afin de mieux estimer les performances actuelles des supercalculateurs, nous avons étudié l'évolution de leur performance ces 20 dernières années. Cette étude s'appuie sur le classement du Top500 qui classe, deux fois par an, les 500 supercalculateurs les plus puissants de la planète. Ainsi, nous avons remarqué un ralentissement dans l'évolution de leur performance depuis 2012 et expliqué les principales raisons. 
+        
+        Après avoir discuté de la nécessité d'accéder à des plateformes de calcul plus puissantes, nous avons étudié les principaux défis empêchant leur développement: le coût, la consommation énergétique, la complexité des microarchitectures, l'explosion du nombre d'architectures disponibles, le besoin de prendre des décisions rapidement et le besoin d'expertise. 
+        La principale contrainte liée à l'énergie nous a ensuite conduits à présenter les opportunités technologiques qui nous permettront de relever ces défis: la présence de nombreux investissements, les nouvelles technologies mémoires (Storage Class Memory (SCM)), les nouvelles technologiques d'interconnexion (photoniques) et le protocole universel Gen-Z.
+        L'ensemble de ces nouvelles technologies sont utilisées pour développer de nouvelles architectures. Ces architectures, très différentes de celles que nous utilisons actuellement, doivent être caractérisées afin de connaître leurs forces et leurs faiblesses: capacité de calcul, débit, latence et capacité de la hiérarchie mémoire... Il est ensuite nécessaire de connaître les besoins des applications afin de sélectionner les architectures les plus adaptées pour son exécution. Pour répondre à ces besoins de caractérisation d'architectures et d'analyse de performance d'applications, nous avons réalisé dans la fin du \autoref{chap:hpc}, l'étude des outils existants. Nous avons pour cela fixé certains critères permettant de sélectionner les différents outils. Les sources des outils doivent être libres pour pouvoir être adaptées à de nouvelles architectures. Leur utilisation doit être la plus simple possible, répondant précisément à une question. Enfin, leur utilisation doit être adaptée aux environnements de calcul hautes performances: possibilité de suivre une partie de l'exécution, réduire la nécessité de posséder des droits spéciaux (\textit{root}), facilité d'installation et d'utilisation. Cette étude nous a permis de relever le manque de plusieurs outils:
+        \begin{itemize}
+            \item Un outil permettant de caractériser finement les unités arithmétiques et logiques responsables de l'exécution des instructions de calculs sur des nombres à virgule flottante. 
+            \item Un outil permettant de caractériser l'ensemble des niveaux de la hiérarchie mémoire pour l'exécution d'applications utilisant des motifs d'accès mémoire par saut (\textit{stride}).
+            \item Un outil permettant de suivre l'activité du bus mémoire qui est la ressource critique des architectures actuelles.
+            \item Un outil permettant d'extraire et de caractériser les zones de codes responsables de la majorité du temps d'exécution des applications HPC.
+        \end{itemize}
+      
+
+    \subsection{Principales difficultés}
+    
+        La caractérisation d'architecture et l'analyse de performance d'applications sont deux domaines très complexes et nécessitent de nombreuses connaissances. Pour permettre le développement des outils manquants, nous avons réalisé l'étude de ces domaines. Afin de faciliter le travail de futurs programmeurs, nous présentons ces deux études dans les annexes de ce document. Nous faisons référence à ces deux parties lorsque les concepts étudiés sont utilisés dans le manuscrit:
+        \begin{itemize}
+            \item L'\autoref{annexe:CHAPITRE_ARCHITECTURE} présente l'origine et l'évolution de la microarchitecture des processeurs. Nous présentons les fonctionnalités clés des processeurs modernes qu'il est nécessaire de connaître pour comprendre la performance des applications: pipeline, instructions vectorielles... Nous étudions plus précisément la hiérarchie mémoire qui est la ressource critique de nombreuses applications. 
+            
+            \item L'\autoref{annexe:hardware_counter} présente les compteurs matériels. Ces registres spéciaux du processeur permettent de suivre l'exécution d'une application en mesurant le nombre d'évènements logiciels et matériels. La programmation des compteurs est très difficile et nécessite l'utilisation de codes bas niveaux. Plusieurs méthodes peuvent alors être utilisées et demandent une bonne expérience pour être utilisées.
+        \end{itemize}
+        
+        
 
 
+\section{Contributions principales de la thèse}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+    %- énoncez très clairement ce que vous répondez, finalement, à la question de recherche.
+    %    * vous devez exprimer un point de vue original, c’est-à-dire peut-être différent de ce qui s’était fait ou dit avant
+    %    * rappelez les positions des principaux auteurs qui traitent de votre thème
+   
+   
+    Nos principales contributions dans ce travail de thèse sont le développement de quatre outils permettant la caractérisation d'architectures et l'analyse de la performance d'applications. Contrairement aux outils existants, notre approche réside sur l'utilisation d'outil simple répondant à une question précise. Pour aider à leur utilisation, une méthodologie a ensuite été présentée. Les quatre principaux développements sont présentés dans le \autoref{chap:dev}:
+    \begin{enumerate}
+        \item La \autoref{sec:dmlmem} présente le benchmark mémoire \verb|DML_MEM|. Ce code permet de caractériser les différents niveaux de la hiérarchie mémoire et la performance du système mémoire lors de l'exécution d'applications utilisant des accès mémoires par sauts (\textit{strides}). La performance de ces applications dépend alors essentiellement dans la capacité du système mémoire à comprendre les motifs d'accès et à anticiper les accès mémoire.
+        Le benchmark permet de tester différentes tailles de saut et de jeux de données. Ainsi, nous avons pu caractériser plusieurs aspects du matériel: taille d'une ligne de cache, performance de différentes tailles de sauts, performance du préchargement mémoire, optimisation de déroulement de boucle, performance de l'utilisation de pages larges ou encore l'impact de la fréquence et du nombre de coeurs utilisé sur le débit mémoire atteignable.
+        
+        \item La \autoref{sec:kg} présente le générateur de benchmarks \verb|Kernel Generator|. Ce code permet de caractériser les unités de calcul arithmétique et plus précisément la partie responsable de l'exécution des instructions de calculs sur des nombres à virgule flottante. Le benchmark génère un code assembleur correspondant aux opérations voulues par l'utilisateur (addition, multiplication, FMA (fused multiply-add)).  Différentes tailles d'instructions sont supportées (SSE, AVX2, AVX512) ainsi que les précisions simple et double. Ce code nous a alors permis de vérifier les performances théoriques des unités de calculs (fréquence soutenable, performance atteignable), mais aussi de caractériser l'exécution dans le désordre de processeurs modernes. Enfin, nous avons pu expliquer les performances atteintes par le benchmark HPL sur un modèle de processeur Intel, alors deux fois supérieures à celles attendues. 
+        
+        \item La \autoref{sec:yamb} présente l'outil de suivi d'activité mémoire \verb|YAMB|. Cet outil établit le profil de chaque contrôleur de mémoire en mesurant séparément le nombre de transactions (lecture et écriture) et le nombre de manques (\textit{miss}) dans le dernier niveau de cache (LLC). Pour corréler l'activité du bus avec les parties du code qui en sont responsables, le graphique peut être très facilement annoté, depuis le code source de l'application, avec une API C/C++/Fortran.
+        
+        \item La \autoref{sec:oprofile} présente  l'outil d'analyse \verb|Oprofile++|.
+        permettant d'extraire et de caractériser les zones de codes responsables de la majorité du temps d'exécution de l'application. L'outil permet de désassembler le code, d'isoler les boucles critiques et de mesurer leur IPC (Instruction Par Cycle). Il est alors possible de quantifier toutes les possibilités d'amélioration significatives. Cette étape est essentielle pour les décideurs qui peuvent prévoir avec précision le bénéfice potentiel d'une architecture par rapport à l'investissement nécessaire pour la transformation du code.
+    
+    \end{enumerate}
+    Enfin, nous avons présenté dans le \autoref{chap:methodo} une méthodologie permettant à un développeur de trouver l'architecture la plus efficace pour son application. Cette méthodologie en 5 étapes décrit comment les outils développés dans le \autoref{chap:dev} doivent être utilisés. Les deux premières étapes permettent de trouver et de caractériser de nouvelles architectures à l'aide de benchmarks. La troisième étape permet ensuite de réaliser un modèle simple des performances d'une application. Grâce à ces trois étapes, il est alors possible de sélectionner une architecture candidate en prenant en compte différents facteurs (coût, énergie, performance). Dans une dernière étape, nous avons évoqué le travail permettant de valider les performances obtenues et discuté des démarches à suivre lorsque les performances atteintes s'éloignaient des performances théoriques.
+               
+ 
+ 
+    \subsection{Les résultats obtenus}
+        %Quels sont les principaux résultats de la thèse, ce qu’on peut considérer comme acquis ? 
+        %Est-on en mesure, en totalité ou partiellement, de dire qu’on a traité la problématique de départ et apporté une ou des réponses fermes 
+   
+        Les outils et la méthodologie développés durant ces travaux de thèse ont permis d'obtenir plusieurs résultats.
+        
+        Les outils de caractérisation sont régulièrement utilisés par l'équipe avant-vente d'HPE responsable de réaliser les benchmarks des applications clients. Récemment, ces outils ont permis de comprendre et d’isoler un bug majeur dans une nouvelle architecture prometteuse (alors inconnu par le fabricant) ne délivrant pas la performance attendue. Cette architecture devait alors être utilisée pour répondre à un grand appel d'offres et a pu être abandonnée avant de réaliser les transformations de codes de l'application du client.
+        
+        Le benchmark \verb|Kernel Generator| qui permet de caractériser les unités de calcul en virgule flottante (FPU) a été ajouté au logiciel \verb|HPE Confidence|. Ce logiciel permet à HPE de valider le bon fonctionnement d'un supercalculateur lors de sa livraison. Grâce à cet ajout, \verb|HPE Confidence| vérifie les bonnes performances de calculs de chaque processeur et permettent d’isoler des composants défectueux. 
+
+        Les outils d'analyse de performance ont été utilisés pour remporter le \verb|Hackaton du HPC| \cite{Hackaton}, un concours d’optimisation d’applications. Ce concours, organisé par GENCI (\textit{Grand Équipement National de Calcul Intensif}) et sponsorisé par Intel, avait pour objectif d’optimiser une application de calcul distribué MPI pour la dynamique de systèmes particulaires. En utilisant les outils d'analyse de performance et en appliquant les optimisations adaptées, une accélération d’un facteur 10 a pu être réalisée permettant d'obtenir le prix de la meilleure optimisation\footnote{Résultats du Hackaton du HPC - \url{https://hackathon-hpc.sciencesconf.org/resource/page/id/6}}.
+        
+        Grâce à la méthodologie développée durant ces travaux de thèse, plusieurs appels d'offres stratégiques ont pu être remportés. L’un d’entre eux fut lors de l’appel d’offres d’un client stratégique qui autorisait le choix de plateformes spécialisées et la transformation du code. Grâce à notre méthodologie, la performance maximale théorique de l’algorithme pour la plateforme sélectionnée a été atteinte, permettant d'accélérer l'application d'un facteur 12. 
+        
+        Durant ces travaux de thèse, nous avons réalisé plusieurs formations pour des clients afin de les sensibiliser à cette approche et au besoin d’avoir les outils adéquats pour réaliser le travail d’optimisation ou de portage de code.
+
+ 
+    \subsection{Difficultés}
+        
+        %- L’intérêt de cette partie est de désamorcer certaines critiques méthodologiques qui pourraient être formulées par les %rapporteurs ou lors de la soutenance : il faut se montrer conscient de certaines limites dues à des carences de méthode %ou aux données elles-mêmes, mais en montrant que ces limites n’invalident pas les résultats proposés.
+        
+        %- On souligne les obstacles rencontrés et la façon dont on les a surmontés dans la mesure du possible
+        
+        Au moment de la publication de ce manuscrit, la grande majorité des outils a permis d'obtenir des résultats sur les architectures \verb|x86|. Nous nous sommes appuyés sur les architectures x86 pour développer nos outils. En effet, l'expérience et les connaissances de ces architectures nous ont permis de développer et vérifier les résultats produits. Comme expérimenté dans le \autoref{chap:methodo}, nous avons utilisé ces architectures comme démonstrateur afin d'illustrer l'utilisation des outils et de notre méthodologie. Un accélérateur a pu être caractérisé, mais dont les résultats ne peuvent pas être publiés. L'objectif de ce travail étant de caractériser des architectures différentes, ce travail doit être poursuivi. 
+        
+        Nous avons développé ces outils en favorisant au maximum leur portabilité. Pour cela, nous avons dû réduire au minimum le nombre de compteurs matériels utilisés. En effet, la compatibilité des compteurs d'évènements est très faible entre différentes architectures. Afin d'assurer le maximum de portabilité, nous avons choisi de nous appuyer sur la couche de programmation de compteurs maintenue par le noyau Linux (\verb|Perf Events|). Le benchmark du \verb|Kernel Generator| a été conçu pour faciliter l'ajout de nouvelles instructions, mais aussi d'un langage assembleur différent.
+
+
 \section{Conclusion}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    Ce travail de thèse présente le domaine du Calcul Haute Performance et discute du besoin de posséder les outils adéquats pour profiter des nouvelles architectures actuellement en développement. Ce travail est critique pour pouvoir sélectionner les bonnes architectures et exécuter les applications de façon la plus optimisée possible.
+    Pour cela, nous avons commencé dans le \autoref{chap:intro} par rappeler les principes fondamentaux des supercalculateurs (simulation numérique, programmation parallèle). Nous nous sommes ensuite intéressés aux défis à relever pour développer les prochaines générations de supercalculateur. Afin de tirer parti des nouvelles architectures, nous avons motivé le besoin de posséder les outils permettant de les caractériser, mais aussi ceux permettant de suivre leur activité. Dans le \autoref{chap:dev} nous avons présenté nos principales contributions qui sont le développement de deux outils de caractérisation d'architectures et deux outils d'analyse de performance. Ces outils sont simples et permettent de répondre à quelques questions précises. Leur efficacité réside dans la logique de leur utilisation. Afin d'utiliser au mieux ces outils, nous avons présenté une démarche logique dans le \autoref{chap:methodo}.
+        
+     
+\subsection*{Perspectives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    We developed these tools to be as simple as possible, each answering a simple question. The effectiveness lies in the ability for the user to use them independently to carry out his analysis. We try to reduce as much as possible the code dependencies to other libraries. The ease of usage (installation and usability) and maintenance of the code seems to us to be key to making the tools the most widely used. All the tools are distributed in Open Source, any developer can modify them and extend the features in particular targeting future processors, like ARM or RISC-5. Many tools allow you to retrieve lot of information through hardware counters. However, it is often very difficult to draw any conclusion from this; a large number of misses in the cache does not necessarily mean that the code is not optimal. Our methodology involves modeling the code and comparing the expected performance with the real data retrieved using the tools. 
-    These tools are used to analyze the performance of codes or micro-architectures. Their influence on the performance of the measured code should be as small as possible (less than 5\%).
-    %Whenever possible, we have developed tools that do not require any changes to the application's source code. 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Perspectives}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-La prochaine étape est d’appliquer notre méthodologie pour la caractérisation de plateformes telles que les processeurs AMD, ARM ou les accélérateurs NEC. Ce travail est réalisé en particulier pour répondre à un appel d’offres pour la société ARAMCO (recherche pétrolière). Pour cela, un générateur de benchmark code de stencil  sera créé permettant de caractériser les architectures pour ces codes. Nous souhaitons pouvoir exécuter les benchmarks à intervalles réguliers sur un cluster de calculs permettant de générer des traces. Grâce à des méthodes statistiques et de machine learning, ces données nous aideront à découvrir et anticiper les pannes matérielles. Enfin, comme la réussite de ce projet repose sur l’aide de la communauté, nous avons prévu d’autres formations et sensibilisation à cette démarche auprès de nombreux clients industriels ainsi que des spécialistes avant-vente HPC.
-
-
-  \cite{Straatsma2017} indique qu’une grande difficulté pour les outils d’analyses utilisés sur les architectures exascales sera de retirer une informations utiles de toutes ces mesures. Lire les compteurs sur des milliers de coeurs, synchroniser ces mesures est déjà une difficulté. Mais il faudra aussi tirer un valeur de ces valeurs qui ne pourra pas être fait par des humains. Il faut donc se tourner vers des algorithmes statistiques ou des techniques de machines learning (source ?).
-
-
-
-Conclusion
-	* On commence a développer sur Xeon:
-		Indeed, even if our current analysis is done on Intel Xeon plateforms, our project is to analyze and characterize applications on any multi-cores processor. Thus, it would be counter productive to use hardware counters that would not be available on all, present and future processors.
-		    * Pourtant on à dit que la partie critique des codes ira sur les accélérateurs
-		    * Pour l’instant c’est ce qu’on a sur la main, on a de l’expérience et les moyens d’écrire les outils qu’il nous faut
-		    * On se sert de cette expérimentation comme démonstrateur
-		        * Oprofile: on se base sur des compteurs très simple (nb cycle, nb instruction) en espérant que ce soit les premiers compteurs disponibles sur des nouvelles architectures
-	Conclusion
-		1. Seulement x86 pour le moment: 
-			    1. c’est pour cela qu’on a choisi l’open source: multitude de plateforme à supporter. 
-			    2. Pour cela aussi qu’on a du se restreindre à peu d’hardware compteurs
-			    3. La structure du benchmark a ete prévu de telle sorte que de nouvelles implémentation pour d’autres architectures soit possible car le but et de ciblé l’hétérogénéité et mesurer la performance d’éventuelles architectures non x86
-				        * Le génarateur de kernel peut facilement être adapté à un nouveau langage assembleur
-				        * Oprofile: on se base sur des compteurs très simple (nb cycle, nb instruction) en espérant que ce soit les premiers compteurs disponibles sur des nouvelles architectures
-			    * FLOP et instructions par cycle
-				        * permettant de faiclement comparé des marques differentes
-				        * comparer avec d’autres benchamrk ou son application
-			* On est concient que pour le moment seulement x86, mais on se sert de cela comme démonstrateur, et nous allons poursuivre le ddéveloppement sur d’autres architectures. Le mettre en Open Source aussi devrait permettre cela.
-		Dans ce papier on montre un démonstrateur, mais cela doit être appliqué à tous les composants
-		
-		
-Le benchmark des ALU a été ajouté au logiciel HPE Confidence qui permet de valider le bon fonctionnement d’un cluster lors de sa livraison. Grâce à cet ajout, Confidence vérifie les bonnes performances de calculs de chaque processeur et permet d’isoler des composants défectueux. Nous avons réalisé plusieurs formations pour des clients pour les sensibiliser à cette approche et au besoin d’avoir les outils adéquats pour réaliser le travail d’optimisation ou de portage de code. 
-
-
-  En 2018, seulement 28\% des supercalculateurs du Top500 sont associés à un accélérateur. Et 92\% d'entre eux sont des GPU Nvidia.
+    %    * Une thèse peut être considérée comme le début d’un processus de recherche
+    %    * il y a toujours des choses à compléter, et vous ou un autre chercheur compléterez les travaux.
     
-    L'hétérogénéité est la plus grande opportunité pour permettre la construction d'une plateforme Exascale utilisable par des applications industrielles.
-    Grâce à de nouvelles technologies comme le protocole Gen-Z, de nombreuses architectures optimisées pour certaines tâche vont pouvoir facilement être associées dans les supercalculateurs. 
+    Ce travail constitue le début d'un projet de plus grande envergure visant à caractériser et analyser la performance des applications sur de nombreuses architectures. La prochaine étape est de poursuivre le développement de ces outils pour supporter de nouvelles architectures, mais aussi pour ajouter certaines fonctionnalités aux outils existants:
+    \begin{itemize}
+        \item \textbf{DML\_MEM}: ajouter une fonctionnalité permettant de détecter automatiquement un problème de la microarchitecture en exécutant de multiples combinaisons \{\verb|taille de saut|, \verb|taille du jeu de données|\}.
+        \item \textbf{Kernel Generator}: permettre l'utilisation de nouvelles instructions vectorielles (rotation, décalage...) pouvant être de tailles différentes dans le même micro benchmark.
+        \item \textbf{Oprofile++}: adapter une partie du code pour réutiliser certaines fonctionnalités ajoutées à l'outil \verb|perf| permettant de faire la correspondance entre les instructions assembleur et leur adresse mémoire.
+        \item \textbf{Méthodologie}: utiliser des modèles de performances plus complexes existant dans la littérature.
+    \end{itemize}
+
+    Notre prochain objectif est d’appliquer notre méthodologie pour la caractérisation de plateformes telles que les processeurs AMD, ARM ou les accélérateurs NEC. Ce travail est réalisé pour répondre à un appel d’offres pour la société ARAMCO (recherche pétrolière). Pour cela, un générateur de benchmark générant des micro benchmarks de code de stencil sera créé permettant de caractériser les architectures pour ces codes. Un second travail consiste à pouvoir exécuter les benchmarks à intervalles réguliers sur un supercalculateur permettant de générer des traces. Grâce à des méthodes statistiques et d'apprentissage machine, ces données nous aideront à découvrir et anticiper les pannes matérielles. Enfin, comme la réussite de ce projet repose sur l’aide de la communauté, nous avons prévu de poursuivre la formation et sensibilisation à cette démarche auprès de nombreux clients industriels ainsi que des spécialistes avant-vente HPC.
     
-    L'objectif des utilisateurs de calcul haute performance est de choisir l'architecture la plus adaptée pour son application. Les applications industrielles sont souvent constituées de différentes parties avec des besoins matériels différent. La principale difficulté est donc de pouvoir caractériser ces zones et de leur associer un accélérateur adéquat.
-    
-    
-    
-    La complexification de la microarchitecture rend l'analyse de leur  fonctionnement. Le manque de connaissances et d'outils adaptés à ce travail sont les principales causes de la création de la méthodologie présentée dans ce chapitre.
-    
-    
-    Grâce à cette méthodologie, plusieurs deals HPC stratégiques ont pu être remportés. L’un d’entre eux fut lors de l’appel d’offres d’un client de défense français qui autorisait le choix de plateformes spécialisées et la transformation du code. Grâce à notre méthodologie, la performance maximale théorique de l’algorithme pour la plateforme sélectionnée a été atteinte. Plus récemment, nos outils ont permis de comprendre et d’isoler un bug majeur dans une nouvelle architecture prometteuse (alors inconnu par le fabricant) ne délivrant pas la performance attendue. Cette méthode a également été appliquée pour remporter un concours d’optimisation d’applications. Ce concours sponsorisé par Intel avait pour objectif d’optimiser une application de calcul distribué MPI pour la dynamique de systèmes particulaires. En utilisant nos outils, notamment ceux de profiling de performance, une accélération d’un facteur 10 a pu être réalisée.
-    
-    
-    Notre methodologie montre qu'avec des outils très simple, le programmeur peut mener à bien une analyse très complexes et précise de son application
-    En combinant les outils ont améliore notre expertise
-    Image de la méthodologie
-    
-    
+
+%  \cite{Straatsma2017} indique qu’une grande difficulté pour les outils d’analyses utilisés sur les architectures exascales sera de retirer une informations utiles de toutes ces mesures. Lire les compteurs sur des milliers de coeurs, synchroniser ces mesures est déjà une difficulté. Mais il faudra aussi tirer un valeur de ces valeurs qui ne pourra pas être fait par des humains. Il faut donc se tourner vers des algorithmes statistiques ou des techniques de machines learning (source ?).
+

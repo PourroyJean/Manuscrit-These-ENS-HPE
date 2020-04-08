@@ -24,28 +24,34 @@ Cette section présente l'outil YAMB (\textit{Yet Another Memory Bandwidth profi
     %%%%%%%%%%%
     
         L'objectif de l'outil présenté dans cette section est de répondre aux deux prérogatives indiquées dans précédemment: saturation du bus et utilisation effective. Pour y répondre, l'utilisateur doit posséder un outil lui permettant de suivre son activité avec une résolution fine (de l'ordre de la milliseconde). L'outil en question doit pouvoir distinguer les accès réalisés en lecture et en écriture pour pouvoir s'assurer de l'utilisation effective du bus. Cette méthodologie est présentée dans la section \autoref{sec:smm}.
-        
-        
-        \paragraph{Travaux existants.} Le développent d'un tel outil a déjà été envisagé dans la littérature, mais aucun ne correspond aux critères fixés dans le début de ce chapitre (codes libres de droits, portables, ne nécessitant pas de privilèges administrateur (\textit{root})). 
-        Intel propose deux outils, Intel VTune et Intel MBM. Le premier est un outil propriétaire nécessitant une licence payante. Le deuxième est proposé en libre accès sur le dépôt en ligne d'Intel\footnote{Intel MBM - \url{https://github.com/intel/intel-cmt-cat/wiki}} mais n'est compatible qu'avec des architectures Intel. 
-        L'outil \textit{Likwid} propose de mesurer les données transférées (GB) et leur débit (GB/s) pour un noyau de calcul. Il peut aussi générer des traces pour suivre plus précisément l'utilisation du bus mémoire, mais l'outil de visualisation des données n'est plus supporté.
-        D'autres travaux tels que \textit{Memguard}\cite{Yun2013} mesurent le nombre de \textit{miss} dans le dernier niveau de cache pour en déduire le trafic du bus mémoire. Malheureusement, avec la complexification des architectures et l'utilisation constante des unités de préchargement mémoire, certains transferts mémoires sont réalisés avant qu'un évènement \textit{miss} ne soit déclenché. Il n'est donc plus possible de mesurer le trafic mémoire avec ces techniques-là. 
 
     \subsubsection{Verrous}
     %%%%%%%%%%%
         
         
         Le système d'exploitation n'a généralement pas connaissance de l'évolution des accès mémoire, contrairement à d'autres ressources comme les I/O où le système d'exploitation réalise l'intermédiaire avec l'application. Mis à part certaines tâches comme la gestion des pages, les accès mémoire sont réalisés par le contrôleur mémoire. Comme étudié dans la \autoref{sec:edl_perf_uncore}, ces compteurs sont situés sur les PMU \textit{uncore}. Sur des architectures modernes telles que les processeurs Intel Skylake, ces compteurs comptent précisément tous les accès mémoire réalisés en distinguant la lecture et  l'écriture. Cependant, comme les compteurs ne sont associés à aucun coeur, il est impossible de faire correspondre un accès mémoire au coeur et donc au processus qui en est responsable. Notre outil a pour objectif d'analyser l'activité d'applications HPC qui utilisent généralement tous les coeurs des processeurs pour la même application. Cette particularité n'est donc pas un verrou majeur pour notre développement. Pour des outils nécessitant plus de précision \cite{Larysch2016}, l'utilisation de ces compteurs n'est cependant pas possible. Les moyens disponibles pour les programmer sont complexes et propres à chaque architecture. Le développement d'un outil utilisant une programmation directe des compteurs rend très difficile la portabilité de l'outil sur différentes architectures.
+  
+          
+    \subsubsection{État de l'art}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+        Les évènements se produisant sur un processeur peuvent être comptés à l'aide de compteurs matériels. Ils sont accessibles par le biais de composants appelés Performance Monitor Units (PMU). Sur les CPU modernes, il y a au moins deux PMU : une sur le noyau et une sur le socket responsable des évènements qui s'y rapportent (comme l'accès mémoire). Ces compteurs varient d'une architecture à l'autre, ou d'un modèle de processeur à l'autre, ce qui les rend difficiles à programmer et à maintenir. Que ce soit pour le core ou le uncore, ces méthodes sont assez complexes à utiliser et à maintenir. C'est pourquoi nous utilisons des interfaces de haut niveau telles que \textit{PAPI} ou \textit{perf} qui nous permettent de ne plus dépendre de l'implémentation des compteurs à bas niveau. 
         
+        De nombreux outils ont été développés pour suivre l'activité du CPU (voir \autoref{sec:edl_monitoring_tools}). Intel propose deux outils, \verb|VTune|\cite{reinders2005vtune} et Intel MBM \footnote{Intel MBM - \url{https://github.com/intel/intel-cmt-cat/wiki}}. Le premier est un outil propriétaire nécessitant une licence payante. Le deuxième est proposé en libre accès sur le dépôt en ligne d'Intel mais n'est compatible qu'avec des architectures Intel.
+        
+        D'autres outils tels que \verb=TAU= ou \verb=Extrae= présentent de nombreuses informations à l'utilisateur qui rendent difficile la compréhension des résultats. De plus, ce grand nombre d'informations nécessite généralement l'utilisation de plusieurs compteurs matériels qui peuvent ne plus être présents d'une architecture à l'autre. La complexité des outils peut aussi les rendre dépendants de librairies externes non compatibles avec certaines architectures rendant leur utilisation impossible (\verb|MAQAO|).
+        
+        L'outil \textit{Likwid} propose de mesurer les données transférées (GB) et leur débit (GB/s) pour un noyau de calcul. Il peut aussi générer des traces pour suivre plus précisément l'utilisation du bus mémoire, mais l'outil de visualisation des données n'est plus supporté.
+        
+        D'autres travaux tels que \textit{Memguard}\cite{Yun2013} mesurent le nombre de \textit{miss} dans le dernier niveau de cache pour en déduire le trafic du bus mémoire. Malheureusement, avec la complexification des architectures et l'utilisation constante des unités de préchargement mémoire, certains transferts mémoires sont réalisés avant qu'un évènement \textit{miss} ne soit déclenché. Il n'est donc plus possible de mesurer le trafic mémoire avec ces techniques-là. 
+
+      
     
 
 \subsection{Développement}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     \subsubsection{Choix de l'interface}
-    
-    
-        \paragraph{Choix de l'interface.}  
         
             De nombreux outils et interfaces ont été développés pour accéder aux compteurs matériels avec leurs avantages et leurs inconvénients. Les principales contraintes de nos développements sont la portabilité des outils et l'accès libre aux sources. Likwid et \textit{Perf Events} sont les outils répondant au maximum des critères de développement énoncés précédemment. Cependant, l'outil de visualisation de Likwid n'est plus supporté. Pour ces raisons et afin d'éviter une surcouche supplémentaire, nous avons choisi de développer nos outils en nous basant sur le système de suivi de performance \textit{Perf Events}. En effet, son intégration dans le noyau lui assure une certaine pérennité et il permet d'utiliser des évènements natifs lorsque les noms symboliques ne sont pas supportés. Ainsi, nous nous assurons un maximum de compatibilité avec les architectures émergentes.
             

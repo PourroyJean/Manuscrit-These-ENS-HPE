@@ -1,6 +1,9 @@
 \documentclass[12pt,twoside, french]{StyleThese}
 
+\newif\iflong
+%\longtrue
 
+\usepackage{ifthen}  
 
 %\input{structure}
 
@@ -113,11 +116,14 @@
 \usepackage{hyperref}  %pour autoref
 
 %%%%% GLOSSAIRE %%%%%%%
-\usepackage[acronym]{glossaries}
+\usepackage[acronym, nopostdot,  style=super, toc]{glossaries}
 \makeglossaries
 \input{glossaire}
 \input{abbreviations}
 \input{acronymes}
+
+\usepackage{mfirstuc}%capital
+\renewcommand{\glsnamefont}[1]{\textbf{\capitalisewords{#1}}} %Captial + bold pour glossaire
 
 %%%%% INDEX %%%%%%%%%%%
 \usepackage{imakeidx}%Index compris par overleaf
@@ -169,6 +175,9 @@
     \renewcommand{\tableautorefname}{tableau}
     \renewcommand{\tablename}{Tableau}
 }
+
+\newcommand{\aref}[1]{\hyperref[#1]{Annexe \ref{#1}}}
+
 
 \usepackage{listings} %citer du code
 
@@ -262,6 +271,7 @@
 \usepackage{lipsum}
 
 
+\iflong
 \label{form}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -271,122 +281,122 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\newcommand{\PhDTitle}{\textbf{Titre de la thèse (sur plusieurs lignes si nécessaire, 4 voire 5)}} 	%% Titre de la thèse / Thesis title
-\newcommand{\PhDname}{\textbf{Jean Pourroy}} 															%% Civilité, nom et prénom /  Civility, first name and name 
-\newcommand{\NNT}{20XXSACLXXXX} 															%% Numéro National de Thèse (donnée par la bibliothèque à la suite du 1er dépôt)/ National Thesis Number (given by the Library after the first deposit)
-
-\newcommand{\ecodoctitle}{Mathématiques Hadamard} 													%% Nom de l'ED. Voir site de l'Université Paris-Saclay / Full name of Doctoral School. See Université Paris-Saclay website
-\newcommand{\ecodocacro}{EDMH}																%% Sigle de l'ED. Voir site de l'Université Paris-Saclay / Acronym of the Doctoral School. See Université Paris-Saclay website
-\newcommand{\ecodocnum}{574} 																%% Numéro de l'école doctorale / Doctoral School number
-\newcommand{\PhDspeciality}{Mathématiques appliquées} 										%% Spécialité de doctorat / Speciality 
-\newcommand{\PhDworkingplace}{l'École normale supérieure de Cachan} 										%% Établissement de préparation / PhD working place : l'Université Paris-Sud, l'Université de Versailles-Saint-Quentin-en-Yvelines, l'Université d'Evry-Val-d'Essonne, l'Institut des sciences et industries du vivant et de l'environnement (AgroParisTech), CentraleSupélec,l'Ecole normale supérieure de Cachan, l'Ecole Polytechnique, l'Ecole nationale supérieure de techniques avancées, l'Ecole nationale de la statistique et de l’administration économique, HEC Paris, l'Institut d'optique théorique et appliquée, Télécom ParisTech, Télécom SudParis   
-\newcommand{\defenseplace}{Cachan} 											%% Ville de soutenance / Place of defense
-\newcommand{\defensedate}{DATE} 															%% Date de soutenance / Date of defense
-
-%%% Établissement / Institution
-%%% Si la thèse a été produite dans le cadre d'une co-tutelle, commenter la partie "Pas de co-tutelle" et décommenter la partie "Co-tutelle" / If the thesis has been prepared in guardianship, comment the part "Pas de co-tutelle" and uncomment the part "Co-tutelle"
-
-	%%%%%%%%%%%%%%%%%%%%%%%%%
-	%%% Pas de co-tutelle %%%
-	%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%\newcommand{\logoEtt}{blank}																%% NE PAS MODIFIER / DO NOT MODIFY
-%\newcommand{\vpostt}{0.1} 																	%% NE PAS MODIFIER / DO NOT MODIFY
-%\newcommand{\hpostt}{6}																		%% NE PAS MODIFIER / DO NOT MODIFY
-%\newcommand{\logoEt}{etab} 																	%% Logo de l'établissement de soutenance. Indiquer le sigle / Institution logo. Indicate the acronym : AGRO, CENTSUP, ENS, ENSAE, ENSTA, HEC, IOGS, TPT, TSP, UEVE, UPSUD, UVSQ, X 
-%\newcommand{\vpos}{0.1}																		%% À modifier au besoin pour aligner le logo verticalement / If needed, modify to align logo vertilcally
-%\newcommand{\hpos}{11}																		%% À modifier au besoin pour aligner le logo horizontalement / If needed, modify to align logo horizontaly
-
-		%%%%%%%%%%%%%%%%%%
-		%%% Co-tutelle %%%
-		%%%%%%%%%%%%%%%%%%
-
-\newcommand{\logoEt}{HPE} 																%% Logo de l'université partenaire. Placer le fichier .png dans le répertoire '/media/etab' et indiquer le nom du fichier sans l'extension / Logo of partner university. Place the .png file in the directory '/media/etab' and point the file name without the extension
-\newcommand{\vpos}{0.8}																	%% À modifier au besoin pour aligner les logos verticalement / If needed, modify to align logos vertilcally
-\newcommand{\hpos}{10.6}																		%% À modifier au besoin pour aligner les logos horizontalement / If needed, modify to align logos horizontaly
-\newcommand{\logoEtt}{ENS}  																%% Logo de l'établissement de soutenance. Le nom du fichier correspond au sigle de l'établissement /  Institution logo. Filename correspond to institution acronym : AGRO, CENTSUP, ENS, ENSAE, ENSTA, HEC, IOGS, TPT, TSP, UEVE, UPSUD, UVSQ, X 
-\newcommand{\vpostt}{0.8} 																	%% À modifier au besoin pour aligner les logos verticalement / If needed, modify to align logos vertilcally
-\newcommand{\hpostt}{5.5}																	%% À modifier au besoin pour aligner les logos horizontalement / If needed, modify to align logos horizontaly
-
-
-%%% JURY
-
-% Lors du premier dépôt de la thèse le nom du président nest pas connu, le choix du président se fait par les membres du Jury juste avant la soutenance. La précision est apportée sur la couverture lors du second dépôt / Choice of the jury's president is made during the defense. Thus, it must be specified onlly for the second file deposition in ADUM.
-% Tous les membres du juty listés doivent avoir été présents lors de la soutenance / All the jury members listed here must have been present during the defense.
-
-%%% Membre n°1 (Président) / Member n°1 (President)
-\newcommand{\jurynameA}{Prénom Nom}
-\newcommand{\juryadressA}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleA}{Président}
-
-%%% Membre n°2 (Rapporteur) / Member n°2 (President)
-\newcommand{\jurynameB}{Prénom Nom}
-\newcommand{\juryadressB}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleB}{Rapporteur}
-
-%%% Membre n°3 (Rapporteur) / Member n°3 (President)
-\newcommand{\jurynameC}{Prénom Nom}
-\newcommand{\juryadressC}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleC}{Rapporteur}
-
-%%% Membre n°4 (Examinateur) / Member n°4 (President)
-\newcommand{\jurynameD}{Prénom Nom}
-\newcommand{\juryadressD}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleD}{Examinateur}
-
-%%% Membre n°5 (Directeur de thèse) / Member n°5 (Thesis supervisor)
-\newcommand{\jurynameE}{Prénom Nom}
-\newcommand{\juryadressE}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleE}{Directeur de thèse}
-
-%%% Membre n°6 (Co-directeur de thèse) / Member n°6 (Thesis co-supervisor)
-\newcommand{\jurynameF}{Prénom Nom}
-\newcommand{\juryadressF}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleF}{Co-directeur de thèse}
-
-%%% Membre n°7 (Invité) / Member n°7 (Guest)
-\newcommand{\jurynameG}{Prénom Nom}
-\newcommand{\juryadressG}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleG}{Invité}
-
-%%% Membre n°8 (Invité) / Member n°8 (Guest)
-\newcommand{\jurynameH}{Prénom Nom}
-\newcommand{\juryadressH}{Statut, Établissement (Unité de recherche)}
-\newcommand{\juryroleH}{Invité}
-
-%% Il est possible d'ajouter des membres supplémentaires selon le même modèle / More jury members can be added according to the same model
-
-
-% 4E DE COUVERTURE
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Formulaire / Form
-%%% Remplacer les paramètres des \newcommand par les informations demandées / Replace \newcommand parameters by asked informations
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\newcommand{\logoEd}{EDMH}																		%% Logo de l'école doctorale. Indiquer le sigle / Doctoral school logo. Indicate the acronym : 2MIB; AAIF; ABIES; BIOSIGNE; CBMS; EDMH; EDOM; EDPIF; EDSP; EOBE; INTERFACES; ITFA; PHENIICS; SDSV; SDV; SHS; SMEMAG; SSMMH; STIC
-\newcommand{\PhDTitleFR}{titre (en français)}													%% Titre de la thèse en français / Thesis title in french
-\newcommand{\keywordsFR}{3 à 6 mots clés}														%% Mots clés en français, séprarés par des , / Keywords in french, separated by ,
-\newcommand{\abstractFR}{\lipsum[1-3]}															%% Résumé en français / abstract in french
-
-\newcommand{\PhDTitleEN}{titre (en anglais)}													%% Titre de la thèse en anglais / Thesis title in english
-\newcommand{\keywordsEN}{3 à 6 mots clés}														%% Mots clés en anglais, séprarés par des , / Keywords in english, separated by ,
-\newcommand{\abstractEN}{\lipsum[1-3]}															%% Résumé en anglais / abstract in english
-
-
-
-
-\label{layout}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Mise en page / Page layout      
-%%% NE RIEN MODIFIER EXCEPTÉ LA PARTIE CONCERNANT LE JURY (voir \label{jury}) SI BESOIN / DO NOT MODIFY EXCEPT SECTION CONCERNING JURY (see \label{jury}) IF NEEDED
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
+    \newcommand{\PhDTitle}{\textbf{Titre de la thèse (sur plusieurs lignes si nécessaire, 4 voire 5)}} 	%% Titre de la thèse / Thesis title
+    \newcommand{\PhDname}{\textbf{Jean Pourroy}} 															%% Civilité, nom et prénom /  Civility, first name and name 
+    \newcommand{\NNT}{20XXSACLXXXX} 															%% Numéro National de Thèse (donnée par la bibliothèque à la suite du 1er dépôt)/ National Thesis Number (given by the Library after the first deposit)
+    
+    \newcommand{\ecodoctitle}{Mathématiques Hadamard} 													%% Nom de l'ED. Voir site de l'Université Paris-Saclay / Full name of Doctoral School. See Université Paris-Saclay website
+    \newcommand{\ecodocacro}{EDMH}																%% Sigle de l'ED. Voir site de l'Université Paris-Saclay / Acronym of the Doctoral School. See Université Paris-Saclay website
+    \newcommand{\ecodocnum}{574} 																%% Numéro de l'école doctorale / Doctoral School number
+    \newcommand{\PhDspeciality}{Mathématiques appliquées} 										%% Spécialité de doctorat / Speciality 
+    \newcommand{\PhDworkingplace}{l'École normale supérieure de Cachan} 										%% Établissement de préparation / PhD working place : l'Université Paris-Sud, l'Université de Versailles-Saint-Quentin-en-Yvelines, l'Université d'Evry-Val-d'Essonne, l'Institut des sciences et industries du vivant et de l'environnement (AgroParisTech), CentraleSupélec,l'Ecole normale supérieure de Cachan, l'Ecole Polytechnique, l'Ecole nationale supérieure de techniques avancées, l'Ecole nationale de la statistique et de l’administration économique, HEC Paris, l'Institut d'optique théorique et appliquée, Télécom ParisTech, Télécom SudParis   
+    \newcommand{\defenseplace}{Cachan} 											%% Ville de soutenance / Place of defense
+    \newcommand{\defensedate}{DATE} 															%% Date de soutenance / Date of defense
+    
+    %%% Établissement / Institution
+    %%% Si la thèse a été produite dans le cadre d'une co-tutelle, commenter la partie "Pas de co-tutelle" et décommenter la partie "Co-tutelle" / If the thesis has been prepared in guardianship, comment the part "Pas de co-tutelle" and uncomment the part "Co-tutelle"
+    
+    	%%%%%%%%%%%%%%%%%%%%%%%%%
+    	%%% Pas de co-tutelle %%%
+    	%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    %\newcommand{\logoEtt}{blank}																%% NE PAS MODIFIER / DO NOT MODIFY
+    %\newcommand{\vpostt}{0.1} 																	%% NE PAS MODIFIER / DO NOT MODIFY
+    %\newcommand{\hpostt}{6}																		%% NE PAS MODIFIER / DO NOT MODIFY
+    %\newcommand{\logoEt}{etab} 																	%% Logo de l'établissement de soutenance. Indiquer le sigle / Institution logo. Indicate the acronym : AGRO, CENTSUP, ENS, ENSAE, ENSTA, HEC, IOGS, TPT, TSP, UEVE, UPSUD, UVSQ, X 
+    %\newcommand{\vpos}{0.1}																		%% À modifier au besoin pour aligner le logo verticalement / If needed, modify to align logo vertilcally
+    %\newcommand{\hpos}{11}																		%% À modifier au besoin pour aligner le logo horizontalement / If needed, modify to align logo horizontaly
+    
+    		%%%%%%%%%%%%%%%%%%
+    		%%% Co-tutelle %%%
+    		%%%%%%%%%%%%%%%%%%
+    
+    \newcommand{\logoEt}{HPE} 																%% Logo de l'université partenaire. Placer le fichier .png dans le répertoire '/media/etab' et indiquer le nom du fichier sans l'extension / Logo of partner university. Place the .png file in the directory '/media/etab' and point the file name without the extension
+    \newcommand{\vpos}{0.8}																	%% À modifier au besoin pour aligner les logos verticalement / If needed, modify to align logos vertilcally
+    \newcommand{\hpos}{10.6}																		%% À modifier au besoin pour aligner les logos horizontalement / If needed, modify to align logos horizontaly
+    \newcommand{\logoEtt}{ENS}  																%% Logo de l'établissement de soutenance. Le nom du fichier correspond au sigle de l'établissement /  Institution logo. Filename correspond to institution acronym : AGRO, CENTSUP, ENS, ENSAE, ENSTA, HEC, IOGS, TPT, TSP, UEVE, UPSUD, UVSQ, X 
+    \newcommand{\vpostt}{0.8} 																	%% À modifier au besoin pour aligner les logos verticalement / If needed, modify to align logos vertilcally
+    \newcommand{\hpostt}{5.5}																	%% À modifier au besoin pour aligner les logos horizontalement / If needed, modify to align logos horizontaly
+    
+    
+    %%% JURY
+    
+    % Lors du premier dépôt de la thèse le nom du président nest pas connu, le choix du président se fait par les membres du Jury juste avant la soutenance. La précision est apportée sur la couverture lors du second dépôt / Choice of the jury's president is made during the defense. Thus, it must be specified onlly for the second file deposition in ADUM.
+    % Tous les membres du juty listés doivent avoir été présents lors de la soutenance / All the jury members listed here must have been present during the defense.
+    
+    %%% Membre n°1 (Président) / Member n°1 (President)
+    \newcommand{\jurynameA}{Prénom Nom}
+    \newcommand{\juryadressA}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleA}{Président}
+    
+    %%% Membre n°2 (Rapporteur) / Member n°2 (President)
+    \newcommand{\jurynameB}{Prénom Nom}
+    \newcommand{\juryadressB}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleB}{Rapporteur}
+    
+    %%% Membre n°3 (Rapporteur) / Member n°3 (President)
+    \newcommand{\jurynameC}{Prénom Nom}
+    \newcommand{\juryadressC}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleC}{Rapporteur}
+    
+    %%% Membre n°4 (Examinateur) / Member n°4 (President)
+    \newcommand{\jurynameD}{Prénom Nom}
+    \newcommand{\juryadressD}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleD}{Examinateur}
+    
+    %%% Membre n°5 (Directeur de thèse) / Member n°5 (Thesis supervisor)
+    \newcommand{\jurynameE}{Prénom Nom}
+    \newcommand{\juryadressE}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleE}{Directeur de thèse}
+    
+    %%% Membre n°6 (Co-directeur de thèse) / Member n°6 (Thesis co-supervisor)
+    \newcommand{\jurynameF}{Prénom Nom}
+    \newcommand{\juryadressF}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleF}{Co-directeur de thèse}
+    
+    %%% Membre n°7 (Invité) / Member n°7 (Guest)
+    \newcommand{\jurynameG}{Prénom Nom}
+    \newcommand{\juryadressG}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleG}{Invité}
+    
+    %%% Membre n°8 (Invité) / Member n°8 (Guest)
+    \newcommand{\jurynameH}{Prénom Nom}
+    \newcommand{\juryadressH}{Statut, Établissement (Unité de recherche)}
+    \newcommand{\juryroleH}{Invité}
+    
+    %% Il est possible d'ajouter des membres supplémentaires selon le même modèle / More jury members can be added according to the same model
+    
+    
+    % 4E DE COUVERTURE
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% Formulaire / Form
+    %%% Remplacer les paramètres des \newcommand par les informations demandées / Replace \newcommand parameters by asked informations
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    \newcommand{\logoEd}{EDMH}																		%% Logo de l'école doctorale. Indiquer le sigle / Doctoral school logo. Indicate the acronym : 2MIB; AAIF; ABIES; BIOSIGNE; CBMS; EDMH; EDOM; EDPIF; EDSP; EOBE; INTERFACES; ITFA; PHENIICS; SDSV; SDV; SHS; SMEMAG; SSMMH; STIC
+    \newcommand{\PhDTitleFR}{titre (en français)}													%% Titre de la thèse en français / Thesis title in french
+    \newcommand{\keywordsFR}{3 à 6 mots clés}														%% Mots clés en français, séprarés par des , / Keywords in french, separated by ,
+    \newcommand{\abstractFR}{\lipsum[1-3]}															%% Résumé en français / abstract in french
+    
+    \newcommand{\PhDTitleEN}{titre (en anglais)}													%% Titre de la thèse en anglais / Thesis title in english
+    \newcommand{\keywordsEN}{3 à 6 mots clés}														%% Mots clés en anglais, séprarés par des , / Keywords in english, separated by ,
+    \newcommand{\abstractEN}{\lipsum[1-3]}															%% Résumé en anglais / abstract in english
+    
+\fi    
+    
+    
+    \label{layout}
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% Mise en page / Page layout      
+    %%% NE RIEN MODIFIER EXCEPTÉ LA PARTIE CONCERNANT LE JURY (voir \label{jury}) SI BESOIN / DO NOT MODIFY EXCEPT SECTION CONCERNING JURY (see \label{jury}) IF NEEDED
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    
 
 
 
@@ -402,123 +412,134 @@
 %\includeonly{chapter/PART-contributions/PART-contributions}
 
 
+
+%%%%  %   %     %           %             %             %   %   % %%%%%
+%%%%  %   %     %           %   DOCUMENT  %             %   %   % %%%%%
+%%%%  %   %     %           %             %             %   %   % %%%%%
+%%%%  %   %     %           %             %             %   %   % %%%%%
+
 \begin{document}
 
+    
 
+    \iflong
+    
+    
+        \include{TitlePage_ENS}
+        
+        \dominitoc
+        \pagenumbering{roman}
+        
+        \phantom {} 
+        
+        \cleardoublepage
+        
+        
+        
+        % .______       _______     _______. __    __  .___  ___.  _______  %
+        % |   _  \     |   ____|   /       ||  |  |  | |   \/   | |   ____| %
+        % |  |_)  |    |  |__     |   (----`|  |  |  | |  \  /  | |  |__    %
+        % |      /     |   __|     \   \    |  |  |  | |  |\/|  | |   __|   %
+        % |  |\  \----.|  |____.----)   |   |  `--'  | |  |  |  | |  |____  %
+        % | _| `._____||_______|_______/     \______/  |__|  |__| |_______| %
+        
+        %\pagestyle{empty}
+        
+        %%% Logo de l'école doctorale. Le nom du fichier correspond au sigle de l'ED / Doctoral school logo. Filename correspond to doctoral school acronym
+        %%% Les noms valides sont / Valid names are : 2MIB; AAIF; ABIES; BIOSIGNE; CBMS; EDMH; EDOM; EDPIF; EDSP; EOBE; INTERFACES; ITFA; PHENIICS; SDSV; SDV; SHS; SMEMAG; SSMMH; STIC
+        \begin{textblock*}{0mm}(16mm,3mm)
+        	\noindent\includegraphics[height=24mm]{media/ed/\logoEd.jpeg}
+        \end{textblock*}
+        
+        
+        
+        %%%Titre de la thèse en français / Thesis title in french
+        \section*{Résumé}
+        \hfill \break
+        \begin{center}
+        \fcolorbox{bordeau}{white}{\parbox{0.95\textwidth}{
+        {\bf Titre:} \PhDTitleFR 
+        \medskip
+        
+        %%%Mots clés en français, séprarés par des ; / Keywords in french, separated by ;
+        {\bf Mots clés:} \keywordsFR 
+        \vspace{-2mm}
+        
+        %%% Résumé en français / abstract in french
+        \begin{multicols}{2}
+        {\bf Résumé:} 
+        \abstractFR 
+        \end{multicols}
+        }}
+        \end{center}
+        
+        \vspace*{0mm}
+        
+        %%%Titre de la thèse en anglais / Thesis title in english
+        \clearpage
+        \section*{Abstract}
+        \hfill \break
+        \begin{center}
+        \fcolorbox{bordeau}{white}{\parbox{0.95\textwidth}{
+        {\bf Title:} \PhDTitleEN 
+        
+        \medskip
+        
+        %%%Mots clés en anglais, séprarés par des ; / Keywords in english, separated by ;
+        {\bf Keywords:}  \keywordsEN %%3 à 6 mots clés%%
+        \vspace{-2mm}
+        \begin{multicols}{2}
+        	
+        %%% Résumé en anglais / abstract in english
+        {\bf Abstract:} 
+        \abstractEN
+        \end{multicols}
+        }}
+        \end{center}
+        
+        
+        %\begin{textblock*}{161mm}(10mm,270mm)
+        %\color{bordeau}
+        %{\bf\noindent Université Paris-Saclay	         }
+        %
+        %\noindent Espace Technologique / Immeuble Discovery 
+        %
+        %\noindent Route de l’Orme aux Merisiers RD 128 / 91190 Saint-Aubin, France 
+        %\end{textblock*}
+        %
+        %\begin{textblock*}{20mm}(182mm,255mm)
+        %\includegraphics[width=20mm]{media/UPSACLAY-petit.png}
+        %\end{textblock*}
+        
+        
+        
+        
+        
+        %.___  ___.  _______ .______        ______  __  
+        %|   \/   | |   ____||   _  \      /      ||  | %
+        %|  \  /  | |  |__   |  |_)  |    |  ,----'|  | %
+        %|  |\/|  | |   __|  |      /     |  |     |  | %
+        %|  |  |  | |  |____ |  |\  \----.|  `----.|  | %
+        %|__|  |__| |_______|| _| `._____| \______||__| %
+        
+        \clearpage
+        \section*{Remerciements}
+        \hfill \break
+        
+        
+        A faire en dernier :-)
 
-\include{TitlePage_ENS}
+    \fi        
+        
+        
+        
+        % .___________.  ______     ______  %
+        % |           | /  __  \   /      | %
+        % `---|  |----`|  |  |  | |  ,----' %
+        %     |  |     |  |  |  | |  |      %
+        %     |  |     |  `--'  | |  `----. %
+        %     |__|      \______/   \______| %
 
-\dominitoc
-\pagenumbering{roman}
-
-\phantom {} 
-
-\cleardoublepage
-
-
-
-% .______       _______     _______. __    __  .___  ___.  _______  %
-% |   _  \     |   ____|   /       ||  |  |  | |   \/   | |   ____| %
-% |  |_)  |    |  |__     |   (----`|  |  |  | |  \  /  | |  |__    %
-% |      /     |   __|     \   \    |  |  |  | |  |\/|  | |   __|   %
-% |  |\  \----.|  |____.----)   |   |  `--'  | |  |  |  | |  |____  %
-% | _| `._____||_______|_______/     \______/  |__|  |__| |_______| %
-
-%\pagestyle{empty}
-
-%%% Logo de l'école doctorale. Le nom du fichier correspond au sigle de l'ED / Doctoral school logo. Filename correspond to doctoral school acronym
-%%% Les noms valides sont / Valid names are : 2MIB; AAIF; ABIES; BIOSIGNE; CBMS; EDMH; EDOM; EDPIF; EDSP; EOBE; INTERFACES; ITFA; PHENIICS; SDSV; SDV; SHS; SMEMAG; SSMMH; STIC
-\begin{textblock*}{0mm}(16mm,3mm)
-	\noindent\includegraphics[height=24mm]{media/ed/\logoEd.jpeg}
-\end{textblock*}
-
-
-
-%%%Titre de la thèse en français / Thesis title in french
-\section*{Résumé}
-\hfill \break
-\begin{center}
-\fcolorbox{bordeau}{white}{\parbox{0.95\textwidth}{
-{\bf Titre:} \PhDTitleFR 
-\medskip
-
-%%%Mots clés en français, séprarés par des ; / Keywords in french, separated by ;
-{\bf Mots clés:} \keywordsFR 
-\vspace{-2mm}
-
-%%% Résumé en français / abstract in french
-\begin{multicols}{2}
-{\bf Résumé:} 
-\abstractFR 
-\end{multicols}
-}}
-\end{center}
-
-\vspace*{0mm}
-
-%%%Titre de la thèse en anglais / Thesis title in english
-\clearpage
-\section*{Abstract}
-\hfill \break
-\begin{center}
-\fcolorbox{bordeau}{white}{\parbox{0.95\textwidth}{
-{\bf Title:} \PhDTitleEN 
-
-\medskip
-
-%%%Mots clés en anglais, séprarés par des ; / Keywords in english, separated by ;
-{\bf Keywords:}  \keywordsEN %%3 à 6 mots clés%%
-\vspace{-2mm}
-\begin{multicols}{2}
-	
-%%% Résumé en anglais / abstract in english
-{\bf Abstract:} 
-\abstractEN
-\end{multicols}
-}}
-\end{center}
-
-
-%\begin{textblock*}{161mm}(10mm,270mm)
-%\color{bordeau}
-%{\bf\noindent Université Paris-Saclay	         }
-%
-%\noindent Espace Technologique / Immeuble Discovery 
-%
-%\noindent Route de l’Orme aux Merisiers RD 128 / 91190 Saint-Aubin, France 
-%\end{textblock*}
-%
-%\begin{textblock*}{20mm}(182mm,255mm)
-%\includegraphics[width=20mm]{media/UPSACLAY-petit.png}
-%\end{textblock*}
-
-
-
-
-
-%.___  ___.  _______ .______        ______  __  
-%|   \/   | |   ____||   _  \      /      ||  | %
-%|  \  /  | |  |__   |  |_)  |    |  ,----'|  | %
-%|  |\/|  | |   __|  |      /     |  |     |  | %
-%|  |  |  | |  |____ |  |\  \----.|  `----.|  | %
-%|__|  |__| |_______|| _| `._____| \______||__| %
-
-\clearpage
-\section*{Remerciements}
-\hfill \break
-
-
-A faire en dernier :-)
-
-
-
-
-% .___________.  ______     ______  %
-% |           | /  __  \   /      | %
-% `---|  |----`|  |  |  | |  ,----' %
-%     |  |     |  |  |  | |  |      %
-%     |  |     |  `--'  | |  `----. %
-%     |__|      \______/   \______| %
 
 \tableofcontents
 
@@ -529,6 +550,7 @@ A faire en dernier :-)
 % |  | |_ | |  |     |  |  |  |     \   \        \   \      % 
 % |  |__| | |  `----.|  `--'  | .----)   |   .----)   |     % 
 %  \______| |_______| \______/  |_______/    |_______/      % 
+\setlength{\glsdescwidth}{0.9\hsize}
 \printglossary[type=main]           % Glossaire
 \printglossary[type=\acronymtype]   % Acronymes
 
@@ -545,55 +567,79 @@ A faire en dernier :-)
 
 %\bibliographystyle{StyleThese}
 
+  
     %% INTRO %%
-    \include{chapter/CHAPTER-1-introduction}
+    
+    \iflong
+        \include{chapter/CHAPTER-1-introduction}
+    \fi 
+
 
     %% EDL HPC %%    
-    \include{chapter/PART-StateOfTheArt/CHAPTER-2-edl-hpc}
+    
+    \iflong
+        \include{chapter/PART-StateOfTheArt/CHAPTER-2-edl-hpc}
+    \fi 
+
     
     %CONTRIBUTION
-    \include{chapter/PART-contributions/chapter-developpement/CHAPTER-3-developpement}
-    \include{chapter/PART-contributions/chapter-methodologie/CHAPTER-4-methodologie}
+    %\iflong
+        \include{chapter/PART-contributions/chapter-developpement/CHAPTER-3-developpement}
+    %\fi 
+
+    \iflong
+        \include{chapter/PART-contributions/chapter-methodologie/CHAPTER-4-methodologie}
+    \fi 
+
 
     %% CONLUSION %%
-    \include{chapter/CHAPTER-5-conclusion}
+    \iflong
+        \include{chapter/CHAPTER-5-conclusion}
+    \fi 
+
+    
 
     %% ANNEXES %%
-\appendix
-\part*{Annexes}
-\addcontentsline{toc}{part}{Annexes}
 
-\include{chapter/PART-annexes/PART-ANNEXES}
-
-
-%\bibliographystyle{StyleThese}
-%\bibliography{These}
+    \iflong
+        \appendix
+        \part*{Annexes}
+        \addcontentsline{toc}{part}{Annexes}
+        \include{chapter/PART-annexes/PART-ANNEXES}
+    \fi 
 
 
-
-\begin{multicols}{2}[\printbibheading]
-%\begin{multicols}{2}
-%\printbibliography[heading=none]
-\printbibliography[sorting=none, heading=bibliography, heading=none]
-\end{multicols}
-
-  \printindex
+    \iflong
+        
 
 
-\cleardoublepage
 
-\begin{vcenterpage}
-\noindent\rule[2pt]{\textwidth}{0.5pt}
-\begin{center}
-{\large\textbf{Titre de la thèse\\}}
-\end{center}
-{\large\textbf{Abstract:}}
-Résumé en anglais
-\\
-{\large\textbf{Keywords:}}
-a,e,i,o,u,y
-\\
-\noindent\rule[2pt]{\textwidth}{0.5pt}
-\end{vcenterpage}
+        \begin{multicols}{2}[\printbibheading]
+        %\begin{multicols}{2}
+        %\printbibliography[heading=none]
+        \printbibliography[sorting=none, heading=bibliography, heading=none]
+        \end{multicols}
+        
+          \printindex
+        
+        
+        \cleardoublepage
+        
+        \begin{vcenterpage}
+        \noindent\rule[2pt]{\textwidth}{0.5pt}
+        \begin{center}
+        {\large\textbf{Titre de la thèse\\}}
+        \end{center}
+        {\large\textbf{Abstract:}}
+        Résumé en anglais
+        \\
+        {\large\textbf{Keywords:}}
+        a,e,i,o,u,y
+        \\
+        \noindent\rule[2pt]{\textwidth}{0.5pt}
+        \end{vcenterpage}
+\fi
 
+        
 \end{document}
+
