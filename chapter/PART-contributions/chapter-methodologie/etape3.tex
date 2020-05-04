@@ -54,8 +54,9 @@ Les deux premières étapes de la méthodologie s'intéressent à la recherche e
     
     Chaque noyau peut être porté sur un accélérateur différent, et leur analyse doit se faire indépendamment les uns des autres. L'objectif de la modélisation est de comprendre les performances de l'application: si elles limitées par les performances du système mémoire ou par la capacité de calcul du processeur. La modélisation des performances permet de réduire le nombre de plateformes envisagées pour le portage de l'application. Cette étape permet d'éviter d'investir du temps et de l'argent dans des solutions inefficaces pour l'application étudiée. 
     
-    
-    Pour cela, le \textit{Roofline Model}, permet de réaliser cette représentation des performances. Il est présenté dans la \autoref{sec:Roofline}. Nous conseillons de construire le modèle à l'aide des caractéristiques mesurées lors de l'étape 2 ($\text{PERF_{peak}}$) pour avoir une meilleure estimation des performances réellement atteignables. 
+ 
+ \textbf{TODO check ça y a un char en trop ?}   
+%    Pour cela, le \textit{Roofline Model}, permet de réaliser cette représentation des performances. Il est présenté dans la \autoref{sec:Roofline}. Nous conseillons de construire le modèle à l'aide des caractéristiques mesurées lors de l'étape 2 ($\text{PERF_{peak}}$) pour avoir une meilleure estimation des performances réellement atteignables. 
     Il est nécessaire de calculer l'intensité opérationnelle, $\text{OI}_{noyau}$, mesurée en $flop/byte$. Elle représente le nombre d'opérations réalisables par le processeur pour chaque donnée transférée depuis la mémoire. Ce calcul se fait à partir de la lecture de code source, motivant le besoin d'identifier individuellement les noyaux de calculs. 
     L'utilisation du modèle permet ensuite de visualiser les noyaux ayant le plus grand potentiel d'amélioration de performance. 
 
@@ -87,7 +88,7 @@ Les deux premières étapes de la méthodologie s'intéressent à la recherche e
   basicstyle=\footnotesize, frame=tb,
   xleftmargin=.065\textwidth, xrightmargin=.065\textwidth]
 for (j=0; j < STREAM_ARRAY_SIZE; j++)
-    À[j] = B[j] + scalar * C[j];
+    A[j] = B[j] + scalar * C[j];
 \end{lstlisting}
         
         

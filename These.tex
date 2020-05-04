@@ -3,6 +3,7 @@
 \newif\iflong
 %\longtrue
 
+
 \usepackage{ifthen}  
 
 %\input{structure}
@@ -12,6 +13,7 @@
 \usepackage{subcaption} %subfigure
 %\usepackage{subfig}
 \setlength{\biblabelsep}{0pt}
+
 
 %citation avec \say
 \usepackage{dirtytalk}
@@ -100,7 +102,7 @@
 %WORK 2
 \iffalse
 \usepackage{imakeidx}
-\usepackage{hyperref}
+\usepackage[]{hyperref}
 \usepackage[abbreviations, xindy,acronym]{glossaries-extra}
 \makeglossaries
 \input{glossaire}
@@ -116,11 +118,13 @@
 \usepackage{hyperref}  %pour autoref
 
 %%%%% GLOSSAIRE %%%%%%%
-\usepackage[acronym, nopostdot,  style=super, toc]{glossaries}
+%\usepackage[nopostdot,  style=long,  toc, seeautonumberlist,acronym, nogroupskip]{glossaries}
+\usepackage[nopostdot,  style=long,  toc, seeautonumberlist,acronym, automake,symbols,nogroupskip]{glossaries-extra}
+
 \makeglossaries
 \input{glossaire}
 \input{abbreviations}
-\input{acronymes}
+%\input{acronymes}
 
 \usepackage{mfirstuc}%capital
 \renewcommand{\glsnamefont}[1]{\textbf{\capitalisewords{#1}}} %Captial + bold pour glossaire
@@ -159,7 +163,6 @@
 
 
 \newcommand{\CD}[1]{\emph{\color{red} #1}}
-
 
 
 
@@ -542,6 +545,7 @@
 
 
 \tableofcontents
+\adjustmtc
 
 
 %   _______  __        ______        _______.     _______.  % 
@@ -550,9 +554,19 @@
 % |  | |_ | |  |     |  |  |  |     \   \        \   \      % 
 % |  |__| | |  `----.|  `--'  | .----)   |   .----)   |     % 
 %  \______| |_______| \______/  |_______/    |_______/      % 
-\setlength{\glsdescwidth}{0.9\hsize}
+\setlength{\glsdescwidth}{.75\hsize}
+\renewcommand*{\arraystretch}{1.4}% espace entre chaque definition default is 1
+
 \printglossary[type=main]           % Glossaire
+\glsunsetall
 \printglossary[type=\acronymtype]   % Acronymes
+\glsresetall
+
+\glsunsetall
+
+\printglossary[type=symbols,style=long,title={Notations}]
+\glsresetall
+
 
 
 
@@ -565,9 +579,11 @@
 
 \mainmatter
 
+\adjustmtc
+
 %\bibliographystyle{StyleThese}
 
-  
+  \glsaddall
     %% INTRO %%
     
     \iflong

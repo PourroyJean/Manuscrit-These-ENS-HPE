@@ -1,187 +1,231 @@
-\newglossaryentry{domain-knowledge}{%
-  name={domain knowledge},%
-  description={valid knowledge used to refer to an area of human endeavour, an autonomous computer activity, or other specialized discipline}}
-
-\newacronym{tla}{TLA}{Three Letter Acronym}
-
-
-
-
-\newglossaryentry{latex}
-{
-    name=latex,
-    description={Is a mark up language specially suited for scientific documents}
-}
-
-\newglossaryentry{maths}
-{
-    name=mathematics,
-    description={Mathematics is what mathematicians do}
-}
-
-\newglossaryentry{formula}
-{
-    name=formula,
-    description={A mathematical expression}
-}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GLOSSAIRE AVEC DEFINITION
+% Si Glossaire + Accronyme:
+% - Linker avec gls
+% - Dans le texte utiliser \gls{accronyme}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+    \newglossaryentry{benchmark}{
+        name={benchmark},
+        description={ Code, ou un ensemble de codes, permettant de mesurer la performance d'une solution et d'en vérifier ses fonctionnalités.},
+        plural={benchmarks},
+    }
 
-\newglossaryentry{duck}{name=DUUuck,
-  description={a waterbird with webbed feet}}
+    
+    \newglossaryentry{computebound}{
+        name={compute bound},
+        description={Le terme "limité par le calcul" (\textit{compute bound}) fait référence à une application (ou fonction) dont le temps d'exécution est principalement déterminé par la performance de calcul du processeur. Lorsqu'un code n'est pas \textit{compute bound} il est généralement \gls{memorybound}.}
+    }
+    
+    \newglossaryentry{exascale}{
+        name={exascale},
+        description={désigne la nouvelle génération de plateforme capable d'exécuter un \gls{exaFLOPS} ($10^{18}$ opérations en virgule flottante par seconde)}
+    }
+    
+    \newglossaryentry{FLOPSG}{
+      name={FLOPS},
+      description={Unité de mesure du nombre d'opérations en virgule flottante par seconde. Cette mesure est couramment utilisée pour quantifier la performance d'un système informatique.},
+    }    
+    
+    \newglossaryentry{FMAG}{
+      name={FMA},
+      description={instruction processeur réalisant une addition et une multiplication entre trois valeurs a, b et c tel que $a = a + b * c$. L'unité matérielle responsable de l'exécution d'une telle instruction s'appelle un multiplicateur-accumulateur (MAC)},
+    }
+    
+    \newglossaryentry{FPUG}{
+      name={FPU},
+      description={Une unité de calcul en virgule flottante Floating Point Unit) est une partie d'un processeur, spécialement conçue pour effectuer des opérations sur des nombres à virgule flottante.}
+    }
+     
+     \newglossaryentry{framework}{
+        name={framework},
+        description={ infrastructure logicielle désignant un ensemble de composants logiciels établissant les fondations d'un logiciel.},
+        plural={frameworks},
+    }
+       
+    \newglossaryentry{hotspot}{
+        name={hot spot},
+        description={ Désigne une région d'un programme où une grande proportion d'instructions sont exécutées pendant l'exécution d'une application.},
+        plural={hot spots}
+    }
+    
+    \newglossaryentry{HPCG}{
+        name={HPC},
+        description={Le but du HPC est de paralléliser des applications scientifiques à destination de ressources informatiques telles que les supercalculateurs},
+        first={Calcul Haute Performance (HPC)}
+    }
+    
+    \newglossaryentry{kernel}{
+        name={kernel},
+        description={Un noyau de calcul (\textit{kernel}) est une partie de code restreinte d'une application, qui remplit une fonction clairement définie. En \gls{HPC}, les \textit{kernels} sont des zones de codes de calculs intensifs responsables de la majorité du temps d'exécution d'une application.},
+        first={noyaux de calcul (kernel)},
+        plural={kernels}
+    }
+    
+    
+    
+    
+    
+    \newglossaryentry{memorybound}{
+        name={memory bound},
+        description={Le terme "limité par la mémoire" (\textit{memory bound}) fait référence à une application (ou fonction) dont le temps d'exécution est principalement déterminé par la performance du système mémoire. Lorsqu'un code n'est pas \textit{memory bound} il est généralement \gls{computebound}.}
+    }
+    
+    
+    \newglossaryentry{memorygap}{
+        name={memory gap},
+        description={Traduit l'écart de performance entre la performance des processeurs et celle du système mémoire.},
+    }
+    
+    \newglossaryentry{MPIG}{
+        name={MPI},
+        description={Standard de communication pour des programmes parallèles sur des systèmes à mémoire distribuée}
+    }
+    
+    \newglossaryentry{prelecteur}{
+        name={prélecteur mémoire},
+        description={Dispositif matériel du processeur permettant d'anticiper les accès mémoire en chargeant les données (ou les instructions) depuis la mémoire vers le processeur (en mémoire cache) avec qu'elles ne soient réellement utilisées. Ce mécanisme, aussi appelé \textit{memory prefetcher}, permet de réduire la latence d'accès.},
+        plural={prélecteurs},
+    }
+    
+    \newglossaryentry{stride}{
+        name={stride},
+        description={Certains algorithmes réalisent des accès mémoires en accédant aux données par des sauts, de taille régulière, en entre deux adresses mémoire. Ces sauts sont appelés des strides.},
+        plural={strides},
+    }
+    
+    
+    \newglossaryentry{thread}{
+        name={thread},
+        description={ou processus léger ou tâche est similaire à un processus. Les threads d'un même processus se partagent le même espace mémoire.},
+        plural={threads}
+    }
+    
 
-\newglossaryentry{parrot}{name=Parrot,
-  description={mainly tropical bird with bright plumage}}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ACCRONYME
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \newglossaryentry{ALU}{
+        type=\acronymtype, 
+        name={ALU}, 
+        description={\textit{Arithmetic Logic Unit} ou unité arithmétique et logique}, 
+        first={unité arithmétique et logique (ALU)}
+    }
+
+    \newglossaryentry{ASIC}{
+        type=\acronymtype, 
+        name={ASIC}, 
+        description={\textit{Application-Specific Integrated Circuit} ou circuit intégré propre à une application}, 
+        first={circuit intégré propre à une application (ASIC)}
+    }
+
+    \newglossaryentry{DSP}{
+        type=\acronymtype, 
+        name={DSP}, 
+        description={\textit{Digital Signal Processor} ou processeur de signal numérique}, 
+        first={processeur de signal numérique (DSP)}
+    }
   
-  %%% The glossary entry the acronym links to   
-\newglossaryentry{apig}{name={API},
-    description={An Application Programming Interface (API) is a particular set
-of rules and specifications that a software program can follow to access and
-make use of the services and resources provided by another particular software
-program that implements that API}}
-
-%%% define the acronym and use the see= option
-\newglossaryentry{api}{type=\acronymtype, name={API}, description={Application
-Programming Interface}, first={Application
-Programming Interface (API)\glsadd{apig}}}
-
-
-%%
-%%
-%%%%%%%%%%%%%%%%%%%%%% DEFINITION %%%%%%%%%%%
-%%
-%%
-
-
-
-
-\newglossaryentry{benchmark}{
-    name={benchmark},
-    description={ Code, ou un ensemble de codes, permettant de mesurer la performance d'une solution et d'en vérifier ses fonctionnalités.},
-    plural={benchmarks},
-}
-
-
-
-\newglossaryentry{computebound}{
-    name={compute bound},
-    description={Le terme "limité par le calcul" (\textit{compute bound}) fait référence à une application (ou fonction) dont le temps d'exécution est principalement déterminé par la performance de calcul du processeur. Lorsqu'un code n'est pas \textit{compute bound} il est généralement \gls{memorybound}.}
-}
+    \newglossaryentry{exaFLOPS}{
+        type=\acronymtype, 
+        name={exaFLOPS}, 
+        description={$10^{18}$ FLOPS}, 
+        first={$10^{18}$ FLOPS (un exaFLOPS)}
+    }
     
-\newglossaryentry{exascale}{
-    name={exascale},
-    description={désigne la nouvelle génération de plateforme capable d'exécuter un exaflops ($10^{18}$ opérations en virgule flottante par seconde)}
-}
- 
- \newglossaryentry{framework}{
-    name={framework},
-    description={ infrastructure logicielle désignant un ensemble de composants logiciels établissant les fondations d'un logiciel.},
-    plural={frameworks},
-}
-   
-\newglossaryentry{hotspot}{
-    name={hot spot},
-    description={ Désigne une région d'un programme où une grande proportion d'instructions sont exécutées pendant l'exécution d'une application.},
-    plural={hot spots}
-}
-
-
-\newglossaryentry{memorybound}{
-    name={memory bound},
-    description={Le terme "limité par la mémoire" (\textit{memory bound}) fait référence à une application (ou fonction) dont le temps d'exécution est principalement déterminé par la performance du système mémoire. Lorsqu'un code n'est pas \textit{memory bound} il est généralement \gls{computebound}.}
-}
-
-
-\newglossaryentry{memorygap}{
-    name={memory gap},
-    description={Traduit l'écart de performance entre la performance des processeurs et celle du système mémoire.},
-}
-
-\newglossaryentry{prelecteur}{
-    name={prélecteur mémoire},
-    description={Dispositif matériel du processeur permettant d'anticiper les accès mémoire en chargeant les données (ou les instructions) depuis la mémoire vers le processeur (en mémoire cache) avec qu'elles ne soient réellement utilisées. Ce mécanisme, aussi appelé \textit{memory prefetcher}, permet de réduire la latence d'accès.},
-    plural={prélecteurs},
-}
-
-\newglossaryentry{stride}{
-    name={stride},
-    description={Certains algorithmes réalisent des accès mémoires en accédant aux données par des sauts, de taille régulière, en entre deux adresses mémoire. Ces sauts sont appelés des strides.},
-    plural={strides},
-}
-
-
-\newglossaryentry{thread}{
-    name={thread},
-    description={ou processus léger ou tâche est similaire à un processus. Les threads d'un même processus se partagent le même espace mémoire.},
-    plural={threads}
-}
-    
-
-
-
-
-
-
-
-%%
-%%
-%%%%%%%%% ACCRONYME %%%%%%%%%%
-%%
-%%
-% --> liens avec \glsadd
-
-%%% define the acronym and use the see= option
-
-
-%% GLOBAL %%
-    
-    \newglossaryentry{hpc}{type=\acronymtype, name={HPC}, description={High Performance Computing ou Calcul Haute Performance}, first={Calcul Haute Performance (HPC)\glsadd{hpcg}}}
-    
-    \newglossaryentry{hpcg}{name={HPC},
-    description={Le but du HPC est de paralléliser des applications scientifiques à destination de ressources informatiques telles que les supercalculateurs}}
-
-    \newglossaryentry{FLOP}{type=\acronymtype, name={FLOP}, description={Floating Point Operation ou opérations en virgule flottante}, first={opération en virgule flottante (FLOP))}}
-    
-    \newglossaryentry{FLOPS}{type=\acronymtype, name={FLOPS}, description={Floating Point Operation per second ou nombre d'opérations en virgule flottante par seconde (FLOP/s)}, first={opérations en virgule flottante par seconde (FLOPS)}}
-    
-    \newglossaryentry{exaFLOPS}{type=\acronymtype, name={exaFLOPS}, description={$10^{18}$ FLOPS}, first={$10^{18}$ FLOPS (un exaFLOPS)}}
-    
-    
-
-%% ARCHITECTURE %%
-    
-    \newglossaryentry{gpu}{type=\acronymtype, name={GPU}, description={Graphics Processing Unit ou processeur graphique}, first={processeurs graphiques (GPU)}}
-    
-    \newglossaryentry{fpga}{type=\acronymtype, name={FPGA}, description={Field Programmable Gate Arrays ou réseaux logiques programmables}, first={réseaux logiques programmables (FPGA)}}
-    
-    \newglossaryentry{dsp}{type=\acronymtype, name={DSP}, description={Digital Signal Processor ou processeur de signal numérique}, first={processeur de signal numérique (DSP)}}
-    
-    \newglossaryentry{asic}{type=\acronymtype, name={ASIC}, description={application-specific integrated circuit ou circuit intégré propre à une application}, first={circuit intégré propre à une application (ASIC)}}
-
-%% LOGICIEL %%
-
-    %\newglossaryentry{mpig}{name={MPI},description={standard de communication pour des programmes parallèles sur des systèmes à mémoire distribuée}}
-    
-    %\newglossaryentry{mpi}{type=\acronymtype, name={MPI}, description={Message Passing Interface}, first={interface de passage de message (MPI))\glsadd(mpig)}}
   
-
     
-    \newglossaryentry{mpi}{type=\acronymtype, name={MPI}, description={Message Passing Interface ou interface de passage de message}, first={interface de passage de message (MPI)\glsadd{mpig}}}
+    \newglossaryentry{IPC}{
+        type=\acronymtype, 
+        name={IPC}, 
+        description={Instructions Par Cycle}, 
+        first={instructions réalisées par cycle d'horloge (IPC)}
+    }
     
-    \newglossaryentry{mpig}{name={MPI},
-    description={Standard de communication pour des programmes parallèles sur des systèmes à mémoire distribuée}}
+    \newglossaryentry{FLOP}{
+        type=\acronymtype, 
+        name={FLOP}, 
+        description={\textit{Floating Point Operation} ou opération en virgule flottante}, 
+        first={opérations en virgule flottante (FLOP)}
+    }
+    
+    \newglossaryentry{FLOPS}{
+        type=\acronymtype, 
+        name={FLOPS}, 
+        description={\textit{Floating Point Operation per Second} ou nombre d'opérations en virgule flottante par seconde (FLOP/s)}, first={opérations en virgule flottante par seconde (FLOPS)}
+    }
     
     \newglossaryentry{FMA}{
         type=\acronymtype, 
         name={FMA}, 
-        description={instruction processeur réalisant une addition et une multiplication entre trois valeurs a, b et c tel que $a = a + b * c$}, first={une multiplication et une addition fusionnées(FMA)}
+        description={\textit{Fused Multiply-Add} ou multiplication-addition fusionnées (\textit{voir glossaire}:\gls{FMAG})}, first={une multiplication et une addition fusionnées (FMA)}
+    }
+    
+    \newglossaryentry{FPU}{
+      type=\acronymtype,
+      name={FPU},
+      description={\textit{Floating Point Unit} ou unité de calcul en virgule flottante (\textit{voir glossaire}:\gls{FPUG})},
+      first={Floating Point Unit (FPU)}
+    }
+    
+    \newglossaryentry{FPGA}{
+        type=\acronymtype, 
+        name={FPGA}, 
+        description={\textit{Field Programmable Gate Arrays} ou réseaux logiques programmables}, 
+        first={réseaux logiques programmables (FPGA)}
+    }
+    
+    \newglossaryentry{GPU}{
+        type=\acronymtype, 
+        name={GPU}, 
+        description={\textit{Graphics Processing Unit} ou processeur graphique}, 
+        first={processeurs graphiques (GPU)}
+    }
+    
+    \newglossaryentry{HPC}{
+        type=\acronymtype, 
+        name={HPC}, 
+        description={\textit{High Performance Computing} ou Calcul Haute Performance (\textit{voir glossaire}:\gls{HPCG})}, 
+        first={Calcul Haute Performance (HPC)}
+    }
+
+    \newglossaryentry{MPI}{
+        type=\acronymtype, 
+        name={MPI}, 
+        description={\textit{Message Passing Interface} ou interface de passage de message (\textit{voir glossaire}:\gls{MPIG})}, 
+        first={interface de passage de message (MPI)}
     }
     
     
+    
+    
+    
+    %%%%%%%%%%%% SYMBOLE %%%%%%%%%%%
+    
+ \glsxtrnewsymbol[description={performance de calcul maximale mesurée d'une unité de calcul, mesurée en FLOPS}]
+    {flopsmax}
+    {\texttt{FLOPS}$_\texttt{max}$}
+   
+    
+\glsxtrnewsymbol[description={performance de calcul théorique d'une unité de calcul, mesurée en FLOPS}]
+    {flopspeak}
+    {\texttt{FLOPS}$_\texttt{peak}$}
+
   
 
-
-%\newglossaryentry{hpc}{%
-%  name={Calcul Haute Performance},%
-%  description={Le but du HPC est de paralléliser des applications scientifiques à destination de ressources informatiques telles que %les supercalculateurs}
-%}
+ \glsxtrnewsymbol[description={débit mémoire maximale mesuré du bus mémoire, mesuré en GB/s}]
+    {memorymax}
+    {\texttt{MEMORY}$_\texttt{max}$}
+      
+ \glsxtrnewsymbol[description={débit mémoire théorique du bus mémoire, mesuré en GB/s}]
+    {memorypeak}
+    {\texttt{MEMORY}$_\texttt{peak}$}
+       
+    
+ 
