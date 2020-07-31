@@ -34,6 +34,28 @@ Le principe de la mémoire virtuelle repose sur le principe de donner à chaque 
 \end{figure}
 
 
+
+\textbf{TODO C KOI CA ?????}
+\begin{figure}[H]
+    \center
+    \includegraphics[width=10cm]{images/memory_page_table_32bits.png}
+    \caption{\label{pic:memory_page_table_32bits} Table de pages utilisant 32 bits de l'adresse virtuelle dans une table à 3 niveaux \cite{intel64and}}.
+\end{figure}
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/memory_page_table_32bits_large.png}
+    \caption{\label{pic:memory_page_table_32bits_large} Table de pages pour des page large de 2 MiB\cite{intel64and}}.
+\end{figure}
+
+
+\begin{figure}
+    \center
+    \includegraphics[width=10cm]{images/memory_page_table_entry_intel.png}
+    \caption{\label{pic:memory_page_table_entry_intel} Structure d'une entrée dans la table de page \cite{intel64and}}.
+\end{figure}
+
+
 \subsubsection{La taille des pages}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Les transferts de données entre la mémoire et le stockage se font par page. Ainsi une page ne peut se trouver à la fois en mémoire et sur le disque. En fonction des applications et de l'algorithme de remplacement de pages (voir \autoref{sec:deplacement_page}) ces transferts peuvent être fréquents. Le choix de la taille de page doit alors être pris en considération pour obtenir les performances de l'application attendues.
@@ -72,7 +94,7 @@ La table des pages à pour fonction de faire correspondre les pages virtuelles (
       %(or a blank line to force the subfigure onto a new line)
     \begin{subfigure}[b]{\linewidth}\centering
         \includegraphics[width=0.7\linewidth]{images/memory_page_table_entry.png}
-        \caption{Pour le fonctionnement de la MMU, la table des pages conserve plusieurs informations importantes pour chaque entrée de page, en plus de l'adresse du cadre de page. Un bit de présence permet de savoir si la page est en mémoire, ou sur le disque. La protection assure qu'un utilisateur ne puisse pas modifier des données de lui appartenant pas. Un bit de modification est utilisé pour la cohérence \cite{tanenbaum2008systemes}.}
+        \caption{Pour le fonctionnement de la MMU, la table des pages conserve plusieurs informations importantes pour chaque entrée de page, en plus de l'adresse du cadre de page. Un bit de présence permet de savoir si la page est en mémoire, ou sur le disque. La protection assure qu'un utilisateur ne puisse pas modifier des données de lui appartenant pas. Un bit de modification est utilisé pour la cohérence \cite{tanenbaum2008systeme}.}
         \label{pic:memory_page_table_entry}
     \end{subfigure}
     

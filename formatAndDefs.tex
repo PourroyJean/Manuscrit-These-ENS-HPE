@@ -6,7 +6,7 @@
 
 \usepackage[T1]{fontenc}
 
-\usepackage[left=1.5in,right=1.3in,top=1.1in,bottom=1.1in,includefoot,includehead,headheight=13.6pt]{geometry}
+\usepackage[left=1.5in,right=1.3in,top=1.1in,bottom=1.1in,includefoot,includehead,headheight=14.5pt]{geometry}
 \renewcommand{\baselinestretch}{1.05}
 
 % Table of contents for each chapter
@@ -19,6 +19,28 @@
 
 \usepackage{aecompl}
 
+
+
+\ifpdf
+  \usepackage[pdftex]{graphicx}
+  \DeclareGraphicsExtensions{.jpg}
+  \usepackage[hyperindex=true]{hyperref} %todo old avait pagebackref,
+\else
+  \usepackage{graphicx}
+  \DeclareGraphicsExtensions{.ps,.eps}
+  \usepackage[dvipdfm,hyperindex=true]{hyperref} %todo old avait pagebackref,
+\fi
+
+
+%\usepackage[backref]{hyperref}
+
+%todo cette bib est ok en mai 2020
+\usepackage[defernums=true, hyperref, backref, refsegment=chapter, 
+            backend=biber,
+            style=alphabetic,
+            ]{biblatex}
+
+%\bibliographystyle{abbrv}
 
 
 
@@ -43,32 +65,24 @@
 % My pdf code
 
 \usepackage{ifpdf}
-
-\ifpdf
-  \usepackage[pdftex]{graphicx}
-  \DeclareGraphicsExtensions{.jpg}
-  \usepackage[pagebackref,hyperindex=true]{hyperref}
-\else
-  \usepackage{graphicx}
-  \DeclareGraphicsExtensions{.ps,.eps}
-  \usepackage[dvipdfm,pagebackref,hyperindex=true]{hyperref}
-\fi
+%todo hyper ref avec les IF ici
 
 \graphicspath{{.}{images/}}
 
 %nicer backref links
-\renewcommand*{\backref}[1]{}
-\renewcommand*{\backrefalt}[4]{%
-\ifcase #1 %
-(Non cité.)%
-\or
-(Cité en page~#2.)%
-\else
-(Cité en pages~#2.)%
-\fi}
-\renewcommand*{\backrefsep}{, }
-\renewcommand*{\backreftwosep}{ et~}
-\renewcommand*{\backreflastsep}{ et~}
+%TODO a remettre ?
+%\renewcommand*{\backref}[1]{}
+%\renewcommand*{\backrefalt}[4]{%
+%\ifcase #1 %
+%(Non cité.)%
+%\or
+%(Cité en page~#2.)%
+%\else
+%(Cité en pages~#2.)%
+%\fi}
+%\renewcommand*{\backrefsep}{, }
+%\renewcommand*{\backreftwosep}{ et~}
+%\renewcommand*{\backreflastsep}{ et~}
 
 % Links in pdf
 \usepackage{color}
@@ -87,12 +101,12 @@ pdfsubject="Manuscrit de thèse de doctorat spécialisé en Calcul Haute Perform
 pdfmenubar=true, %barre de menu visible
 pdfhighlight=/O, %effet d'un clic sur un lien hypertexte
 colorlinks=true, %couleurs sur les liens hypertextes
-pdfpagemode=None, %aucun mode de page
+%pdfpagemode=None, %aucun mode de page
 pdfpagelayout=SinglePage, %ouverture en simple page
 pdffitwindow=true, %pages ouvertes entierement dans toute la fenetre
-linkcolor=linkcol, %couleur des liens hypertextes internes
-citecolor=citecol, %couleur des liens pour les citations
-urlcolor=linkcol%couleur des liens pour les url
+linkcolor=[rgb]{0.0,0.0,0.5}, %linkcol, %couleur des liens hypertextes internes
+citecolor=[rgb]{0.7,0,0},%citecol, %couleur des liens pour les citations
+urlcolor=[rgb]{0.0,0.0,0.7}%linkcol%couleur des liens pour les url
 }
 
 
@@ -131,23 +145,23 @@ urlcolor=linkcol%couleur des liens pour les url
                                          % Do not put 'sectionbib' option here.
                                          % Sectionbib option in 'natbib' will do.
                                          
-\usepackage[defernums=true, hyperref, backref, refsegment=chapter, 
-            backend=biber,
-            style=alphabetic,
-            ]{biblatex}
-% Define typesetting of references heading
-\defbibheading{references}[References]{% 
-  \section*{#1}% 
-  \markboth{#1}{#1}%
-}
+%\usepackage{hyperref}  % todo original pour autoref
 
-% Define typesetting of bibliography heading
-\defbibheading{bibliography}[Complete Bibliography]{% 
-  % define as above if you want to have this numbered as well:
-  \chapter*{#1}%
-  \addcontentsline{toc}{chapter}{#1}
-  \markboth{#1}{#1}%
-}
+
+%todo biblatex ici
+% Define typesetting of references heading
+%\defbibheading{references}[References]{% 
+%  \section*{#1}% 
+%  \markboth{#1}{#1}%
+%}
+%
+%% Define typesetting of bibliography heading
+%\defbibheading{bibliography}[Bibliographie]{% 
+%  % define as above if you want to have this numbered as well:
+%  \chapter*{#1}%
+%  \addcontentsline{toc}{chapter}{#1}
+%  \markboth{#1}{#1}%
+%}
 
 
 \bibliography{bibliography.bib}

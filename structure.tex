@@ -55,13 +55,17 @@
 %	BIBLIOGRAPHY AND INDEX
 %----------------------------------------------------------------------------------------
 
-\usepackage{csquotes}
-\usepackage[backref=true,refsection=chapter,sorting=none, style=alphabetic,citestyle=numeric,sorting=nyt,sortcites=true,autopunct=true,autolang=hyphen,hyperref=true,abbreviate=false,backref=true,backend=biber,defernumbers=true]{biblatex}
+%todo bib qui marchait en mai 2020 --> useless c'est dans format and defs
+%\usepackage{csquotes}
+%\usepackage[backref=true,refsection=chapter,sorting=none, style=alphabetic,citestyle=numeric,sorting=nyt,sortcites=true,autopunct=true,autolang=hyphen,hyperref=true,abbreviate=false,backref=true,backend=biber,defernumbers=true]{biblatex}
+
+
 \addbibresource{These.bib} % BibTeX bibliography file
 \defbibheading{bibempty}{}
 
 \usepackage{calc} % For simpler calculation - used for spacing the index letter headings correctly
 \usepackage{makeidx} % Required to make an index
+\usepackage{idxlayout}
 \makeindex % Tells LaTeX to create the files required for indexing
 
 %----------------------------------------------------------------------------------------

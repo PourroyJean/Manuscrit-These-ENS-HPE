@@ -1,22 +1,22 @@
 \section{Benchmark d'unité arithmétique}\label{sec:kg}
 
 
-    Cette section présente un benchmark appelé \verb=Kernel Generator=. Cet outil permet de vérifier le bon comportement du matériel responsable de l'exécution des instructions de calculs sur des nombres à virgule flottante, utilisées par la grande majorité des applications HPC. L'exécution de ces opérations est réalisée par un composant, appelé unité de calcul en virgule flottante (ou \gls{FPU}), présentée dans la section suivante. Lorsque la performance des applications n'est pas limitée par celle du système mémoire, leur performance dépend essentiellement de celle des FPU. 
+    Cette section présente le développement de notre benchmark appelé \verb=Kernel Generator=. Cet outil permet de vérifier le bon comportement du matériel responsable de l'exécution des instructions de calculs sur des nombres à virgule flottante, utilisées par la grande majorité des applications HPC. L'exécution de ces opérations est réalisée par un composant, appelé unité de calcul en virgule flottante (ou \gls{FPU}), présentée dans la section suivante. Lorsque la performance des applications n'est pas limitée par celle du système mémoire, leur performance dépend essentiellement de celle des FPU. 
 
 
 
 \subsection{Motivation et objectifs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    La performance des applications sur des architectures modernes est principalement limitée par celle du système mémoire. Ainsi, les efforts de développement d'outils de caractérisation se sont en grande partie consacrés à la caractérisation de cette partie de l’architecture. Cependant, avec le développement de nouvelles architectures, la différence de performance entre les unités de calculs et celle du système mémoire devrait être plus équilibrée. Il est donc important d'avoir les outils nécessaires pour les caractériser.
+    La performance des applications sur des architectures modernes est principalement limitée par celle du système mémoire. Ainsi, les efforts de développement d'outils de caractérisation ont en grande partie été consacrés à la caractérisation de cette partie de l’architecture. Cependant, avec le développement de nouvelles architectures, la différence de performance entre les unités de calculs et celle du système mémoire devrait être plus équilibrée. Il est donc important d'avoir les outils nécessaires pour les caractériser.
     
     Bien que le comportement des FPU d'architectures actuelles soit connu, certaines particularités sont encore difficiles à caractériser: exécution dans le désordre et dépendances entre instructions (\aref{sec:out_of_order}) ou la fréquence atteignable pour un type d'instruction vectorielle (\aref{sec:frequency}).
-    Il est nécessaire de connaître la performance maximale d'un processeur (mesurée par le nombre d'\gls{FLOP}) pour différents types de calculs. Celle-ci peut alors être utilisée pour apprécier les performances d'un code grâce à des modèles de type Roof line (voir \autoref{sec:roofline}). Afin d'obtenir le débit maximal de calculs réalisable par une architecture, deux approches peuvent être envisagées. La première utilise les caractéristiques matérielles pour la calculer. Cependant, la complexité des architectures nous a souvent montré que la performance réellement atteignable pouvait être différente (inférieure, mais parfois supérieure) des performances théoriques. La deuxième technique a recourt à des codes de \glspl{benchmark}. En utilisant des codes réels, il est alors possible de trouver des comportements cachés de l'architecture et d'en déceler des limitations.
+    Il est nécessaire de connaître la performance maximale d'un processeur (mesurée par le nombre d'\gls{FLOP}) pour différents types de calculs. Celle-ci peut alors être utilisée pour apprécier les performances d'un code grâce à des modèles de type Roof line (voir \autoref{sec:roofline}). Afin d'obtenir le débit maximal de calculs réalisables par une architecture, deux approches peuvent être envisagées. La première utilise les caractéristiques matérielles pour le calculer. Cependant, la complexité des architectures nous a souvent montré que la performance réellement atteignable pouvait inférieure, mais parfois supérieure aux performances théoriques. La deuxième technique utilise des codes de \glspl{benchmark}. En utilisant ces codes, il est alors possible de trouver des comportements cachés de l'architecture et d'en déceler des limitations.
     
     
     \subsubsection{Floating Point Unit (FPU)}
     %%%%%%%%%%%%%
-        La \gls{FPU} est un composant majeur des ordinateurs et a connu de nombreuses évolutions au fil des générations. À l'origine, les FPU étaient des composants additionnels pouvant être ajoutés sur la carte mère pour accélérer l'exécution de calcul en virgule flottante (\autoref{pic_cpu_fpu}). C'est pour cela qu'il est commun de designer ce composant comme un accélérateur. Cependant, les applications réalisant de plus en plus de calculs de ce type, les FPU ont ensuite été directement intégrées au processeur (\autoref{pic_cpu_fpu_recent}). La FPU reçoit ses instructions du même décodeur que celui de l'\gls{ALU}. Lorsque les premiers étages du pipeline ont décodé l'instruction à exécuter (voir \autoref{sec:pipeline}), le séquenceur choisi si elle doit être exécutée par l'\gls{ALU} ou la \gls{FPU}. 
+        La \gls{FPU} est un composant majeur des ordinateurs et a connu de nombreuses évolutions au fil des générations. À l'origine, les FPU étaient des composants additionnels pouvant être ajoutés sur la carte mère pour accélérer l'exécution de calcul en virgule flottante (\autoref{pic_cpu_fpu}). C'est pour cela qu'il est commun de designer ce composant comme un accélérateur. Cependant, les applications réalisant de plus en plus de calculs de ce type, les FPU ont ensuite été directement intégrées au processeur (\autoref{pic_cpu_fpu_recent}). La FPU reçoit ses instructions du même décodeur que celui de l'\gls{ALU}. Lorsque les premiers étages du pipeline ont décodé l'instruction à exécuter (voir \autoref{sec:pipeline}), le séquenceur choisit si elle doit être exécutée par l'\gls{ALU} ou la \gls{FPU}. 
         
         \begin{figure}
             \centering
@@ -32,7 +32,7 @@
                 \caption{Aujourd'hui, la FPU fait partie de chaque coeur du processeur.}
                 \label{pic_cpu_fpu_recent}
             \end{subfigure}
-            \caption{La FPU d'un processeur est un matériel permettant d'exécuter efficacement des instructions de calculs arithmétiques sur des nombres à virgule flottante: addition, soustraction, multiplication, division, racine carrée, etc...\protect\footnotemark }\label{fig:cacheinclusionpolicy}
+            \caption{La FPU d'un processeur est un matériel permettant d'exécuter efficacement des instructions de calculs arithmétiques sur des nombres à virgule flottante: addition, soustraction, multiplication, division, racine carrée, etc...\protect\footnotemark }\label{fig:fpu_evo_before_after}
         \end{figure}
         \footnotetext{Source images: \url{https://en.wikipedia.org/wiki/Floating-point_unit} et \url{https://www.extremetech.com/computing/263963-intel-reverses-declares-skylake-x-cpus-two-avx-512-units}}
         
@@ -40,7 +40,7 @@
 
         
         
-        Les applications de HPC réalisent majoritairement des calculs sur nombres à virgule flottante qui sont exécutés par les FPU. Ces unités sont très sollicitées et il est important d'en connaître les caractéristiques: débit, latence, fréquence maximale soutenable par le processeur. Les instructions vectorielles les plus longues utilisent plus de transistors pour être utilisées. Ainsi, la chaleur émise par le processeur varie et les instructions les plus complexes ne peuvent pas être exécutées aux fréquences maximales du processeur. Les différentes fréquences atteignables pour un type d'instruction peuvent être difficiles à prévoir.
+        Les applications de HPC réalisent majoritairement des calculs sur nombres à virgule flottante qui sont exécutés par les FPU. Ces unités sont très sollicitées et il est important d'en connaître les caractéristiques: débit, latence, fréquence maximale soutenable par le processeur. Les instructions vectorielles les plus longues utilisent une plus grande quantité de transistors pour être exécutées. Ainsi, la chaleur émise par le processeur varie et les instructions les plus complexes ne peuvent pas être exécutées aux fréquences maximales du processeur. Les différentes fréquences atteignables pour un type d'instruction peuvent être difficiles à prévoir.
         
         %Les modèles tels que celui du \textit{roof line} (voir \autoref{sec:roofline}), ont besoin de ces caractéristiques pour pouvoir comparer la performance mesurée d'une application à celle théoriquement atteignable. 
        
@@ -49,9 +49,9 @@
     %%%%%%%%%%%%%
     \textbf{todo revoir les objectifs a la fin}
     
-        Dans ce chapitre, nous présentons  un outil permettant de caractériser finement les performances des unités de calcul en virgule flottante (\gls{FPU}). Le développement de cet outil a été motivé par la nécessité d'obtenir différentes caractéristiques de la microarchitecture:
+        Dans la suite de cette section, nous présentons  un outil permettant de caractériser finement les performances des unités de calcul en virgule flottante (\gls{FPU}). Le développement de cet outil a été motivé par la nécessité d'obtenir différentes caractéristiques de la microarchitecture:
         \begin{enumerate}
-            \item La première caractéristique pouvant être mesurée est la performance maximale atteignable par la FPU pour un certain type d'instruction. Cette performance est mesurée en \gls{FLOPS} et notée \gls{flopsmax}). Elle doit être mesurée pour des types et des tailles d'instructions vectorielles différents. L'avantage de cette unité est de rendre les résultats du Kernel Generator comparable avec ceux d'autres benchmarks (tel que \textit{HPL} \cite{Dongarra2003}).
+            \item La première caractéristique pouvant être mesurée est la performance maximale atteignable par la FPU pour un certain type d'instruction. Cette performance est mesurée en nombre \gls{FLOPS} et notée \gls{flopsmax}). Elle doit être mesurée pour des types et des tailles d'instructions vectorielles différents. L'avantage de cette unité est de rendre les résultats du  \verb=Kernel Generator= comparable avec ceux d'autres benchmarks (tel que \textit{HPL} \cite{Dongarra2003}).
             
             \item La deuxième caractéristique mesurable est la latence des instructions. Il peut être intéressant de connaître celle-ci lors de l'exécution d'instructions dépendantes.
             
@@ -63,7 +63,7 @@
 \subsection{Kernel Generator}    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        Afin de répondre aux objectifs fixés dans la section précédente, nous proposons l'outil \verb=Kernel Generator=. Il permet de générer des \gls{kernel} en assembleur pour caractériser finement le comportement des \gls{FPU}. Cet outil vise plus particulièrement les développeurs d'application dont la performance est limitée par le débit d'exécution d'instructions de calcul (\gls{computebound}). Bien que la performance des processeurs soit souvent limitée par la bande passante mémoire, une partie significative des codes est purement \gls{computebound}. 
+        Afin de répondre aux objectifs fixés dans la section précédente, nous avons développé l'outil \verb=Kernel Generator=. Il permet de générer des \gls{kernel} en assembleur pour caractériser finement le comportement des \gls{FPU}. Cet outil vise plus particulièrement les développeurs d'application dont la performance est limitée par le débit d'exécution d'instructions de calcul (\gls{computebound}). Bien que la performance des processeurs soit souvent limitée par la bande passante mémoire, une partie significative des codes est purement \gls{computebound}. 
         
         L'outil du \verb=Kernel Generator= permet de mesurer certaines caractéristiques de la FPU d'un processeur grâce à l'exécution d'un kernel généré en assembleur comportant des instructions de calcul arithmétique. Les instructions utilisées peuvent être scalaires ou vectorielles. La version actuelle de l'outil supporte les instructions de types scalaire, SSE, AVX2 et AVX512. 
             
@@ -75,19 +75,21 @@
 
     \subsubsection{Concept}
     %%%%%%%%%%%%%%%%%%%%%%
-        L'outil du \verb=Kernel Generator= est un générateur de code assembleur permettant de mesurer la performance de la FPU d'un coeur de processeur. Pour cela, l'outil génère automatiquement un programme en langage C++ contenant:
+        L'outil \verb=Kernel Generator= est un générateur de code assembleur permettant de mesurer la performance de la FPU d'un coeur de processeur. Pour cela, l'outil génère automatiquement un programme en langage C++ contenant:
         \begin{itemize}
             \item Les instructions assembleurs sélectionnées par l'utilisateur. 
-            \item Le code responsable de l'exécution et des différentes mesure de performance
+            \item Le code responsable de l'exécution et des différentes mesures de performance
         \end{itemize}
                     \begin{figure}
             \center
             \includegraphics[width=17cm]{images/kg_workflow.png}
-            \caption{\label{pic_kg_workflow} Déroulement de l'exécution du générateur de kernels.}
+            \caption{\label{pic_kg_workflow} Déroulement de l'exécution du \texttt{Kernel Generator}.}
             \end{figure}
-        La \autoref{pic_kg_workflow} montre les étapes principales de l'utilisation du générateur de kernel. Le code généré par l'outil reste simple pour faciliter les conclusions que pourra tirer son utilisateur. En effet, produire un code trop complexe rendrait l'analyse des résultats trop difficile sur des  architectures aussi complexes que celles étudiées. Un exemple d'utilisation de l'outil peut être réalisé grâce à la commande suivante:\\
+            \textbf{TODO police plus grande plus légende figure: revoir nom première étape}
+            
+        La \autoref{pic_kg_workflow} montre les étapes principales de l'utilisation du \verb|Kernel Generator|. Le code généré par l'outil reste simple afin de faciliter l'établissement de conclusions par utilisateur. En effet, produire un code trop complexe rendrait l'analyse des résultats trop difficile sur des  architectures aussi complexes que celles étudiées. Un exemple d'utilisation de l'outil peut être réalisé grâce à la commande suivante:\\
         \verb|./kg   -P double -W 128  -O aamm|\\
-        Cette commande permet de générer un kernel de calculs utilisant quatre instructions vectorielles de 128 bits sur des nombres flottants en double précision. Le kernel généré est présenté dans l'\autoref{code_kg_exemple}. Il composé de quatre instructions: deux additions et deux multiplications.
+        Cette commande permet de générer un kernel de calculs utilisant quatre instructions vectorielles de 128 bits sur des nombres flottants en double précision. Le kernel généré est présenté dans l'\autoref{code_kg_exemple}. Il est composé de quatre instructions: deux additions et deux multiplications.
         
 \begin{minipage}{0.97\linewidth}
 \begin{lstlisting}[label=code_kg_exemple ,language=, caption=Exemple de kernel généré à l'aide de la commande \texttt{./kg   -P double -W 128  -O aamm} contenant 4 instructions vectorielles de 128 bits.]
@@ -98,27 +100,27 @@
 \end{lstlisting} 
 \end{minipage}
 
-        À partir des arguments, le générateur écrit un programme en langage C++ qu'il compile et exécute. Les résultats sont ensuite présentés sous forme de texte dans le terminal ou sous forme de graphique (nécessite python).
-        Le choix du langage assembleur a été motivé par la volonté de s'assurer que les instructions générées étaient bien exécutées. En effet, les compilateurs deviennent toujours plus performants et optimisent les codes rendant l'analyse de performance plus difficile. De plus, ils peuvent comprendre l'artificialité d'un code et contourner son exécution. En générant nous même le code assembleur, nous nous assurons que la performance du code mesuré est bien celle attendue.
+        À partir des arguments, le générateur écrit un programme en langage C++ qu'il compile et exécute. Les résultats sont ensuite présentés sous forme de texte dans le terminal ou sous forme de graphique (nécessite Python).
+        Le choix du langage assembleur a été motivé par la volonté de s'assurer que les instructions générées étaient bien exécutées. En effet, les compilateurs deviennent toujours plus performants et optimisent les codes rendant l'analyse de performance plus difficile. De plus, ils peuvent détecter l'artificialité d'un code et contourner son exécution. En générant nous même le code assembleur, nous nous assurons que la performance du code mesuré est bien celle du code attendu.
     
        
     \subsubsection{Les options.}\label{sec:kg_option} 
     
-        Une des forces du générateur vient de sa capacité à générer un grand nombre de benchmarks différents. Ceci est possible grâce à l'utilisation des différentes options dont les principales sont listées ci-dessous:
+        Une des forces du \verb|Kernel Generator| vient de sa capacité à générer un grand nombre de benchmarks différents. Ceci est possible grâce à l'utilisation des différentes options dont les principales sont listées ci-dessous:
     
         \paragraph{\texttt{-{}-operation [a,m,f]+}} Lister les opérations à réaliser par le kernel à l'aide d'une chaîne de caractères composé des lettres \texttt{a}, \texttt{m} et \texttt{f} correspondant aux opérations suivantes : addition (a), multiplication (m) ou \gls{FMA} (f). Différentes opérations peuvent être mixées et seront insérées dans le \gls{kernel} dans le même ordre. Un script externe peut alors être utilisé pour générer des kernels testant différentes combinaisons d'opérations. En faisant varier à la fois les opérations et la taille des instructions, l'outil permet de découvrir des comportements cachés des architectures.
 
-        \paragraph{\texttt{-{}-precision (single | double)}} Définir la précision utilisée pour réaliser les calculs: simple ou double. Pour le moment, des instructions ayant des précisions différentes ne peuvent pas être mixées dans un même kernel.
+        \paragraph{\texttt{-{}-precision (single | double)}} Définir la précision utilisée pour réaliser les calculs: simple ou double. Pour le moment, des instructions ayant des précisions différentes ne peuvent pas être mélangées dans un même kernel.
         
         \paragraph{\texttt{-{}-width (64 | 128 | 256 | 512)}} Définir la \textit{largeur} des instructions vectorielles utilisées. Sur une architecture Intel, ces instructions correspondents aux ISA suivantes: MMX (64), SSE (128), AVX (256) et AVX-512 (512). Pour le moment, des instructions vectorielles de tailles  différentes ne peuvent pas être mixées dans un même kernel.
         
         \paragraph{\texttt{-{}-dependency N}} Générer une instruction  dont un opérande est le résultat produit par l'instruction précédente. Un nombre \texttt{N} peut être donné pour générer plusieurs chaînes de dépendances. Cette option est particulièrement utile pour mesurer la latence des instructions et la performance du tampon d'exécution dans le désordre.
         
-        \paragraph{\texttt{-{}-binding N}} Accrocher (\textit{bind}) le benchmark généré à un coeur spécifique. Le benchmark n'étant pas parallélisé il est nécessaire d'en exécuter plusieurs versions en parallèle pour tester la performance d'un processeur lorsque plusieurs coeurs sont utilisés. Les différents processus crées peuvent alors être \textit{accrochés} aux différents coeurs du processeur à l'aide d'un script externe.
+        \paragraph{\texttt{-{}-binding N}} Accrocher (\textit{bind}) le benchmark généré à un coeur spécifique. Le benchmark n'étant pas parallélisé, il est nécessaire d'en exécuter plusieurs versions en parallèle pour tester la performance d'un processeur lorsque plusieurs coeurs sont utilisés. Les différents processus crées peuvent alors être \textit{accrochés} aux différents coeurs du processeur à l'aide d'un script externe.
         
         \paragraph{\texttt{-{}-unroll N}} Appliquer l'optimisation du déroulement de boucle \texttt{N} fois. Cette optimisation permet de dérouler plusieurs fois le corps de la boucle à l'intérieur de celle-ci pour réduire l'impact du traitement des instructions de contrôle de la boucle (incrémentation et comparaison) sur les performances du benchmark. 
         
-        \paragraph{\texttt{-{}-frequency (true | false)}} Générer exécuter une fonction en début de benchmark qui mesure la fréquence du processeur. Les calculs des résultats sont impactés par l'utilisation du mode turbo. En connaissant la valeur de la fréquence turbo, ces résultats peuvent être ajustés. En effet, la mesure de la performance du benchmark est réalisée en utilisant la valeur de la fréquence de base du processeur. 
+        \paragraph{\texttt{-{}-frequency (true | false)}} Générer puis exécuter une fonction en début de benchmark qui mesure la fréquence du processeur. Les calculs des résultats sont impactés par l'utilisation du mode turbo. En connaissant la valeur de la fréquence turbo, ces résultats peuvent être ajustés. En effet, la mesure de la performance du benchmark est réalisée en utilisant la valeur de la fréquence de base du processeur. 
         
         \paragraph{\texttt{-{}-loopsize N}} Améliorer la précision des résultats et éliminer les potentiels bruits de mesure en réalisant \texttt{N} mesures.
     
@@ -130,11 +132,11 @@
 
         \begin{figure}[h!]
             \center
-            \includegraphics[width=14cm]{images/kg_generation.png}
+            \includegraphics[width=16cm]{images/kg_generation.png}
             \caption{\label{pic_kg_generation}Génération du benchmark à partir de la ligne de commande entrée par l'utilisateur. La partie commune du code est stockée dans un fichier de \textit{template}.}
         \end{figure}
         
-        Lorsque le code du benchmark généré, celui-ci est compilé automatiquement par le générateur (le compilateur utilisé peut facilement être modifié). Ces deux fichiers (le fichier source et l'exécutable) sont créés dans le dossier courant de l'utilisateur. L'exécutable peut ensuite être utilisés sans passer de nouveau par le générateur. Un exemple de résultat de l'exécution du benchmark est présenté dans l'\autoref{output:basic_gflops}.
+        Lorsque le code du benchmark généré, celui-ci est compilé automatiquement par le générateur (le compilateur utilisé peut facilement être modifié). Le fichier source et l'exécutable sont créés dans le dossier courant de l'utilisateur. L'exécutable peut ensuite être utilisé sans passer de nouveau par le générateur. Un exemple de résultat de l'exécution du benchmark est présenté dans l'\autoref{output:basic_gflops}.
     
  \begin{minipage}{0.97\linewidth}
  \begin{lstlisting}[label=output:basic_gflops ,language=, caption=Exemple d'exécution d'un benchmark de quatre instructions AVX-512.]
@@ -158,23 +160,23 @@ _value_|      240000000000      44.7         2.69            5.37    1.99
 
 \end{lstlisting}   
  \end{minipage}   
-        Le benchmark généré comporte quatre instructions vectorielles AVX-512: deux additions et deux multiplications. Le processeur utilisé est un  Intel Xeon 6150 cadencé à 2.70GHz. Pour cette expérimentation le turbo a été désactivé. Pour améliorer la précision des résultats, la boucle générée est déroulée 4 fois. La boucle réalise 500000 itérations et sa performance est mesurée 30000 fois. Le CPU est capable d'exécuter deux opérations flottantes vectorielles par cycle d'horloge. Pour des données en doubles précisions, cela correspond à réaliser 16 opérations flottantes par cycle. La puissance de calcul atteinte par l'exécution du benchmark sur un coeur est de 43 GFLOPS . Pour chaque mesure le nombre de cycles et le temps nécessaire à l'exécution de la boucle sont sauvés dans un fichier. Ce fichier peut ensuite être affiché avec un script python (voir \autoref{fig:kg_graph}). La \autoref{pic_kg_plot} permet de voir comment la performance du benchmark évolue au fil des exécutions. On peut détecter des problèmes de détérioration des performances pouvant être dus à un mauvais refroidissement du processeur par exemple.  La \autoref{pic_kg_hist} affiche l'histogramme permettant de voir deux familles de performances. Dans cet exemple, la différence entre ces deux familles est inférieure à 0,02\%. Il peut cependant arrivé que pour certaines architectures, le processeur ne soit pas capable de maintenir une performance constante lors de l'exécution de certaines instructions. Ce comportement pourra alors être mis en évidence grâce à ce graphique.
+        Le benchmark généré comporte quatre instructions vectorielles AVX-512: deux additions et deux multiplications. Le processeur utilisé est un  Intel Xeon 6150 cadencé à 2.70GHz. Pour cette expérimentation, la fréquence turbo a été désactivée. Pour améliorer la précision des résultats, la boucle générée est déroulée 4 fois. La boucle réalise 500 000 itérations et sa performance est mesurée 30 000 fois. Le CPU est capable d'exécuter deux opérations flottantes vectorielles par cycle d'horloge. Pour des données en doubles précisions, cela correspond à réaliser 16 opérations flottantes par cycle. La puissance de calcul atteinte par l'exécution du benchmark sur un coeur est de 43 GFLOPS. Pour chaque mesure le nombre de cycles et le temps nécessaire à l'exécution de la boucle sont sauvegardés dans un fichier. Ce fichier peut ensuite être affiché avec un script python (voir \autoref{fig:kg_graph}). La \autoref{pic_kg_plot} permet de voir comment la performance du benchmark évolue au fil des exécutions. On peut détecter des problèmes de détérioration des performances pouvant être dus à un mauvais refroidissement du processeur par exemple.  La \autoref{pic_kg_hist} affiche l'histogramme permettant de voir deux familles de performance. Dans cet exemple, la différence entre ces deux familles est inférieure à 0,02\%. Il peut cependant arriver que pour certaines architectures, le processeur ne soit pas capable de maintenir une performance constante lors de l'exécution de certaines instructions. Ce comportement pourra alors être mis en évidence grâce à ce graphique (\autoref{pic_kg_hist}).
         
         \begin{figure}
             \centering
             \begin{subfigure}[b]{0.45\linewidth}
                 \includegraphics[width=\linewidth]{images/kg_plot.png}
-                \caption{Évolution du nombre de cycles nécessaire pour l'exécution de la boucle de benchmark}
+                \caption{Évolution du nombre de cycles nécessaires pour l'exécution de la boucle de benchmark}
                 \label{pic_kg_plot}
             \end{subfigure}
             ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
               %(or a blank line to force the subfigure onto a new line)
             \begin{subfigure}[b]{0.45\linewidth}
                 \includegraphics[width=\linewidth]{images/kg_hist.png}
-                \caption{Histogramme du nombre de cycles nécessaire}
+                \caption{Histogramme du nombre de cycles nécessaires}
                 \label{pic_kg_hist}
             \end{subfigure}
-            \caption{Grâce à un script python, le fichier de résultat peut être affiché sous forme de graphique. }\label{fig:kg_graph}
+            \caption{Grâce à un script python, le fichier de résultat peut être affiché sous forme de graphiques. }\label{fig:kg_graph}
         \end{figure}
     
   
@@ -188,7 +190,7 @@ _value_|      240000000000      44.7         2.69            5.37    1.99
         %#TODO enelver le compteur je pense qu'il est NDA pour HPE
         \paragraph{Validation du nombre d'instructions.} 
             
-            La première valeur à valider est de s'assurer que le bon nombre d'instructions a été exécuté par le benchmark. Le benchmark affiche le nombre d'instructions qui devrait être exécuté. Un moyen de le vérifier est d'utiliser les compteurs matériels. L'outil \textit{perf} permet de mesurer le nombre d'évènements d'un compteur en utilisant son adresse. La ligne de commande suivante permet de compter les opérations flottantes réalisées par le benchmark: \verb|perf stat -e /rffc7 ./benchmark|. Le résultat du benchmark ci-dessus prévoyait l'exécution de 240,000,000,000 opérations. La commande \verb|perf stat| retourne une valeur de 240,000,210,024 opérations (une instruction FMA compte pour deux). Pour comprendre d'où proviennent les instructions supplémentaires, nous avons mesuré différentes versions du benchmark avec différentes longueurs de boucle (5000, 10000 et 20000). Le \autoref{tab:kg_vs_perf} donne les résultats affichés par le benchmark et par la commande précédente utilisant l'outil \textit{perf}. Les résultats de \textit{perf} mesurent le bon nombre d'instructions avec 2124 opérations supplémentaires à chaque fois. Ces instructions supplémentaires correspondent au traitement des résultats.
+            La première valeur à valider est de s'assurer que le bon nombre d'instructions a été exécuté par le benchmark. Le benchmark affiche le nombre d'instructions qui devrait être exécuté. Un moyen de le vérifier est d'utiliser les compteurs matériels. L'outil \verb|perf| permet de mesurer le nombre d'évènements d'un compteur en utilisant son adresse. La ligne de commande suivante permet de compter les opérations flottantes réalisées par le benchmark: \verb|perf stat -e /rffc7 ./benchmark|. Le résultat du benchmark ci-dessus prévoyait l'exécution de 240,000,000,000 opérations. La commande \verb|perf stat| retourne une valeur de 240,000,210,024 opérations (une instruction FMA compte pour deux). Pour comprendre d'où proviennent les instructions supplémentaires, nous avons mesuré différentes versions du benchmark avec différentes longueurs de boucle (5000, 10000 et 20000). Le \autoref{tab:kg_vs_perf} donne les résultats affichés par le benchmark et par la commande précédente utilisant l'outil \verb|perf|. Les résultats de \verb|perf| mesurent le bon nombre d'instructions avec 2124 opérations supplémentaires à chaque fois. Ces instructions supplémentaires correspondent au traitement des résultats.
     
             \begin{table}[h!]
             \centering
@@ -201,19 +203,19 @@ _value_|      240000000000      44.7         2.69            5.37    1.99
             ./kg -W 512 -O aamm -S 300 -L 20000 & 24000000 & 24002124 \\ \bottomrule
             \end{tabular}%
             %}
-            \caption{Vérification du nombre d'instructions exécutées avec l'outil perf.}
+            \caption{Vérification du nombre d'instructions exécutées avec l'outil \texttt{perf}.}
             \label{tab:kg_vs_perf}
             \end{table}
         
         
         \paragraph{Validation de l'IPC.} 
         
-            La validation du nombre d'\gls{IPC} du processeur peut elle aussi être réalisée grâce à perf: \verb|perf stat ./benchmark|. Pour générer le benchmark la commande suivante a été utilisée:\\
+            La validation du nombre d'\gls{IPC} du processeur peut elle aussi être réalisée grâce à \verb|perf|: \verb|perf stat ./benchmark|. Pour générer le benchmark la commande suivante a été utilisée:\\
             \verb|./kg -W 512 -O aamm -P double -S 1000 -L 90000000|\\
-            Lors de son exécution, le benchmark donne un IPC de 2 alors que la commande \textit{perf} donne un résultat de 3. Cette différence peut être expliquée en regardant le code assembleur généré (voir \autoref{lst:kg:ipc}).
+            Lors de son exécution, le benchmark donne un IPC de 2 alors que la commande \verb|perf| donne un résultat de 3. Cette différence peut être expliquée en regardant le code assembleur généré (voir \autoref{lst:kg:ipc}).
         
 \begin{minipage}{0.965\linewidth}
-        \begin{lstlisting}[label=lst:kg:ipc ,language=C, caption={Code généré par la commande ./kg -W 512 -O aamm -P double. Le benchmark mesure la performance du la boucle à l'aide du compteur de cycle (\texttt{rdtsc()}). Cette mesure comprend l'exécution des instructions de calculs du kernel mais aussi les deux instructions de la gestion de boucle \texttt{sub} et \texttt{jnz}.}]
+        \begin{lstlisting}[label=lst:kg:ipc ,language=C, caption={Code généré par la commande ./kg -W 512 -O aamm -P double. Le benchmark mesure la performance de la boucle à l'aide du compteur de cycle (\texttt{rdtsc()}). Cette mesure comprend l'exécution des instructions de calculs du kernel mais aussi les deux instructions de la gestion de boucle \texttt{sub} et \texttt{jnz}.}]
 cycleInStart = rdtsc();
 __asm__ ("" 
     "myBench: " 
@@ -226,9 +228,9 @@ __asm__ (""
 cycleInEnd = rdtsc();
 \end{lstlisting}
 \end{minipage}\\
-            Le résultat donné par le benchmark ne prend en considération que les quatre instructions de calculs pour calculer l'IPC alors que l'outil \textit{perf} compte la totalité des instructions exécutées. Notre calcul prend pour postulat que les deux instructions de gestion de boucle (la décrémentation \verb|sub|, et le saut conditionnel \verb|jnz|) ne rentre pas dans le profil de l'exécution. En effet, grâce au prédicateur de branchement, l'instruction de saut peut effectivement être enlevée de nos calculs. 
+            Le résultat donné par le benchmark ne prend en considération que les quatre instructions de calculs pour calculer l'IPC alors que l'outil \verb|perf| compte la totalité des instructions exécutées. Notre calcul prend pour postulat que les deux instructions de gestion de boucle (la décrémentation \verb|sub|, et le saut conditionnel \verb|jnz|) ne rentre pas dans le profil de l'exécution. En effet, grâce au prédicateur de branchement, l'instruction de saut peut effectivement être enlevée de nos calculs. 
 
-            Concernant la soustraction, nous avons réalisé un test pour vérifier l'impact de soustraction de nombre entier lors de l'exécution d'un code ne réalisant que des opérations sur des nombres flottants (voir \autoref{code:sub}). En mesurant la performance de ce code, nous avons mesuré que 4 soustractions sur des nombres entiers n'impactent pas la performance de la boucle. Au-delà de 4, le processeur a besoin de cycles supplémentaires pour les exécuter. Ainsi les deux instructions de gestion de boucles peuvent être ignorées dans calcul. Pour réduire l'impacte de ces deux instructions sur le résultat donnée par \textit{perf}, nous avons implémenté une option de déroulement de boucle (\textit{unrolling}). En utilisant l'option \verb|-U 10|, le benchmark généré déroule la boucle 10 fois permettant de réduire l'impact des instructions de la gestion de boucle (incrémentation et test). Grâce à cette option, nous avons pu valider l'IPC calculé par notre benchmark avec celui mesuré par \verb|perf| (2 instructions par cycle).
+            Concernant la soustraction, nous avons réalisé un test pour vérifier l'impact de soustraction de nombre entier lors de l'exécution d'un code ne réalisant que des opérations sur des nombres flottants (voir \autoref{code:sub}). En mesurant la performance de ce code, nous avons observé que 4 soustractions sur des nombres entiers n'impactent pas la performance de la boucle. Au-delà de 4, le processeur a besoin de cycles supplémentaires pour les exécuter. Ainsi les deux instructions de gestion de boucles peuvent être ignorées dans le calcul. Pour réduire l'impact de ces deux instructions sur le résultat donnée par \verb|perf|, nous avons implémenté une option de déroulement de boucle (\textit{unrolling}). En utilisant l'option \verb|-U 10|, le benchmark généré déroule la boucle 10 fois permettant de réduire l'impact des instructions de la gestion de boucle (incrémentation et test). Grâce à cette option, nous avons pu valider l'IPC calculé par notre benchmark avec celui mesuré par \verb|perf| (2 instructions par cycle).
         
             \begin{minipage}{0.965\linewidth}         \begin{lstlisting}[label=code:sub ,language=C, caption={En ajoutant jusqu'à 3 soustractions, nous avons pu vérifier que la soustraction utilisée pour la gestion de la boucle n'avait aucun impact sur la performance du benchmark. En effet, la soustraction sur un nombre entier n'utilise pas la FPU.}]
 cycleInStart = rdtsc();
@@ -249,7 +251,7 @@ cycleInEnd = rdtsc();
         
         \paragraph{Validation des FLOPS.} 
             Afin de valider le nombre de calculs réalisés, deux méthodes ont été employées.
-            La première méthode fut l'utilisation d'un outil développé en interne appelé \verb=mygflops=. Cet outil affiche le nombre d'opérations exécutées en consultant les compteurs matériels de chaque coeur. Le résultat sépare les différentes tailles d'instructions vectorielles utilisées. La commande, le résultat du benchmark et celui de \verb=mygflops= sont présentés dans l'\autoref{lst:basic_gflops}. 
+            La première méthode consiste à utiliser d'un outil développé en interne appelé \verb=mygflops=. Cet outil affiche le nombre d'opérations exécutées en consultant les compteurs matériels de chaque coeur. Le résultat sépare les différentes tailles d'instructions vectorielles utilisées. La commande, le résultat du benchmark et celui de \verb=mygflops= sont présentés dans l'\autoref{lst:basic_gflops}. 
         
 \begin{minipage}{0.97\linewidth}         \begin{lstlisting}[label=lst:basic_gflops ,language=C, caption={L'utilisation de l'outil \texttt{mygflops}, développé par notre équipe, a permis de valider les résultats donnés par notre benchmark (\textit{ligne 6}). L'outil \texttt{mygflops} utilise les compteurs matériels pour mesurer les différentes instructions de calculs réalisées et permet de valider nos résultats (\textit{ligne 19}).}]
 ./kg -W 128 -O aamm -P double -U 10 -S 10 -L 90000000
@@ -284,7 +286,7 @@ Double-precision SSE/AVX :            10.572521 GFlop/s -- 100.0% of Flops
 
     \subsubsection{Mesure de la fréquence}
     %%%%%%%%%%%%%%%%%%%%%%
-        Plus un processeur utilise une fréquence élevée, plus sa consommation électrique est élevée. Pour cette raison, Intel a adopté différents niveaux de fréquences pour ses processeurs. Cela permet d'augmenter les performances en cas de besoin et de limiter la consommation d'énergie si le processeur n'a pas besoin d'être pleinement utilisé. Les instructions les plus complexes (instructions vectorielles) nécessite l'utilisation de plus de transistors que les instructions scalaires. L'énergie dissipées est alors plus élevée, empêchant le processeur d'utiliser sa fréquence maximale pour l'exécution de telles instructions (voir \autoref{fig:cpu_freq_avx}). 
+        Plus un processeur utilise une fréquence élevée, plus sa consommation électrique est élevée. Pour cette raison, Intel a adopté différents niveaux de fréquences pour ses processeurs. Cela permet d'augmenter les performances en cas de besoin et de limiter la consommation d'énergie si le processeur n'a pas besoin d'être pleinement utilisé. Les instructions les plus complexes (instructions vectorielles) nécessite l'utilisation de plus de transistors que les instructions scalaires. L'énergie dissipée est alors plus élevée, empêchant le processeur d'utiliser sa fréquence maximale pour l'exécution de telles instructions (voir \autoref{fig:cpu_freq_avx}). 
         
         \begin{figure}
             \center
@@ -298,7 +300,7 @@ Double-precision SSE/AVX :            10.572521 GFlop/s -- 100.0% of Flops
         
         L'instruction \verb|rdtsc| est utilisée pour lire le compteur matériel mesurant le nombre de \textit{tics} de l'horloge depuis la dernière réinitialisation du processeur \cite{code:rdtsc}. La fréquence à laquelle ce compteur est incrémenté ne varie pas et correspond à la \textit{fréquence de base nominale} du processeur. Cette fréquence est indépendante de la fréquence d'horloge réelle, qui peut varier. Si les fréquences des processeurs devaient varier, les mesures effectuées avec \verb|rdtsc| seraient erronées. C'est pourquoi nous conseillons de fixer la fréquence du processeur avant l'exécution du micro-benchmark. Dans le cas d'une fréquence fixe différente de la fréquence de base nominale, nous avons mis en place une vérification qui calculera ensuite cette fréquence, et ajustera les résultats mesurés par \verb|rdtsc| comme le calcul de l'\gls{IPC}. Cette fonctionnalité de vérification de la fréquence et de la correction de résultat est utilisable avec l'option \verb|-F true|. Afin d'apporter les corrections voulues, nous avons besoin de mesurer la fréquence de base du processeur ainsi que la fréquence utilisée pour l'exécution.
         
-        \paragraph{Mesurer la fréquence de base.} Nous avons développé un code permettant de mesurer la fréquence de base. Il utilise la fonction \verb=sleep()= qui attend un certain nombre de microsecondes ainsi que l'instruction \verb|rdtsc|. Ainsi nous pouvons calculer la fréquence avec le rapport $cycleSpent / timeSpent$ comme indiqué sur \autoref{code:base_freq}. 
+        \paragraph{Mesurer la fréquence de base.} Nous avons développé un code permettant de mesurer la fréquence de base. Il utilise la fonction \verb=sleep()= qui attend un certain nombre de microsecondes, ainsi que l'instruction \verb|rdtsc|. Ainsi nous pouvons calculer la fréquence avec le rapport $cycleSpent / timeSpent$ comme indiqué sur l'\autoref{code:base_freq}. 
         
 
 \begin{minipage}{0.97\linewidth}         \begin{lstlisting}[label=code:base_freq ,language=C, caption={Code utilisé pour mesurer la fréquence de base du processeur. La fonction \texttt{mygettime()} utilise la fonction \texttt{gettimeofday()}\protect\footnotemark ~permet de mesurer le temps nécessaire à l'exécution du code.}]
@@ -311,8 +313,9 @@ cycleSpent = (cycleInEnd - cycleInStart);
 freq_Base = cycleSpent / (1000000000 * (timeEnd - timeStart));
 \end{lstlisting} \end{minipage}
 \footnotetext{gettimeofday(2) - \url{http://man7.org/linux/man-pages/man2/gettimeofday.2.html}}
+\textbf{todo forme extrait des centres: la légende est trop collées au truc gris}
 
-        \paragraph{Mesurer la fréquence réelle.} Pour pouvoir ajuster les résultats affichés par le benchmark, il est nécessaire de connaître la fréquence à laquelle le processeur est capable d'aller. Cette fréquence peut varier en fonction de l'utilisation du mode \textit{turbo} ou si la fréquence a été limitée de façon logicielle. Pour réaliser cette mesure, nous sommes partis du constat que tous les processeurs modernes sont capables d'exécuter une soustraction sur un registre par cycle d'horloge. 
+        \paragraph{Mesurer la fréquence réelle.} Pour pouvoir ajuster les résultats affichés par le benchmark, il est nécessaire de connaître la fréquence à laquelle le processeur est capable de fonctionner. Cette fréquence peut varier soit avec l'utilisation du mode \textit{turbo} soit en limitant la fréquence de façon logicielle. Pour réaliser cette mesure, nous sommes partis du constat que tous les processeurs modernes sont capables d'exécuter une soustraction sur un registre par cycle d'horloge. 
         
          
 \begin{minipage}{0.97\linewidth}         \begin{lstlisting}[label=code:cur_freq ,language=C, caption={Code utilisé pour mesurer la fréquence réelle du processeur.}]
@@ -328,16 +331,17 @@ cycleInEnd = rdtsc();
 cycleSpent = (cycleInEnd - cycleInStart);
 \end{lstlisting} \end{minipage}  
         
-        Dans l'\autoref{code:cur_freq}, le registre \verb|%eax| est initialisé à \verb|80000000|. Grâce à notre hypothèse, il est possible de prévoir que le processeur réalisera ces \verb|80000000| soustractions en autant de cycles. Nous mesurons le nombre de cycles nécessaire à l'exécution du code à l'aide de l'instruction \verb=rdtsc=. Ce nombre correspond au nombre de cycle à la fréquence nominale du processeur. En faisant le rapport entre le nombre de cycles mesurés et celui attendu grâce à notre hypothèse, il est possible de déterminer si le processeur utilise une fréquence plus ou moins rapide que sa fréquence nominale. Nous calculons ainsi l'IPC de cette boucle en faisant le rapport $\frac{80000000}{cycleSpent}$.
+        Dans l'\autoref{code:cur_freq}, le registre \verb|%eax| est initialisé à \verb|80000000|. Grâce à notre hypothèse, il est possible de prévoir que le processeur réalisera ces \verb|80000000| soustractions en autant de cycles. Nous mesurons le nombre de cycles nécessaire à l'exécution du code à l'aide de l'instruction \verb=rdtsc=. Ce nombre correspond au nombre de cycle à la fréquence nominale du processeur. En faisant le rapport entre le nombre de cycles mesurés et celui attendu par notre hypothèse, il est possible de déterminer si le processeur utilise une fréquence plus ou moins rapide que sa fréquence nominale. Nous calculons ainsi l'\gls{IPC} de cette boucle en faisant le rapport $\frac{80000000}{cycleSpent}$.
         \begin{itemize}
             \item \verb|IPC == 1|: Le processeur utilise sa fréquence de base
-            \item \verb|IPC < 1|: Le processeur utilise une fréquence inférieur à sa fréquence de base.
+            \item \verb|IPC < 1|: Le processeur utilise une fréquence inférieure à sa fréquence de base.
             \item \verb|IPC > 1|: Le processeur est capable d'exécuter des instructions à une fréquence plus élevée que sa fréquence de base (turbo).
         \end{itemize}
     
     
     
-        \paragraph{Ajuster les résultats.} En connaissant la fréquence de base et la fréquence accessible par le processeur les résultats donnés par le benchmark peuvent être ajustés. Nous avons utilisé un script externe pour verrouiller la fréquence du processeur Intel Xeon 6150 à 2.00 GHz. Ce processeur a une fréquence de base de 2.70GHz. Le code présenté ci dessus nous a permis de mesurer un \gls{IPC} égale à 0.742. Cela signifie que le processeur utilise une fréquence égale à 74,2\% de sa fréquence de base, soit 2,00 GHz. Ce dernier test nous a permis de valider la méthodologie basée sur \verb|rdtsc| pour mesurer la fréquence réelle du processeur. Ainsi, nous pouvons ajuster les résultats donnés par notre outil grâce à l'option \verb|--frequency true|.
+        \paragraph{Ajuster les résultats.} En connaissant la fréquence de base et la fréquence accessible par le processeur, les résultats donnés par le benchmark peuvent être ajustés. Nous avons utilisé un script externe pour verrouiller la fréquence du processeur Intel Xeon 6150 à 2,00 GHz. Ce processeur a une fréquence de base de 2,70 GHz. Le code présenté ci dessus nous a permis de mesurer un \gls{IPC} égal à 0,742. Cela signifie que le processeur utilise une fréquence égale à 74,2\% de sa fréquence de base, soit 2,00 GHz. Ce dernier test nous a permis de valider la méthodologie basée sur \verb|rdtsc| pour mesurer la fréquence réelle du processeur. Ainsi, nous pouvons ajuster les résultats donnés par notre outil grâce à l'option \verb|--frequency true|.
+        \textbf{todo remplacer NOMINALE par DE BASE}
 
     
 \subsection{Résultats}
@@ -349,9 +353,9 @@ cycleSpent = (cycleInEnd - cycleInStart);
 
     \subsubsection{Vérifier les performances théoriques}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Le générateur de kernels peut être utilisé pour mesurer les performances maximales atteignables par un processeur. Cette performance mesurée en \gls{FLOPS} est notée \gls{flopspeak}. Pour illustrer cette utilisation, nous avons étudié les performances du processeur Intel Xeon 6150 cadencé à 2.7 GHz, possédant 18 coeurs et disposant d'un mode Turbo. Les résultats de cette expérimentation sont donnés dans le \autoref{tab:kg_vs_intel}. 
+    Le \verb|Kernel Generator| peut être utilisé pour mesurer les performances maximales atteignables par un processeur. Cette performance mesurée en \gls{FLOPS} est notée \gls{flopspeak}. Pour illustrer cette utilisation, nous avons étudié les performances du processeur Intel Xeon 6150 cadencé à 2.7 GHz, possédant 18 coeurs et disposant d'un mode Turbo. Les résultats de cette expérimentation sont donnés dans le \autoref{tab:kg_vs_intel}. 
     
-    Comme expliqué dans l'introduction ci-dessus, la fréquence  soutenable par un processeur dépend de la complexité des instructions exécutée et du nombre de coeurs utilisés. La performance de calcul théorique varie donc en fonction de chaque configuration \texttt{\{nombre de coeurs, type d'instructions, Turbo ON/OFF\}}. Pour permettre le calcul de \gls{flopspeak}, Intel donne dans sa documentation les différentes fréquences supportées par le processeur\footnote{\url{https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/xeon-scalable-spec-update.pdf}}. Ces valeurs sont reportées dans la 4e ligne du \autoref{tab:kg_vs_intel}. Pour un type d'instruction et un nombre de coeur donné, la performance du processeur dépend de l'activation ou non du turbo:
+    Comme expliqué dans l'introduction ci-dessus, la fréquence  soutenable par un processeur dépend de la complexité des instructions exécutées et du nombre de coeurs utilisés. La performance de calcul théorique varie donc en fonction de chaque configuration \texttt{\{nombre de coeurs, type d'instructions, Turbo ON/OFF\}}. Pour permettre le calcul de \gls{flopspeak}, Intel donne dans sa documentation les différentes fréquences supportées par le processeur\footnote{\url{https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/xeon-scalable-spec-update.pdf}}. Ces valeurs sont reportées dans la 4e ligne du \autoref{tab:kg_vs_intel}. Pour un type d'instruction et un nombre de coeur donné, la performance du processeur dépend de l'activation ou non du turbo:
     \begin{itemize}
         
         
@@ -362,7 +366,7 @@ cycleSpent = (cycleInEnd - cycleInStart);
     \end{itemize}
     
     
-    Le but de cette expérimentation est d'utiliser le générateur de kernel pour vérifier la fréquence atteignable par le processeur pour différentes configuration. La fréquence maximale atteignable par le processeur n'étant pas garantie (même lorsque le turbo est activé), seul l'exécution du kernel peut permettre de mesurer la performance maximale atteignable par le processeur. Cette performance, mesurée en \gls{FLOPS}, est notée \gls{flopsmax}. Pour chaque type d'instructions (Non-AVX, AVX 2.0 et AVX-512), \gls{flopsmax} peut être mesurée en exécutant des instructions \gls{FMA}. Nous avons utilisé le générateur de kernel pour créer trois benchmarks utilisant trois tailles d'instructions (scalaire, 256 et 512 bits) avec la commande suivante:\\
+    Le but de cette expérimentation est d'utiliser le \verb|Kernel Generator| pour vérifier la fréquence atteignable par le processeur pour différentes configurations. La fréquence maximale atteignable par le processeur n'étant pas garantie (même lorsque le turbo est activé), seul l'exécution du kernel peut permettre de mesurer la performance maximale atteignable par le processeur. Cette performance, mesurée en \gls{FLOPS}, est notée \gls{flopsmax}. Pour chaque type d'instructions (Non-AVX, AVX 2.0 et AVX-512), \gls{flopsmax} peut être mesurée en exécutant des instructions \gls{FMA}. Nous avons utilisé le \verb|Kernel Generator| pour créer trois benchmarks utilisant trois tailles d'instructions (scalaire, 256 et 512 bits) avec la commande suivante:\\
 \begin{minipage}{0.97\linewidth}         \begin{lstlisting}
 ./kg -W {64,256, 512} -O ffffffffffffff -P double -U 80 -S 1 -L 90000000
 \end{lstlisting} \end{minipage}\\
@@ -397,7 +401,7 @@ cycleSpent = (cycleInEnd - cycleInStart);
     
 
     
-    La documentation du fabricant indique que le processeur étudié est capable d'exécuter deux instructions par cycle, quelle que soit la taille des instructions utilisées. Ces instructions nécessitant plus ou moins de transistors pour être exécutées (taille, nombre de coeur) le processeur doit adapter sa fréquence pour ne pas surchauffer.  Le Kernel Generator mesure le nombre d'instructions par cycle, ce qui nous permet de vérifier que deux instructions \gls{FMA} sont bien exécutées chaque cycle. Le benchmark permet de vérifier un \gls{IPC} de 2 et mesure la performance \gls{flopsmax} en GFLOPS du code. Grâce à ces deux informations, il est possible de calculer la fréquence réelle qu'utilise le processeur (dernière ligne du  \autoref{tab:kg_vs_intel}). Le calcul de la performance maximale théorique utilisant la fréquence garantie par Intel, il est possible d'obtenir \gls{flopsmax} supérieur à \gls{flopspeak}. Nous remarquons ainsi, quatre fréquences supérieures à celles annoncées par la documentation (en bleu dans le \autoref{tab:kg_vs_intel}). En effet, Intel communique la fréquence minimale garantie pour chaque configuration texttt{\{nombre de coeurs, type d'instructions, Turbo ON/OFF\}}. Cette fréquence minimale est garantie pour tous les processeurs d'un même modèle (même SKU). La qualité de fabrication du processeur peut lui permettre d'atteindre des fréquences plus élevées que celle-ci, comme indiqué en bleu dans le \autoref{tab:kg_vs_intel}. Pour étudier l'évolution de la fréquence et de la température du processeur, nous utilisons un outil développé en interne par HPE. La \autoref{pic_kg_freq_vs_temp} montre que le processeur est capable d'utiliser une fréquence de 2.7 GHz, alors que la fréquence minimale garantie est de 2.3 GHz. Le benchmark a été exécuté pendant trente minutes. Le bon système de refroidissement utilisé empêche le processeur de dépasser sa puissance TDP (Thermal Design Power) et conserve cette fréquence durant toute l'exécution. La puissance TDP est mesurée en watt et exprime la quantité de chaleur dégagée par le processeur lorsqu'il est en charge. Le TDP permet au constructeur de systèmes de refroidissement de calibrer le matériel nécessaire pour refroidir un processeur.  
+    La documentation du fabricant indique que le processeur étudié est capable d'exécuter deux instructions par cycle, quelle que soit la taille des instructions utilisées. Ces instructions nécessitant plus ou moins de transistors pour être exécutées (taille, nombre de coeur), le processeur doit adapter sa fréquence pour ne pas surchauffer.  Le \verb=Kernel Generator= mesure le nombre d'instructions par cycle, ce qui nous permet de vérifier que deux instructions \gls{FMA} sont bien exécutées chaque cycle. Le benchmark permet de vérifier un \gls{IPC} de 2 et mesure la performance \gls{flopsmax} en GFLOPS du code. Grâce à ces deux informations, il est possible de calculer la fréquence réelle qu'utilise le processeur (dernière ligne du  \autoref{tab:kg_vs_intel}). Le calcul de la performance maximale théorique utilisant la fréquence garantie par Intel, il est possible d'obtenir \gls{flopsmax} supérieur à \gls{flopspeak}. Nous remarquons ainsi, quatre fréquences supérieures à celles annoncées par la documentation (en bleu dans le \autoref{tab:kg_vs_intel}). En effet, Intel communique la fréquence minimale garantie pour chaque configuration texttt{\{nombre de coeurs, type d'instructions, Turbo ON/OFF\}}. Cette fréquence minimale est garantie pour tous les processeurs d'un même modèle (même SKU). La qualité de fabrication du processeur peut lui permettre d'atteindre des fréquences plus élevées que celle-ci, comme indiqué en bleu dans le \autoref{tab:kg_vs_intel}. Pour étudier l'évolution de la fréquence et de la température du processeur, nous utilisons un outil développé en interne par HPE. La \autoref{pic_kg_freq_vs_temp} montre que le processeur est capable d'utiliser une fréquence de 2.7 GHz, alors que la fréquence minimale garantie est de 2.3 GHz. Le benchmark a été exécuté pendant trente minutes. Le bon système de refroidissement utilisé empêche le processeur de dépasser sa puissance TDP (Thermal Design Power) et conserve cette fréquence durant toute l'exécution. La puissance TDP est mesurée en watt et exprime la quantité de chaleur dégagée par le processeur lorsqu'il est en charge. Le TDP permet au constructeur de systèmes de refroidissement de calibrer le matériel nécessaire pour refroidir un processeur.  
     
            
     \begin{figure}[!h]
@@ -416,6 +420,7 @@ cycleSpent = (cycleInEnd - cycleInStart);
         \end{subfigure}
         \caption{Évolution de la fréquence et de la température du processeur pour un benchmark AVX 2.0 exécuté sur 18 coeurs avec le turbo désactivé}\label{pic_kg_freq_vs_temp}
     \end{figure}
+    \textbf{todo agrandir ou mettre l'un en dessus de lortre}
 
         
 
@@ -425,7 +430,7 @@ cycleSpent = (cycleInEnd - cycleInStart);
     
     \subsubsection{Caractérisation de la micro-architecture Haswell}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Lors de l'utilisation d'une nouvelle plateforme, l'utilisateur peut utiliser le générateur de benchmarks pour caractériser la microarchitecture et trouver ses points forts ou points faibles. Lors de l'arrivée des processeurs Intel de génération Haswell en 2013, certains codes ont connu des baisses de performances malgré l'utilisation d'une architecture plus récente. Nous avons utilisé le générateur de kernels pour caractériser les performances d'exécution des additions et des multiplications avec la commande suivante : \verb|./kg  -P double -W 64 -O mmmmm| permettant de générer le benchmark suivant:
+    Lors de l'utilisation d'une nouvelle plateforme, l'utilisateur peut utiliser le \verb|Kernel Generator| pour caractériser la microarchitecture et trouver ses points forts ou points faibles. Lors de l'arrivée des processeurs Intel de génération Haswell en 2013, certains codes ont connu des baisses de performances malgré l'utilisation d'une architecture plus récente. Nous avons utilisé le \verb|Kernel Generator| pour caractériser les performances d'exécution des additions et des multiplications avec la commande suivante : \verb|./kg  -P double -W 64 -O mmmmm| permettant de générer le benchmark suivant:
     
     \begin{minipage}{0.97\linewidth}         \begin{lstlisting}[label=lst:kg_mul ,language=C]
 for (i = 0; i < NB_lOOP; i++) {
@@ -447,7 +452,7 @@ time_total += timeEnd - timeStart;
 }
 \end{lstlisting} \end{minipage}
     
-     La microarchitecture Haswell est capable d'exécuter deux multiplications par cycle. Cependant, l'utilisation du générateur de kernel nous a montré que le processeur n'était pas capable d'exécuter des additions au même rythme que les multiplications. Les résultats présentés dans le \autoref{tab:mul_vs_add} montrent que la microarchitecture Haswell est capable d'exécuter deux multiplications contre une seule addition par cycle.
+     La microarchitecture Haswell est capable d'exécuter deux multiplications par cycle. Cependant, l'utilisation du \verb|Kernel Generator| nous a montré que le processeur n'était pas capable d'exécuter des additions au même rythme que les multiplications. Les résultats présentés dans le \autoref{tab:mul_vs_add} montrent que la microarchitecture Haswell est capable d'exécuter deux multiplications contre une seule addition par cycle.
 
     \begin{table}[h!]
     \centering
@@ -462,7 +467,7 @@ time_total += timeEnd - timeStart;
         \label{tab:mul_vs_add}
     \end{table}
     
-    Bien sûr, cette caractéristique est documentée et en comptant le nombre de ports destinés aux additions, l'utilisateur du processeur aurait pu en trouver la raison. Cependant la lecture de la documentation de la microarchitecture dépasse le millier de pages et en comprendre les moindres détails est plus difficile que d'utiliser les bons outils. Nous pensons que le générateur de benchmarks peut permettre à n'importe quel utilisateur de rapidement trouver ce genre de caractéristiques. Avant même d'avoir exécuté son application sur une nouvelle plateforme, il peut rapidement se faire une idée de ses performances et trouver ce genre de défauts.
+    Bien sûr, cette caractéristique est documentée et en comptant le nombre de ports destinés aux additions, l'utilisateur du processeur aurait pu en trouver la raison. Cependant la lecture de la documentation de la microarchitecture dépasse le millier de pages et en comprendre les moindres détails est plus difficile que d'utiliser les bons outils. Nous pensons que le \verb|Kernel Generator| peut permettre à n'importe quel utilisateur de rapidement trouver ce genre de caractéristiques. Avant même d'avoir exécuté son application sur une nouvelle plateforme, il peut rapidement se faire une idée de ses performances et trouver ce genre de défauts.
 
 
 
@@ -470,7 +475,7 @@ time_total += timeEnd - timeStart;
     \subsubsection{Caractérisation de l'exécution dans le désordre}\label{sec:kg_out_of_order_dependency}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    La puissance d'un supercalculateur vient de sa capacité à réaliser des calculs en parallèle. Pour satisfaire la loi d'Amdahl (voir \autoref{sec:amdhal}). La tâche des développeurs est de maximiser les zones de codes pouvant profiter des ressources parallèles des architectures. Le principal frein à l'utilisation du parallélisme vient de zones de codes dites séquentiels dont les instructions doivent être exécutées à la suite les unes des autres. Cela peut être dû à la dépendance d'une instruction au résultat de l'instruction précédente. Les performances d'un tel code sont souvent très mauvaises car une seule ressource de calcul (un coeur) peut être utilisée pour leur exécution. Cependant, la nature des algorithmes peut assez fréquemment laisser place à certaines optimisations. Dans le domaine des finances, les algorithmes de Monte-Carlo sont très utilisés. Ces codes ont la particularité d'exposer de longues chaînes de dépendances. En restructurant le code, le programmeur peut espérer profiter de l'exécution dans le désordre (voir \aref{sec:out_of_order}). Cela nécessite cependant d'apporter suffisamment d'instructions indépendantes au processeur pour qu'il puisse les exécuter en parallèle. Le processeur est capable d'exécuter plusieurs chaînes indépendantes les unes des autres. La performance d'une telle plateforme dépend alors de sa capacité à en exécuter plusieurs en parallèle. Grâce à l'option \verb|--dependency N| du générateur de kernels, le benchmark peut être utilisé pour caractériser cette fonctionnalité matérielle en générant $N$ chaînes indépendantes. En utilisant une dépendance de 1, chaque instruction a besoin du résultat de l'instruction précédente (voir \autoref{lst_dep1}). Dans ce cas-là, aucune parallélisation n'est possible pour le processeur. L'exécution de ce code atteint un \gls{IPC} de 0.25. Le processeur a besoin de 4 cycles d'horloge pour exécuter une instruction. Le faible IPC vient de la nécessité d'attendre que le résultat de l'opération précédente soit disponible pour pouvoir commencer à être exécutée. Sur le processeur utilisé, l'exécution d'une multiplication AVX-512 est de 4 cycles.
+    La puissance d'un supercalculateur vient de sa capacité à réaliser des calculs en parallèle. Pour satisfaire la loi d'Amdahl (voir \autoref{sec:amdhal}). La tâche des développeurs est de maximiser les zones de codes pouvant profiter des ressources parallèles des architectures. Le principal frein à l'utilisation du parallélisme vient de zones de codes dites séquentielles dont les instructions doivent être exécutées à la suite les unes des autres. Cela peut être dû à la dépendance d'une instruction au résultat de l'instruction précédente. Les performances d'un tel code sont souvent très mauvaises car une seule ressource de calcul (un coeur) peut être utilisée pour leur exécution. Cependant, la nature des algorithmes peut assez fréquemment laisser place à certaines optimisations. Dans le domaine des finances, les algorithmes de Monte-Carlo sont très utilisés. Ces codes ont la particularité d'exposer de longues chaînes de dépendances. En restructurant le code, le programmeur peut espérer profiter de l'exécution dans le désordre (voir \aref{sec:out_of_order}). Cela nécessite cependant d'apporter suffisamment d'instructions indépendantes au processeur pour qu'il puisse les exécuter en parallèle. Le processeur est capable d'exécuter plusieurs chaînes indépendantes les unes des autres. La performance d'une telle plateforme dépend alors de sa capacité à en exécuter plusieurs en parallèle. Grâce à l'option \verb|--dependency N| du \verb|Kernel Generator|, le benchmark peut être utilisé pour caractériser cette fonctionnalité matérielle en générant $N$ chaînes indépendantes. En utilisant une dépendance de 1, chaque instruction a besoin du résultat de l'instruction précédente (voir \autoref{lst_dep1}). Dans ce cas-là, aucune parallélisation n'est possible pour le processeur. L'exécution de ce code atteint un \gls{IPC} de 0.25. Le processeur a besoin de 4 cycles d'horloge pour exécuter une instruction. Le faible IPC vient de la nécessité d'attendre que le résultat de l'opération précédente soit disponible pour pouvoir commencer à être exécutée. Sur le processeur utilisé, l'exécution d'une multiplication AVX-512 est de 4 cycles.
     
     
     
@@ -487,12 +492,12 @@ time_total += timeEnd - timeStart;
 \end{lstlisting} \end{minipage}
 
      
-    Pour évaluer la capacité du processeur à exécuté plusieurs chaînes indépendantes, différents nombres de chaînes ont pu être générées grâce à l'option \verb|--dependecy N|. Le code généré pour 4 chaînes est présenté sur la \autoref{pic_kg_dep_4}. En faisant varier le nombre de chaînes indépendantes, les résultats présentés dans le \autoref{tab_kg_depth} ont été obtenus. Grâce au tampon d'instructions de système d'exécution dans le désordre, le processeur est capable de commencer l'exécution de plusieurs chaînes indépendantes simultanément. Nous avons pu valider que le processeur est capable d'exécuter au moins 8 chaînes d'instructions indépendantes. Le processeur peut exécuter une multiplication par cycle par pipeline (2 au total). La latence d'une multiplication AVX-512 étant de 4 cycles, le processeur a besoin de 8 chaînes indépendantes pour utiliser la totalité de la puissance du processeur. Cette caractéristique du processeur doit être connue par le programmeur pour transformer son code et obtenir le maximum de performance du processeur. Grâce au générateur de kernels, les nouvelles architectures peuvent être testées pour caractériser ces performances et prévoir leur performance pour des codes pouvant utiliser des chaînes de calculs indépendantes comme la résolution de polynômes par exemple. 
+    Pour évaluer la capacité du processeur à exécuter plusieurs chaînes indépendantes, différents nombres de chaînes ont pu être générées grâce à l'option \verb|--dependecy N|. Le code généré pour 4 chaînes est présenté sur la \autoref{pic_kg_dep_4}. En faisant varier le nombre de chaînes indépendantes, les résultats présentés dans le \autoref{tab_kg_depth} ont été obtenus. Grâce au tampon d'instructions de système d'exécution dans le désordre, le processeur est capable de commencer l'exécution de plusieurs chaînes indépendantes simultanément. Nous avons pu valider que le processeur est capable d'exécuter au moins 8 chaînes d'instructions indépendantes. Le processeur peut exécuter une multiplication par cycle par pipeline (2 au total). La latence d'une multiplication AVX-512 étant de 4 cycles, le processeur a besoin de 8 chaînes indépendantes pour utiliser la totalité de la puissance du processeur. Cette caractéristique du processeur doit être connue par le programmeur pour transformer son code et obtenir le maximum de performance du processeur. Grâce au \verb|Kernel Generator|, les nouvelles architectures peuvent être testées pour caractériser ces performances et prévoir leur performance pour des codes pouvant utiliser des chaînes de calculs indépendantes comme la résolution de polynômes par exemple. 
     
          \begin{figure}
             \center
             \includegraphics[width=8cm]{images/kg_dep_4.png}
-            \caption{\label{pic_kg_dep_4} Code généré par la commande \texttt{/kg -W 512 -P double -O mmmmmmmm -D 4}. Les quatre chaînes de dépendances sont représentées par les quatre couleurs utilisées.}
+            \caption{\label{pic_kg_dep_4} Code généré par la commande \texttt{/kg -W 512 -P double -O mmmmmmmm -D 4}. Les quatre chaînes de dépendance sont représentées par les quatre couleurs utilisées.}
         \end{figure}
 
     \begin{table}[h!]
@@ -503,7 +508,7 @@ time_total += timeEnd - timeStart;
     Nombre de chaînes & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\ \hline
     IPC & 0.25 & 0.50 & 0.75 & 1 & 1.25 & 1.50 & 1.75 & 2 & 2 & 2 \\ \hline
     \end{tabular}%
-    \caption{Mesure du nombre d'instruction par cycle pour un nombre de chaîne de dépendance $N$, dans un benchmark généré à l'aide de la commande \texttt{/kg -W 512 -P double -O mmmmmmmm -D N}. Au moins 8 chaînes d'instrutions indépendantes doivent être présentées au processeur pour l'utiliser au maximum de ses performance (IPC égal à 2).}
+    \caption{Mesure du nombre d'instruction par cycle pour un nombre de chaîne de dépendance $N$, dans un benchmark généré à l'aide de la commande \texttt{/kg -W 512 -P double -O mmmmmmmm -D N}. Au moins 8 chaînes d'instructions indépendantes doivent être présentées au processeur pour l'utiliser au maximum de ses performances (IPC égal à 2).}
     \label{tab_kg_depth}
     \end{table}
 
@@ -513,7 +518,7 @@ time_total += timeEnd - timeStart;
 
     \subsubsection{Caractérisation de la FPU de deux processeurs Skylake}
 
-        La dernière génération de processeur Intel Skylake est répartie en quatre gammes (Bronze, Silver, Gold et Platinium). Les fonctionnalités et les performances des processeurs des différentes gammes étant différentes (voir \autoref{table:skl}), il est important pour notre équipe avant-vente d'en connaître les caractéristiques et les performances pour adapter les configurations des serveurs aux demandes clients. Les processeurs des gammes Bronze ou Silver sont rarement choisis pour répondre à un appel d'offres compte tenu de leurs caractéristiques plus faibles (une FPU au lieu de deux, nombre plus faible de coeurs). Les processeurs haut de gamme (Gold et Platinium) possèdent généralement plus de coeurs, et sont capables d'utiliser des fréquences plus élevées que les processeurs d'entrée de gamme (Bronze et Silver). Bien sûr, comme ces processeurs coûtent plus cher à l'achat, un client choisira un processeur en fonction de son budget, de sa consommation électrique ou du profile de son application.
+        La dernière génération de processeur Intel Skylake est répartie en quatre gammes (Bronze, Silver, Gold et Platinium). Les fonctionnalités et les performances des processeurs des différentes gammes étant différentes (voir \autoref{table:skl}), il est important pour notre équipe avant-vente d'en connaître les caractéristiques et les performances pour adapter les configurations des serveurs aux demandes des clients. Les processeurs des gammes Bronze ou Silver sont rarement choisis pour répondre à un appel d'offres compte tenu de leurs caractéristiques plus faibles (une FPU au lieu de deux, nombre plus faible de coeurs). Les processeurs haut de gamme (Gold et Platinium) possèdent généralement plus de coeurs, et sont capables d'utiliser des fréquences plus élevées que les processeurs d'entrée de gamme (Bronze et Silver). Bien sûr, comme ces processeurs coûtent plus cher à l'achat, un client choisira un processeur en fonction de son budget, de sa consommation électrique ou du profil de son application.
         
         
         \begin{table}[h!]
@@ -537,7 +542,7 @@ time_total += timeEnd - timeStart;
         \end{table}
         
       
-      Pour caractériser la performance crête des processeurs \gls{flopsmax}, notre équipe de benchmark utilise des codes tels que HPL. Pour obtenir la meilleure performance atteignable, le benchmark HPL est compilé pour utiliser les instructions vectorielles les plus grandes supporté par le processeur étudié (ici des instructions AVX-512). Les résultats du benchmark Linpack donnés dans le \autoref{table:skl_bench}, montrent que les processeurs les plus performants sont ceux appartenant aux gammes Gold et Platinium. Cette différence de performance peut être expliquée par la présence de deux \gls{FPU} sur les processeurs haut de gamme. Ces deux FPU sont capables d'exécuter chacune une instruction \gls{FMA} AVX-512 par cycle. Grâce au générateur de kernel, cette caractéristique a pu être vérifiée (voir \autoref{table:skl_bench}). 
+      Pour caractériser la performance crête des processeurs \gls{flopsmax}, notre équipe de benchmark utilise des codes tels que HPL. Pour obtenir la meilleure performance atteignable, le benchmark HPL est compilé pour utiliser les instructions vectorielles les plus grandes supportées par le processeur étudié (ici des instructions AVX-512). Les résultats du benchmark Linpack donnés dans le \autoref{table:skl_bench}, montrent que les processeurs les plus performants sont ceux appartenant aux gammes Gold et Platinium. Cette différence de performance peut être expliquée par la présence de deux \gls{FPU} sur les processeurs haut de gamme. Ces deux FPU sont capables d'exécuter chacune une instruction \gls{FMA} AVX-512 par cycle. Grâce au \verb|Kernel Generator|, cette caractéristique a pu être vérifiée (voir \autoref{table:skl_bench}). 
 
         \begin{table}[h!]
         \centering
@@ -552,14 +557,14 @@ time_total += timeEnd - timeStart;
         
         \end{tabular}
         }
-        \caption{Pour différents processeur, le nombre d'instruction FMA AVX-512 pouvant être exécutée chaque cycle a été mesuré à l'aide du \texttt{Kernel Generator}. En fonction du nombre de FPU présent sur un coeur (1 ou 2), le nombre d'instructions exécuté varie (1 ou 2). La performance \gls{flopsmax} du benchmark HPL mesurée GFLOPS varie de la même façon suivant la gamme du processeur utilisé. Afin de pouvoir comparer les différentes gammes de processeurs la configuration suivante à été appliqué à chaque processeur: désactivation de l'\textit{hyperthreading}, fréquence limitée à 1.5 GHz, utilisation de 8 coeurs. \textbf{todo: revoir les valeurs}}
+        \caption{Pour différents processeurs, le nombre d'instructions FMA AVX-512 pouvant être exécutée chaque cycle a été mesuré à l'aide du \texttt{Kernel Generator}. En fonction du nombre de FPU présent sur un coeur (1 ou 2), le nombre d'instructions exécutées varie (1 ou 2). La performance \gls{flopsmax} du benchmark HPL mesurée GFLOPS varie de la même façon suivant la gamme du processeur utilisé. Afin de pouvoir comparer les différentes gammes de processeurs, la configuration suivante a été appliquée à chaque processeur: désactivation de l'\textit{hyperthreading}, fréquence limitée à 1.5 GHz, utilisation de 8 coeurs. \textbf{todo: revoir les valeurs}}
         \label{table:skl_bench}
         \end{table}
         % 1 FPU : 8 * 2 *1 *1.5 * 8 = 192
         % 2 FPU : 8 * 2 *2 *1.5 * 8 = 384
         
         
-        Afin d'estimer l'impact d'une FPU manquante sur la performance d'une application réelle, nous avons utilisé une application de CFD typique. L'application utilisée n'exécute que des instructions vectorielles de 256 bits (AVX-2). Nous nous attendons alors à obtenir des performances différentes entre un processeur Silver et Gold pour une application qui n'est pas limitée par la bande passante mémoire. Étonnamment, les résultats obtenus sur ces deux plateformes sont très proches. Pourtant, nous avons bien montré que les processeurs de gamme supérieure possèdent une FPU de plus et sont donc deux fois plus performants. Pour comprendre ce phénomène, nous avons utilisé le générateur de benchmark pour générer un kernel de calculs utilisant des instructions vectorielles de 256 bits. La performance mesurée pour le kernel sont reportés dans le \autoref{table:skl_bench2}.  
+        Afin d'estimer l'impact d'une FPU manquante sur la performance d'une application réelle, nous avons utilisé une application de CFD\textbf{todo C KOI ?} typique. L'application utilisée n'exécute que des instructions vectorielles de 256 bits (AVX-2). Nous nous attendons alors à obtenir des performances différentes entre un processeur de gamme Silver et de gamme Gold pour une application qui n'est pas limitée par la bande passante mémoire. Étonnamment, les résultats obtenus sur ces deux plateformes sont très proches. Pourtant, nous avons bien montré que les processeurs de gamme supérieure possèdent une FPU de plus et sont donc deux fois plus performants. Pour comprendre ce phénomène, nous avons utilisé le \verb|Kernel Generator| pour générer un kernel de calculs utilisant des instructions vectorielles de 256 bits. La performance mesurée pour le kernel est reportée dans le \autoref{table:skl_bench2}.  
         
        
         
@@ -580,20 +585,20 @@ time_total += timeEnd - timeStart;
         GFLOP/s                 & 2.38e+10           & 2.37e+10           \\ \hline
         \end{tabular}
         }
-        \caption{Mesure de la performance de processeur de deux gammes différentes à l'aide du \texttt{Kernel Generator} et de la commange suivante: \texttt{/kg  -P double -W 256 -O ffffffff}. Alors que le processeur de la gamme Gold possède une FPU de plus, il obtient des performances similaires à celles du processeur de gamme Silver.}
+        \caption{Mesure de la performance de processeur de deux gammes différentes à l'aide du \texttt{Kernel Generator} et de la commande suivante: \texttt{/kg  -P double -W 256 -O ffffffff}. Alors que le processeur de la gamme Gold possède une FPU de plus, il obtient des performances similaires à celles du processeur de gamme Silver.}
         \label{table:skl_bench2}
         \end{table}
         
-        Bien que le processeur Intel Xeon Silver 4110 ne possède qu'une seule FPU, il est capable d'exécuter deux instructions AVX-2 par cycle. Cette caractéristique peut être retrouvée dans la documentation du processeur \footnote{source: \url{https://en.wikichip.org/wiki/intel/microarchitectures/skylake\#Execution_engine_2}}. Les FPU des processeurs Skylake d'entrée de gamme fusionnent deux ports de 256 bits pour former la FPU 512-bits. Cependant, lorsque des instructions de 256 bits sont exécutées, le processeur peut utiliser les deux ports indépendamment pour exécuter deux instructions de 256 bits. La FPU supplémentaire sur les processeurs haut de gamme est une FPU 512 bits qui ne permet pas d'utiliser cette caractéristique et qui pourrait permettre d'exécuter (en théorie) quatre instructions par cycle.
-        Afin de mieux comprendre comment cette fusion d'instructions fonctionnait, nous avons utilisé le générateur de benchmarks pour générer des \glspl{kernel} possédant des instructions vectorielles de taille différentes. Les résultats des différentes expérimentations sont reportés dans le \autoref{res:skl}. Chaque cycle, la FPU est capable d'exécuter différentes combinaisons d'instructions: 
+        Bien que le processeur Intel Xeon Silver 4110 ne possède qu'une seule \gls{FPU}, il est capable d'exécuter deux instructions AVX-2 par cycle. Cette caractéristique peut être retrouvée dans la documentation du processeur \footnote{source: \url{https://en.wikichip.org/wiki/intel/microarchitectures/skylake\#Execution_engine_2}}. Les FPU des processeurs Skylake d'entrée de gamme fusionnent deux ports de 256 bits pour former la FPU 512-bits. Cependant, lorsque des instructions de 256 bits sont exécutées, le processeur peut utiliser les deux ports indépendamment pour exécuter deux instructions de 256 bits. La FPU supplémentaire présente sur les processeurs haut de gamme est une FPU 512 bits qui ne permet pas d'utiliser cette caractéristique et qui pourrait permettre d'exécuter (en théorie) quatre instructions par cycle.
+        Afin de mieux comprendre comment cette fusion d'instructions fonctionnait, nous avons utilisé le \verb|Kernel Generator| pour générer des \glspl{kernel} possédant des instructions vectorielles de taille différentes. Les résultats des différentes expérimentations sont reportés dans le \autoref{res:skl}. Chaque cycle, la FPU est capable d'exécuter différentes combinaisons d'instructions: 
 
 
         \begin{itemize}
-            \item Une instruction AVX 512 bits.
-            \item Deux instruction AVX 256 bits.
-            \item Deux instructions AVX 128 bits.
-            \item Deux instructions scalaire.
-            \item Toutes combinaisons de deux instructions dont la taille agrégée ne dépasse pas 512 bits.
+            \item Une instruction AVX 512 bits,
+            \item Deux instructions AVX 256 bits,
+            \item Deux instructions AVX 128 bits,
+            \item Deux instructions scalaires,
+            \item Toute combinaison de deux instructions dont la taille agrégée ne dépasse pas 512 bits.
         \end{itemize}
         
         
@@ -623,13 +628,13 @@ time_total += timeEnd - timeStart;
         
         \end{tabular}
         %}
-        \caption{Mesure du nombre d'instruction exécuté chaque cycle pour différents processeur. La FPU des processeurs d'entrée de gamme est capable de fusionner certaines instructions (en gras) pour les exécuter en un seul cycle.}
+        \caption{Mesure du nombre d'instruction exécutées chaque cycle pour différents processeurs. La FPU des processeurs d'entrée de gamme est capable de fusionner certaines instructions (en gras) pour les exécuter en un seul cycle.}
         \label{res:skl}
         \end{table}
         
         
         
-       Ainsi, le processeur haut de gamme bénéficie des deux FPU lorsque le code est capable d'utiliser des instructions vectorielles de 512 bits. Il est fréquent que les applications n'y parviennent pas (mauvaise vectorisation du code, problème du compilateur, dépendances) et utilisent des instructions vectorielles plus petites, les processeurs d'entrée de gamme obtiennent des performances rigoureusement égales. Évidement, la FPU n'est pas la seule responsable de la performance d'une application, le \autoref{table:skl} montrent bien que d'autres caractéristiques diffèrent telles que le nombre de liens UPI ou la possibilité d'utiliser l'hyperthrading . Le but du générateur de kernels est de caractériser une architecture pour le besoin d'une application. Grâce au caractéristique découverte suite à cette expérimentation, plusieurs réponses à des offres d'appels ont été réalisées avec des processeurs d'entrée de gamme. Grâce à cette caractéristique, les applications utilisant des instructions AVX-2 peuvent obtenir des performances assez proches sur des processeurs coûtant beaucoup moins cher.
+       Ainsi, le processeur haut de gamme bénéficie des deux FPU lorsque le code est capable d'utiliser des instructions vectorielles de 512 bits. Il est fréquent que les applications n'y parviennent pas (mauvaise vectorisation du code, problème du compilateur, dépendances) et utilisent des instructions vectorielles plus petites. Les processeurs d'entrée de gamme obtiennent alors des performances rigoureusement égales. Évidement, la FPU n'est pas la seule responsable de la performance d'une application, le \autoref{table:skl} montre bien que d'autres caractéristiques diffèrent telles que le nombre de liens UPI ou la possibilité d'utiliser l'hyperthreading. Le but du \verb|Kernel Generator| est de caractériser une architecture pour le besoin d'une application. Grâce aux caractéristiques découvertes suite à cette expérimentation, plusieurs réponses à des offres d'appels ont été réalisées avec des processeurs d'entrée de gamme. Grâce à cette caractéristique, les applications utilisant des instructions AVX-2 peuvent obtenir des performances assez proches sur des processeurs coûtant beaucoup moins cher.
 
 
         
@@ -640,7 +645,7 @@ time_total += timeEnd - timeStart;
 
 %    \subsubsection{Expliquer les performances d'un code}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- %   Une autre utilisation du générateur de kernel peut permettre d'expliquer les performances d'une autre application. 
+ %   Une autre utilisation du \verb|Kernel Generator| peut permettre d'expliquer les performances d'une autre application. 
     
     
   %   What we have seen in the past months with the releases of the new Skylake processors is that entry level processors like Intel 4110 can perform as good as a top bin processor like the Intel 6148 for real applications thus increasing the $\frac{performance}{price}$ of a large scale cluster. 
@@ -649,12 +654,12 @@ time_total += timeEnd - timeStart;
 \subsection{Conclusion}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    L'outil \verb=Kernel Generator= est un générateur de benchmarks qui permet de mesurer la performance maximale (\gls{flopsmax})  d'un processeur pour un type d'instruction vectorielle utilisant différentes configurations (type d'instructions, dépendances...).
-    Le générateur de kernel assembleur est un outil très précis pour la caractérisation des \gls{FPU}. Le principal avantage de l'utilisation de l'assembleur est d'éliminer les optimisations du compilateur. Le benchmark doit assurer à l'utilisateur qu'il mesure bien la performance du code qu'il a choisi de générer et qu'il n'a pas été modifié durant la compilation. Il nous a permis d'atteindre des performances souvent égales aux performances théoriques (\gls{flopspeak}). En utilisant le générateur, le programmeur peut être amené à découvrir des particularités de la microarchitecture (comme celle de l'exécution dans le désordre). En comprenant précisément le fonctionnement de la FPU, il pourra même trouver des optimisations pour sa propre application.
+    L'outil \verb=Kernel Generator= est un \verb|Kernel Generator| qui permet de mesurer la performance maximale (\gls{flopsmax})  d'un processeur pour un type d'instruction vectorielle utilisant différentes configurations (type d'instructions, dépendances...).
+    Le \verb|Kernel Generator| assembleur est un outil très précis pour la caractérisation des \gls{FPU}. Le principal avantage de l'utilisation de l'assembleur est d'éliminer les optimisations du compilateur. Le benchmark doit assurer à l'utilisateur qu'il mesure bien la performance du code qu'il a choisi de générer et qu'il n'a pas été modifié durant la compilation. Il nous a permis d'atteindre des performances souvent égales aux performances théoriques (\gls{flopspeak}). En utilisant le générateur, le programmeur peut être amené à découvrir des particularités de la microarchitecture (comme celle de l'exécution dans le désordre). En comprenant précisément le fonctionnement de la FPU, il pourra même trouver des optimisations pour sa propre application.
     
     Pour le moment, seul l'ISA x86 est supporté, mais l'outil a été codé de façon à faciliter l'ajout d'une nouvelle ISA. Nous avons choisi de commencer à le développer pour des processeurs dont nous connaissons bien le comportement pour valider son bon fonctionnement. L'exemple de la FPU du processeur Intel Xeon 4110, nous a permis de montrer que même sur des architectures que nous connaissons bien, certaines spécificités nous échappent encore. L'utilisation du générateur permet d'en comprendre toutes les particularités.
     
     
-    \paragraph{Futures travaux.} La suite du travail comprend la fin du développement de l'option permettant de mixer différentes tailles d'instructions vectorielles dans le même kernel. Nous pensons aussi permettre de générer des instructions générant des déplacements mémoires pour vérifier qu'elles ne gênent pas l'exécution des instructions de calculs. Enfin, pour mieux caractériser les plateformes pour certaines applications comme en cryptographie, nous allons ajouter d'autres instructions pouvant être générées (rotation, décalage...).
+    \paragraph{Perspectives} La suite du travail comprend la fin du développement de l'option permettant de mélanger différentes tailles d'instructions vectorielles dans le même kernel. Nous souhaitons développer une option qui permettra de générer des instructions \textbf{TODO verbe pour remplacer générer} des déplacements mémoires afin vérifier qu'elles ne gênent pas l'exécution des instructions de calcul. Enfin, pour mieux caractériser les plateformes pour certaines applications comme en cryptographie, nous allons ajouter d'autres instructions pouvant être générées (rotation, décalage...). \textbf{todo reprendre}
     
     

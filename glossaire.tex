@@ -11,7 +11,24 @@
         description={ Code, ou un ensemble de codes, permettant de mesurer la performance d'une solution et d'en vérifier ses fonctionnalités.},
         plural={benchmarks},
     }
-
+    
+    \newglossaryentry{bottleneck}{
+        name={goulot d'étranglement},
+        description={ },
+        plural={un goulots d'étranglement (\textit{bottleneck}) désigne la partie matérielle d'une architecture responsable de la limitation des performances d'un code.},
+        first={goulot d'étranglement (bottleneck)},
+        plural={bottlenecks}
+    }
+    
+           
+    \newglossaryentry{compteur}{
+        name={compteur matériel},
+        description={Les compteurs matériels de performance (ou \textit{hardware counters}) désignent les registres matériels du processeur utilisé pour enregistrés et compter les évènements matériels et logiciels arrivant sur la microarchitecture (voir PMU).},
+        plural={compteurs matériels},
+        first={compteurs matériels (\textit{hardware counters})}
+    }
+    
+    
     
     \newglossaryentry{computebound}{
         name={compute bound},
@@ -20,12 +37,13 @@
     
     \newglossaryentry{exascale}{
         name={exascale},
-        description={désigne la nouvelle génération de plateforme capable d'exécuter un \gls{exaFLOPS} ($10^{18}$ opérations en virgule flottante par seconde)}
+        description={désigne la nouvelle génération de plateforme capable d'exécuter un \gls{exaFLOPS} ($10^{18}$ opérations à virgule flottante par seconde)},
+        plural={exascales}
     }
     
     \newglossaryentry{FLOPSG}{
       name={FLOPS},
-      description={Unité de mesure du nombre d'opérations en virgule flottante par seconde. Cette mesure est couramment utilisée pour quantifier la performance d'un système informatique.},
+      description={Unité de mesure du nombre d'opérations à virgule flottante par seconde. Cette mesure est couramment utilisée pour quantifier la performance d'un système informatique.},
     }    
     
     \newglossaryentry{FMAG}{
@@ -35,7 +53,7 @@
     
     \newglossaryentry{FPUG}{
       name={FPU},
-      description={Une unité de calcul en virgule flottante Floating Point Unit) est une partie d'un processeur, spécialement conçue pour effectuer des opérations sur des nombres à virgule flottante.}
+      description={Une unité de calcul à virgule flottante Floating Point Unit) est une partie d'un processeur, spécialement conçue pour effectuer des opérations sur des nombres à virgule flottante.}
     }
      
      \newglossaryentry{framework}{
@@ -47,7 +65,8 @@
     \newglossaryentry{hotspot}{
         name={hot spot},
         description={ Désigne une région d'un programme où une grande proportion d'instructions sont exécutées pendant l'exécution d'une application.},
-        plural={hot spots}
+        plural={hot spots},
+        first={points chauds (hot spots)}
     }
     
     \newglossaryentry{HPCG}{
@@ -59,12 +78,9 @@
     \newglossaryentry{kernel}{
         name={kernel},
         description={Un noyau de calcul (\textit{kernel}) est une partie de code restreinte d'une application, qui remplit une fonction clairement définie. En \gls{HPC}, les \textit{kernels} sont des zones de codes de calculs intensifs responsables de la majorité du temps d'exécution d'une application.},
-        first={noyaux de calcul (kernel)},
+        first={noyaux de calcul (kernels)},
         plural={kernels}
     }
-    
-    
-    
     
     
     \newglossaryentry{memorybound}{
@@ -78,9 +94,22 @@
         description={Traduit l'écart de performance entre la performance des processeurs et celle du système mémoire.},
     }
     
+    \newglossaryentry{miss}{
+        name={miss},
+        description={Un défaut de cache (ou \textit{miss}) est un événement se produisant lorsqu'une donnée à accéder n'est pas présente dans la mémoire cache du processeur. Celle-ci doit alors être chargée depuis la mémoire principale.},
+        first={défaut de cache (miss)}
+    }
+    
     \newglossaryentry{MPIG}{
         name={MPI},
         description={Standard de communication pour des programmes parallèles sur des systèmes à mémoire distribuée}
+    }
+    
+    
+    \newglossaryentry{PMUG}{
+        name={PMU},
+        description={La PMU est un matériel du processeur responsable de mesurer la performance de celui-ci à l'aide de compteurs matériels spécialisés (\textit{hardware counters}).},
+        %first={Calcul Haute Performance (HPC)}
     }
     
     \newglossaryentry{prelecteur}{
@@ -95,12 +124,17 @@
         plural={strides},
     }
     
-    
-    \newglossaryentry{thread}{
+
+       \newglossaryentry{thread}{
         name={thread},
         description={ou processus léger ou tâche est similaire à un processus. Les threads d'un même processus se partagent le même espace mémoire.},
-        plural={threads}
+        plural={threads},
+        first={processus léger (thread)},
+        firstplural={processus légers (threads)}
     }
+    
+  
+  
     
 
 
@@ -151,14 +185,14 @@
     \newglossaryentry{FLOP}{
         type=\acronymtype, 
         name={FLOP}, 
-        description={\textit{Floating Point Operation} ou opération en virgule flottante}, 
-        first={opérations en virgule flottante (FLOP)}
+        description={\textit{Floating Point Operation} ou opération à virgule flottante}, 
+        first={opérations à virgule flottante (FLOP)}
     }
     
     \newglossaryentry{FLOPS}{
         type=\acronymtype, 
         name={FLOPS}, 
-        description={\textit{Floating Point Operation per Second} ou nombre d'opérations en virgule flottante par seconde (FLOP/s)}, first={opérations en virgule flottante par seconde (FLOPS)}
+        description={\textit{Floating Point Operation per Second} ou nombre d'opérations à virgule flottante par seconde (FLOP/s)}, first={opérations à virgule flottante par seconde (FLOPS)}
     }
     
     \newglossaryentry{FMA}{
@@ -170,8 +204,8 @@
     \newglossaryentry{FPU}{
       type=\acronymtype,
       name={FPU},
-      description={\textit{Floating Point Unit} ou unité de calcul en virgule flottante (\textit{voir glossaire}:\gls{FPUG})},
-      first={Floating Point Unit (FPU)}
+      description={\textit{Floating Point Unit} ou unité de calcul à virgule flottante (\textit{voir glossaire}:\gls{FPUG})},
+      first={unité de calcul à virgule flottante (FPU)}
     }
     
     \newglossaryentry{FPGA}{
@@ -199,7 +233,14 @@
         type=\acronymtype, 
         name={MPI}, 
         description={\textit{Message Passing Interface} ou interface de passage de message (\textit{voir glossaire}:\gls{MPIG})}, 
-        first={interface de passage de message (MPI)}
+        first={interface de passage de messages (MPI)}
+    }
+    
+    \newglossaryentry{PMU}{
+        type=\acronymtype, 
+        name={PMU}, 
+        description={\textit{Performance Monitoring Unit} ou unité de suivi de performance (\textit{voir glossaire}:\gls{PMUG})}, 
+        first={Performance Monitoring Unit (PMU)}
     }
     
     
@@ -207,6 +248,11 @@
     
     
     %%%%%%%%%%%% SYMBOLE %%%%%%%%%%%
+ 
+ \glsxtrnewsymbol[description={nombre d’opérations à virgule flottante (FLOP) exécuté par cycle}]
+    {flopcycle}
+    {\texttt{FLOP}$_\texttt{cycle}$}
+
     
  \glsxtrnewsymbol[description={performance de calcul maximale mesurée d'une unité de calcul, mesurée en FLOPS}]
     {flopsmax}
@@ -227,5 +273,22 @@
     {memorypeak}
     {\texttt{MEMORY}$_\texttt{peak}$}
        
-    
+\glsxtrnewsymbol[
+    description={ l'intensité opérationnelle d'un kernel correspond au ratio entre le nombre d'opérations exécutées et la quantité de données transférées nécessaire.}]
+    {oikernel}
+    {\texttt{OI}$_\texttt{kernel}$}
+   
+\glsxtrnewsymbol[
+    description={ L'équilibre arithmétique d'une architecture}]
+    {equilibrearchi}
+    {\texttt{EQUILIBRE}$_\texttt{architecture}$}
+   
+
+\glsxtrnewsymbol[
+    description={Temps optimal calculé pour exécuter un kernel}]
+    {tempsoptimal}
+    {\texttt{TEMPS}$_\texttt{optimal}$}
+   
+
+
  

@@ -1,130 +1,125 @@
 \chapter{Les compteurs matériels}\label{annexe:hardware_counter}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    \textbf{TODO refaire les titres etc, structure}
+    
+    \minitoc
+    \glsresetall
 
-    Les compteurs de performances matériels (\textit{hardware counters}) sont des registres disponibles sur les CPU modernes permettant de compter les événements (matériels ou logiciels) avec un impact minimal sur la performance du code exécuté. Ces compteurs sont aussi présents sur d'autres composants du système, tels que les contrôleurs de mémoire et les interfaces réseaux (voir \autoref{pic:edl_performance_window}). Les données récoltées peuvent être utilisées pour l'évaluation des performances et le réglage. 
+    Les \gls{compteur} sont des registres présents sur les processeurs permettant de compter les événements (matériels ou logiciels) avec un impact minimal sur la performance du code exécuté. Ces compteurs sont aussi présents sur d'autres composants du système, tels que les contrôleurs de mémoire et les interfaces réseau (voir \autoref{pic:edl_performance_window}). Les données récoltées peuvent être utilisées pour l'évaluation des performances et des réglages (BIOS, système d'exploitation). Cette annexes s'intéresse à l'évolution des compteurs matériels sur les architectures Intel. Elle complète leur présentation réalisée dans le manuscrit, à la \autoref{sec:edl_perf_intro}. Nous présentons comment ces derniers sont implémentés sur les architectures récentes du constructeur et quels sont les moyens à la disposition des programmeurs pour les utiliser.
     
-    
-    \begin{figure}[h!]
-        \center
-        \includegraphics[width=8cm]{images/edl_performance_window.jpg}
-        \caption{\label{pic:edl_performance_window}Interface de suivie de performance de Windows.}
-    \end{figure}
-    
-    
-    
-    Chaque famille de processeurs possède un jeu différent de compteurs matériels, souvent avec des noms différents, même pour les mêmes types d'événements. Les modèles d'une même famille de processeurs peuvent également différer en fonction des événements spécifiques disponibles. En général, des types d'événements similaires sont disponibles sur la plupart des CPU.
-
-    
+        \begin{figure}[ht!]
+            \center
+            \includegraphics[width=8cm]{images/edl_performance_window.jpg}
+            \caption{\label{pic:edl_performance_window} L'interface de suivi de performance de Windows permet de suivre l'activité de différentes ressources d'un ordinateur: processeur, mémoire, stockage, réseau...}
+        \end{figure}
     
 
 \section{Les compteurs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    \subsection{Suivi de performance}\label{sec:sampling}
+    \subsection{Les compteurs matériels}\label{annexe:hc}
+        
+        Pour pouvoir suivre l'activité d'un processeur lors de son fonctionnement, les architectures se sont dotées de matériels spécifiques appelés compteurs matériels (\textit{hardware counters}). À l'origine, ce dispositif était seulement utilisé par les constructeur des puces à des fins de débogage lors de la conception d'une nouvelle microarchitecture. Avec le processeur 80386, Intel a introduit deux registres, nommé \verb|TR6| et \verb|TR7|, utilisés pour valider la performance du tampon d'anticipation de conversion (\textit{Translation Look-aside Buffer} (TLB)). Intel précisa alors que ces deux registres ne seraient présents que sur cette version du processeur. Cependant Intel conserva ces deux registres et en ajouta trois dans la version suivante du processeur, le 80486, tout en répétant que ces registres pourraient disparaître lors de nouvelles versions d'architectures. Cependant, les utilisateurs se sont approprié ces compteurs pour développer leurs propres outils d'analyse de performance. Avec la génération de processeur suivante (80586), Intel retira les compteurs matériels présents dans la version précédente, rendant les outils de suivi de performance inutilisables.
+        Cependant, avec le développement du processeur Pentium, Intel a fourni aux développeurs un moyen d'accéder de manière uniforme aux différents compteurs: les \textit{Model Specific Registers} (\verb|MSR|). Ces registres sont séparés en deux familles: les registres architecturaux et non architecturaux:
+        \begin{itemize}
+            \item \textbf{Les registres architecturaux} sont des registres qui ne "\textit{devraient}"\footnote{Documentation Intel \cite{Intel2018} - \textit{The MSRs in the Pentium processor are not guaranteed to be duplicated or provided in the next generation IA-32 processors}} pas disparaître d'une version à l'autre d'un processeur. Pour des raisons historiques, ces registres sont référencés depuis le Pentium 4 avec le prefix \verb|IA32_|. En plus de ne pas disparaître avec les nouvelles architectures, ces registres ne varient pas non plus entre différentes lignes de produits. Par exemple, un registre architectural peut 
+           être utilisé sur un processeur de téléphone comme sur un processeur de serveur. Par exemple, le registre \verb|IA32_TIME_STAMP_COUNTER| est localisé à l'adresse \verb|0x10| depuis le processeur Pentium. Ce compteur est incrémenté à chaque cycle d'horloge (de base). La fréquence d'incrémentation de ce registre ne varie pas avec celle du processeur et permet de mesurer très précisément un intervalle de temps entre deux mesures. 
+            
+            \item \textbf{Les registres non architecturaux} quant à eux ne sont pas assurés d'être présent sur de futures architectures. Par exemple, le registre utilisé pour mesurer le nombre d'\gls{FLOP} exécutées, a été retiré entre les architectures Sandy Bridge et Haswell avant de réapparaître ensuite. 
+    
+            
+        \end{itemize}
+        
+    \subsection{Mode de mesure: comptage et échantillonnage}\label{sec:sampling}
+    
+        Qu'ils soient architecturaux ou non, le but des \verb|MSR| est de permettre à l'utilisateur de mesurer le nombre d'occurrences d'un évènement. Cet évènement peut être matériel (cycle d'horloge, exécution d'une instruction, manque dans un cache...) ou logiciel (faute de page, changement de contexte...). Comme les évènements dépendent de la présence ou non des compteurs correspondants, la pérennité des évènements n'est pas assurée d'une architecture à l'autre. Lors du développement d'un outil d'analyse de performance, il est nécessaire de vérifier qu'ils sont disponibles avec l'architecture utilisée. Intel propose la liste des évènements compatible avec chaque architecture\footnote{Liste des évènements compatibles par architecture Intel - \url{https://download.01.org/perfmon/index/}}. Il existe deux méthodes permettant de suivre le nombre d'évènements ayant lieu sur la microarchitecture: le comptage et l'échantillonnage.
     
             \paragraph{Le comptage.} 
                 
-                La première méthode consiste à compter le nombre d'évènements arrivant entre deux intervalles de temps. Pour cela, le compteur est initialisé à $0$ et lu au bout d'une certaine période de temps. Les valeurs ainsi récupérées permettent de mesurer le nombre d'occurrences de ces évènements. Cette méthode est efficace, mais elle ne permet pas de connaître la partie du code responsable d'un évènement. Les ratios d'évènements, tels que les instructions exécutées par cycle, les taux de \textit{miss} de mémoire cache et les taux d'erreurs de prévision des branches, peuvent être calculés en divisant le nombre par le temps écoulé.
+                La première méthode consiste à compter le nombre d'évènements arrivant entre deux intervalles de temps. Pour cela, le compteur est initialisé à $0$ et lu au bout d'une certaine période de temps. Les valeurs ainsi récupérées permettent de mesurer le nombre d'occurrences de ces évènements. Cette méthode est efficace, mais elle ne permet pas de connaître la partie du code responsable d'un évènement. Les ratios d'évènements, tels que les instructions exécutées par cycle, les taux de \textit{miss} de mémoire cache et les taux d'erreurs de prévision des branches peuvent ensuite être calculés.
             
             \paragraph{L'échantillonnage.} 
             
-                Pour obtenir plus d'informations sur le code responsable des évènements, le mode d'échantillonage ou \textit{sampling} doit être utilisé. Ce mode consiste à déclencher une interruption tous les $n$ évènements et sauvegarder certaines informations telles que le pointeur d'instruction. Pour cela, le registre de comptage est initialisé à la valeur $\text{MAX} - n$ ou $\text{MAX}$ correspond à la valeur maximale pouvant être stocké dans le registre. Lorsque $n$ évènements sont comptés, le registre déclenche un débordement (\textit{overflow}) et génère une exception traitée par le système d'exploitation. Grâce à un échantillonage assez fin (nombre $n$ petit) et des méthodes de statistiques, il est possible d'approcher le nombre d'évènements généré par chaque instruction. La principale difficulté de cette technique est d'assurer suffisamment de précision lors de l'attribution d'un évènement à une instruction. En effet, entre le moment où l'interruption est générée et son traitement, plusieurs instructions peuvent avoir été exécutées. Des technologies telles que Intel PEBS\footnote{Documentation Intel - Intel 64 and IA-32 Architectures Software Developer's Manual Volume 3B, Chapter 18. \url{https://software.intel.com/sites/default/files/managed/7c/f1/253669-sdm-vol-3b.pdf}} (Processor Event-Based Sampling) ou AMD IBS (Instruction Based Sampling) \cite{Drongowski2007} agrémentent le processeur d'un tampon lui permettant de stocker les informations nécessaires. L'autre avantage de cette technologie est de réduire l'impact sur les performances dû au traitement de chaque échantillon par le système d'exploitation. La PMU possède un tampon pouvant stocker plusieurs échantillons et n'interrompt l'exécution que lorsque ce tampon est plein. Le principal désavantage de cette technologie est le nombre restreint d'évènements compatibles. De plus, elle n'est pas compatible avec toutes les architectures réduisant la portabilité des outils l'utilisant.
-       
-    \subsection{Les registres matériels}\label{annexe:hc}
-        
-        Pour pouvoir suivre l'activité d'un processeur lors de son fonctionnement, les architectures se sont dotées de matériels spécifiques appelés compteurs matériels (\textit{hardware counter}). À l'origine, ce dispositif était utilisé seulement par le constructeur des puces à des fins de débogage lors de leur conception. Avec le processeur 80386, Intel a introduit deux registres matériels, TR6 et TR7, pour réaliser des tests sur le Translation Look-aside Buffer (TLB). Intel précisa alors que ces deux registres ne seraient présents que sur cette version du processeur. Cependant Intel conserva ces deux registres et en ajouta trois dans la version suivante du processeur, le 80486, tout en répétant que ces registres pouvaient disparaître d'une version à l'autre. Cependant, les utilisateurs se sont approprié ces compteurs pour programmer leurs propres outils d'analyse de performance. Ces outils ne fonctionnaient alors plus après qu'Intel ait retiré ces compteurs dans la version suivante (Intel 80586). Cependant, avec l'arrivé du Pentium, Intel à fournit aux développeurs un moyen, expérimental, et lui aussi temporaire, d'accéder de manière uniforme aux différents compteurs: les Model Specific Registers ou MSR.
-
-        Les registres sont séparés en deux familles: les registres architecturaux et non architecturaux. 
-        La première famille regroupe les \textbf{registres architecturaux} qui ne "\textit{devraient}"\footnote{Documentation Intel - \textit{The MSRs in the Pentium processor are not guaranteed to be duplicated or provided in the next generation IA-32 processors}} pas disparaître d'une version à l'autre d'un processeur. Pour des raisons historiques, ces registres sont référencés depuis le Pentium 4 avec le prefix \verb|IA32_|. En plus de ne pas disparaître avec les nouvelles architectures, ces registres ne varient pas non plus entre différentes lignes de produit et peuvent aussi être utilisés sur un processeur de téléphone comme sur un processeur de serveur. Par exemple, le registre \verb|IA32_TIME_STAMP_COUNTER| est localisé à l'adresse \verb|0x10| depuis le processeur Pentium. Ce compteur est incrémenté à chaque cycle d'horloge (de base). La fréquence d'incrémentation de ce registre ne varie pas avec celle du processeur et permet de mesurer très précisément un intervalle de temps entre deux mesures. 
-        Les registres \textbf{non architecturaux}, quant à eux ne sont pas assurées d'être présent sur de futures architectures. Par exemple, le registre utilisé pour mesurer le nombre de calculs flottants réalisés par un coeur a été retiré entre les architectures Sandy Bridge et Haswell avant de réapparaître ensuite. 
-    
-    \subsection{Évènements}
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-        Qu'ils soient architecturaux ou non, le but des MSR est de permettre à l'utilisateur de mesurer le nombre d'occurrences d'un évènement. Cet évènement peut être matériel (cycle d'horloge, exécution d'une instruction, manque dans un cache...) ou logiciel (faute de page, changement de contexte...). Comme les évènements dépendent de la présence ou non des compteurs correspondants, la pérennité des évènements n'est pas assurée d'une architecture à l'autre. Lors du développement d'un outil d'analyse de performance, il est nécessaire de vérifier qu'ils sont disponibles avec l'architecture utilisée. Intel propose la liste des évènements compatible avec chaque architecture \footnote{Liste des évènements compatibles par architecture Intel - \url{https://download.01.org/perfmon/index/}}.
+                Pour obtenir plus d'informations sur les instructions responsables du déclenchement d'un évènement, le mode d'échantillonnage (\textit{sampling}) doit être utilisé. Ce mode consiste à déclencher une interruption tous les $n$ évènements et sauvegarder certaines informations telles que la valeur du pointeur d'instruction. Pour cela, le registre de comptage est initialisé à la valeur $\text{MAX} - n$ où $\text{MAX}$ correspond à la valeur maximale pouvant être stockée dans le registre. Lorsque $n$ évènements sont comptés, le registre déclenche un débordement (\textit{overflow}) et génère une exception traitée par le système d'exploitation. Grâce à un échantillonnage assez fin (nombre $n$ petit) et des méthodes de statistiques, il est possible d'approcher le nombre d'évènements généré par chaque instruction. La principale difficulté de cette technique est d'assurer suffisamment de précision lors de l'attribution d'un évènement à une instruction. En effet, entre le moment où l'interruption est générée et son traitement, plusieurs instructions peuvent avoir été exécutées. Des technologies telles que Intel PEBS\footnote{Documentation Intel - Intel 64 and IA-32 Architectures Software Developer's Manual Volume 3B, Chapter 18. \url{https://software.intel.com/sites/default/files/managed/7c/f1/253669-sdm-vol-3b.pdf}} (Processor Event-Based Sampling) ou AMD IBS (Instruction Based Sampling) \cite{Drongowski2007} agrémentent le processeur d'un tampon lui permettant de stocker les informations nécessaires. L'autre avantage de cette technologie est de réduire l'impact sur les performances dû au traitement de chaque échantillon par le système d'exploitation. La PMU possède un tampon pouvant stocker plusieurs échantillons et n'interrompt l'exécution que lorsque ce tampon est plein. Le principal désavantage de cette technologie est le nombre restreint d'évènements compatibles. De plus, elle n'est pas compatible avec toutes les architectures réduisant la portabilité des outils l'utilisant.
       
-
-  
-\section{Architecture Intel}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-    
-    
-    \subsection{Unité de suivi de performance}
-     
-        Les évènements peuvent être collectés à différents endroits du processeur grâce à un matériel dédié appelé PMU (\textit{Performance Monitoring Unit}). Leur séparation du reste du processeur permet de ne pas impacter la performance de ce dernier, rendant la collecte d'informations non intrusive. Les PMU sont disposées à différents endroit du processeur: certaines sont rattachées à un coeur spécifique, d'autres sur le processeur lui même (voir \autoref{pic:yamb_skl_pmu}).  Une architecture comme celle des processeurs Skylake possède une PMU par coeur logique et une PMU \textit{uncore}.  Pour pouvoir compter des évènements, la PMU doit être configurée à l'aide de registres matériels MSR.
-            
-        \begin{figure}[h!]
-        \center
-        \includegraphics[width=10cm]{images/yamb_skl_pmu.png}
-        \caption{\label{pic:yamb_skl_pmu}Exemple de disposition des PMU sur un processeur Skylake (extrait de \cite{Selva2017})}
-        \end{figure}
-        
-        Les mesures réalisées par la PMU peuvent être filtrées pour mesurer la totalité de l'activité ou seulement celle d'un processus. Ces configurations sont réalisées  directement depuis le code (compilateur, manuellement) ou depuis le système (outils de profilage, noyau). Les PMU peuvent être utilisées de deux façons différentes pour étudier l'activité d'un processeur: le comptage et l'échantillonnage. 
-
-        \paragraph{Le multiplexage.}
-        
-            Le nombre de registres MSR pouvant être utilisé pour compter un évènement est bien inférieur au nombre d'évènements supportés par l'architecture impliquant de réaliser un choix des évènements à mesurer. De plus, certains évènements ne peuvent pas être mesurés en même temps pour des raisons architecturales. 
-            Pour cela, on a recours à des techniques de multiplexage dont le principe est d'exécuter plusieurs groupes de compteurs matériels en suivant un algorithme d'ordonnancement de type \textit{round-robin.} Pour ce faire, un premier groupe d'évènements est mesuré pendant un court intervalle de temps, puis les évènements sont remplacés par ceux du groupe suivant. Ce remplacement est réalisé jusqu'à ce que le comptage d'évènements soit finalement arrêté. Le multiplexage signifie qu'aucun des groupes de compteurs n'a été exécuté sur l'ensemble du code et que l'on ignore quelle fraction du code a été mesurée avec quel groupe. On suppose que la charge de travail est suffisamment uniforme pour que le nombre d'évènements mesurés puisse être étalonné comme si les groupes avaient été exécutés séparément sur le code entier. 
-            Les techniques de reconstruction des profils peuvent être inexactes\cite{Lim}. De la même façon que pour l'échantillonnage, l'erreur d'estimation augmente avec le nombre d'évènements à mesurer impliquant un partage plus long des PMU. Pour pouvoir utiliser le maximum de compteurs, il est important de noter que la désactivation de l'\textit{hyperthreading} sur les processeurs Intel, désactive aussi la moitié des compteurs disponibles (voir \autoref{pic:edl_perf_pmu}).
-
-
     \subsection{Compteurs matériels des architectures Intel}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
 
-        Pour compter le nombre d'occurrences d'un évènement, les PMU des processeurs Intel possèdent deux types de compteurs: les \textit{Fixed-function counters} (FFC) et les compteurs de performance (HPMC). Les processeurs Intel possèdent une PMU \textit{uncore} directement sur le processeur et une PMU par coeur logique, donc deux PMU par coeur physique lorsque l'\textit{hyperthreading} est activé (voir \autoref{pic:edl_perf_pmu}). Chaque PMU \textit{oncore} possède 3 compteurs \textit{Fixed-Function} et 4 compteurs HPMC.
+        Pour compter le nombre d'occurrences d'un évènement, les processeurs Intel possèdent deux types de compteurs:
+        \begin{itemize}
+            \item Les \textit{Fixed-function counters} (\textbf{FFC}) : compteurs préconfigurés pour compter un évènement, prêts à l'emploi.
+            \item Les compteurs de performance (\textbf{HPMC}) : compteur pouvant être configuré pour compter différents évènements.
+        \end{itemize}
+        Ces compteurs sont situés sur un matériel dédié appelé \gls{PMU}. Les PMU sont présentées en détail dans la \autoref{sec:pmu}. Les processeurs Intel possèdent une PMU \textit{uncore} directement sur le processeur et une PMU par coeur logique, donc deux PMU par coeur physique lorsque l'\textit{hyperthreading} est activé (voir \autoref{pic:edl_perf_pmu}). Chaque PMU \textit{oncore} possède 3 compteurs \textit{Fixed-Function} et 4 compteurs HPMC.
         
         \begin{figure}
         \center
-        \includegraphics[width=12cm]{images/edl_perf_pmu.png}
-        \caption{\label{pic:edl_perf_pmu} Disposition des compteurs matériels sur un coeur d'un processeur Intel.}
+        \includegraphics[width=\linewidth]{images/edl_perf_pmu.png}
+        \caption{\label{pic:edl_perf_pmu} Disposition des compteurs matériels sur un coeur d'un processeur Intel de génération Skylake. Chaque coeur possède une PMU \textit{oncore} accueillant 3 compteurs FFC et 4 compteurs HPMC. Une PMU \textit{uncore} est situé sur le processeur lui même et possède 4 compteurs HPMC.}
         \end{figure}
-    
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        \paragraph{Les compteurs FFC}
         
-            Les compteurs \textit{Fixed-Function} sont les plus simples à utiliser, car ils sont déjà configurés pour compter un évènement. Sur les architectures Intel, il y a 3 compteurs FFC par coeur logique. Le premier compteur (\textit{IA32\_FIXED\_CTR0}) compte le nombre d'instructions exécutées par un coeur. Le deuxième (\textit{IA32\_FIXED\_CTR1}), compte le nombre de cycles à la fréquence nominale du processeur. Enfin le troisième (\textit{IA32\_FIXED\_CTR3}), compte le nombre de cycles durant lequel le coeur est actif. Pour pouvoir utiliser ces trois compteurs, une simple configuration est requise grâce aux deux registres \textit{IA\_32\_PERF\_GLOBAL\_CTRL} et \textit{IA\_ Le 32\_FIXED\_CTR\_CTRL} (voir \autoref{pic:edl_perf_ffc}). 
+    
+        \subsubsection{Les compteurs FFC}
+        
+            Les compteurs \textit{Fixed-Function} sont les plus simples à utiliser, car ils sont déjà configurés pour compter un évènement. Sur les architectures Intel, il y a 3 compteurs FFC par coeur logique:
+            \begin{itemize}
+                \item \verb|IA32_FIXED_CTR0|: compte le nombre d'instructions exécutées par un coeur. 
+                \item \verb|IA32_FIXED_CTR1|: compte le nombre de cycles à la fréquence nominale du processeur.
+                \item \verb|IA32_FIXED_CTR2|: compte le nombre de cycles durant lesquels le coeur est \textbf{actif}. 
+            \end{itemize}
             
-            \begin{figure}[h!]
+            La configuration et l'activation de chacun des trois compteurs FFC sont présentées sur la \autoref{pic:edl_perf_ffc}. Celle-ci fait appel aux trois \verb|MSR| suivants:
+            \begin{itemize}
+                \item \verb|IA32_PERF_GLOBAL_CTRL|: ce \verb|MSR| permet d'activer les deux types de compteurs (HPMC et PPF). Chaque bit de ce registre correspond à l'activation ou non du compteur associé. Cette activation n'a à être réalisée qu'une seule fois au démarrage du processeur.
+                \item \verb|IA32_FIXED_CTR_CTRL|: ce \verb|MSR| permet de configurer le comptage d'événements: mode utilisateur ou noyau, mesure du coeur logique associé ou de tout le coeur physique, ainsi que de permettre au compteur de générer ou non une interruption lorsque celle-ci dépasse la valeur maximale pouvant être stockée sur 48 bits. Ce dernier bit de configuration peut être utilisé pour vérifier l'utilisation ou non du compteur par un autre programme (qui voudrait être alerté par une interruption).
+                \item \verb|IA32_FIXED_CTR_x|: ce \verb|MSR| reçoit le nombre d'évènements comptabilisé suite à la configuration du compteur FFC correspondant.
+            \end{itemize}
+            
+            Une fois ces deux opérations réalisées (activation et configuration), les évènements sont comptés dans les trois registres correspondants, il ne suffit alors plus que de lire la valeur s'y trouvant. Bien qu'il ne soit pas nombreux, les trois compteurs FFC permettent d'obtenir des informations intéressantes sur l'utilisation du processeur. Par exemple en divisant le troisième compteur par le deuxième ($\frac{IA32\_FIXED\_CTR3}{IA32\_FIXED\_CTR2}$) on obtient le pourcentage d'utilisation du coeur. En utilisant le premier compteur, on peut aussi obtenir un bon indicateur sur la performance du code en calculant le nombre d'\gls{IPC}.
+            
+            \begin{figure}[ht!]
             \center
-            \includegraphics[width=10cm]{images/edl_perf_ffc.png}
-            \caption{\label{pic:edl_perf_ffc} Chaque coeur logique dispose d'une PMU possédant 3 compteurs pré-configurés pour compter un type d'évènement.}
+            \includegraphics[width=14cm]{images/edl_perf_ffc.png}
+            \caption{\label{pic:edl_perf_ffc} Chaque coeur logique possède 3 compteurs FFC pouvant être configurés et utilisés à l'aide de trois autres registres \texttt{MSR}.}
             \end{figure}
         
-            Le premier MSR permet d'activer les deux types de compteurs (HPMC et PPF). Chaque bit de ce registre correspond à l'activation ou non du compteur associé. Cette activation n'a à être réalisée qu'une seule fois au démarrage du processeur. Le deuxième registre permet de configurer le comptage d'événements: mode utilisateur ou noyau, mesure du coeur logique associé ou de tout le coeur physique, ainsi que de permettre au compteur de générer ou non une interruption lorsque celle-ci dépasse la valeur maximale pouvant être stockée sur 48 bits. Ce dernier bit de configuration peut être utilisé pour vérifier l'utilisation ou non du compteur par un autre programme (qui voudrait être alerté par une interruption). Une fois ces deux opérations réalisées (activation et configuration), les évènements sont comptés dans les trois registres correspondants, il ne suffit alors plus que de lire la valeur s'y trouvant. Bien qu'il ne soit pas nombreux, les trois compteurs FFC permettent d'obtenir des informations intéressantes sur l'utilisation du processeur. Par exemple en divisant le troisième compteur par le deuxième ($\frac{IA32\_FIXED\_CTR3}{IA32\_FIXED\_CTR2}$) on obtient le pourcentage d'utilisation du coeur. En utilisant le premier compteur, on peut aussi obtenir un bon indicateur sur la performance du code: le nombre d'instructions exécutées chaque cycle (IPC).
+            
         
        
         
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        \paragraph{Les compteurs HPMC.} 
+        \subsubsection{Les compteurs HPMC.} 
             
-            Les compteurs HPMC sont plus difficiles à utiliser, ils doivent être configurés par l'utilisateur et la longue documentation (plusieurs centaines de pages) n'est pas toujours évidente à comprendre. Les compteurs HPMC sont présents sur les PMU des \textit{oncore} et \textit{uncore}. Leur nombre dépend de l'architecture, les derniers processeurs Skylake possèdent 4 compteurs HPMC par PMU \textit{oncore}, donc 8 compteurs par coeur. Un compteur HPMC est composé de deux registres. L'un est utilisé pour la configuration, le deuxième pour le comptage (voir \autoref{pic:edl_perf_hpmc}).
+            Les compteurs HPMC sont plus difficiles à utiliser que les compteurs FFC car ils doivent entièrement être configurés par l'utilisateur et la longue documentation (plusieurs centaines de pages) n'est pas toujours évidente à comprendre. Leur nombre dépend de l'architecture. Les processeurs de génération Skylake possèdent 4 compteurs HPMC par PMU \textit{oncore} (8 compteurs par coeur). Contrairement aux compteurs FFC, les compteurs HPMC sont présents sur les PMU des \textit{oncore} et \textit{uncore}. Un compteur HPMC est composé de deux registres \verb|MSR| présentés sur la  \autoref{pic:edl_perf_hpmc}) :
+            \begin{itemize}
+                \item Le premier registre est appelé PMC (Performance Monitoring Controler) référencé sous le nom \verb|IA32_PERFEVTSELx|. Chaque compteur HPMC possède son propre registre PMC (accessibles aux adresses 0x186, 0x187, 0x188 et 0x189) qui permet de réaliser la configuration des quatre compteurs: activation, génération d'une interruption, mode (utilisateur ou noyau), évènement à compter (voir \autoref{pic:eld_perf_pmc}). 
+                \item Le deuxième registre est appelé PMD (Performance Monitoring Data). Il enregistre le nombre d'évènements depuis son activation réalisée avec registre PMC qui lui est associé. Ces \verb|MSR| sont des registres architecturaux nommés \verb|IA32_PMC| et localisés des adresses \verb|0x4C1| à \verb|0x4C4|.
+                
+            \end{itemize}
         
-            \begin{figure}[h!]
+            \begin{figure}[ht!]
             \center
             \includegraphics[width=14cm]{images/edl_perf_hpmc.png}
-            \caption{\label{pic:edl_perf_hpmc} Chaque coeur logique dispose d'une PMU possédant 4 compteurs HPMC pouvant être configurés pour compter différents évènements. Dans cet exemple, les 4 compteurs sont configurés pour compter toutes les opérations flottantes en doubles précisions exécutées sur le coeur (opérations scalaires et vectorielles (128, 256 et 512 bits)).}
+            \caption{\label{pic:edl_perf_hpmc} Chaque coeur logique dispose d'une PMU possédant 4 compteurs HPMC pouvant être configurés pour compter différents évènements. Dans cet exemple, les 4 compteurs sont configurés pour compter toutes les opérations flottantes en doubles précisions exécutées sur le coeur.}
             \end{figure}
             
-            Le premier registre est appelé PMC (Performance Monitoring Controler) référencé sous le nom \verb|IA32_PERFEVTSELx|. Chaque HPMC possède son propre registre PMC (accessibles aux adresses 0x186, 0x187, 0x188 et 0x189) qui permet de réaliser la configuration des quatre compteurs: activation, génération d'une interruption, mode (utilisateur ou noyau), évènement à compter (voir \autoref{pic:eld_perf_pmc}). Le \autoref{tab:pmc_config} montre un exemple de configuration d'un compteur pour compter le nombre instructions flottantes scalaires exécutées. Il faut pour cela trouver le code correspondant dans la documentation Intel \cite{Intel2018} au chapitre 19.2 pour les évènements Skylake. Ensuite, les différents bits de configuration sont utilisés pour activer le compteur et filtrer les évènements à compter (système d'exploitation et/ou utilisateur). La valeur résultante (\verb|0x6301C7|) n'a plus qu'à être écrite dans un des quatre MSR du coeur pour lancer le comptage dans le registre PMD correspondant.
+            
+            Le \autoref{tab:pmc_config} montre un exemple de configuration d'un compteur permettant de compter le nombre de \gls{FLOP} (opérations scalaires et vectorielles (128, 256 et 512 bits)). Il faut pour cela trouver le code correspondant dans la documentation Intel \cite{Intel2018} au chapitre 19.2 pour les évènements Skylake. Ensuite, les différents bits de configuration sont utilisés pour activer le compteur et filtrer les évènements à compter (système d'exploitation et/ou utilisateur). La valeur résultante (par exemple \verb|0x6301C7| pour les instrctions scalaires) n'a plus qu'à être écrite dans un des quatre \verb|MSR| du coeur pour lancer le comptage dans le registre PMD correspondant.
+          
+            
             
             \begin{figure}
             \center
-            \includegraphics[width=8cm]{images/eld_perf_pmc.png}
-            \caption{\label{pic:eld_perf_pmc}Organisation du registre MSR utilisé pour la configuration d'un compteur.}
+            \includegraphics[width=14cm]{images/eld_perf_pmc.png}
+            \caption{\label{pic:eld_perf_pmc}Organisation du registre \texttt{MSR} utilisé pour la configuration d'un compteur.}
             \end{figure}
-            
-            
-            Le deuxième registre des compteurs HPMC est appelé PMD (Performance Monitoring Data). Il enregistre le nombre d'évènements depuis son activation réalisée avec registre PMC qui lui est associé. Ces MSR sont des registres architecturaux nommés \verb|IA32_PMC| et localisés des adresses \verb|0x4C1| à \verb|0x4C4|.
-           
             
             % Please add the following required packages to your document preamble:
             % \usepackage{graphicx}
-            \begin{table}[]
+            \begin{table}
             \centering
             \begin{tabular}{l|c|c|c|c|c|c|c|c|c|c|c|}
             \cline{2-12}
@@ -133,39 +128,56 @@
             \multicolumn{1}{|l|}{Valeur} & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & C7 \\ \hline
             \multicolumn{1}{|l|}{Résultat} & 0 & \multicolumn{4}{c|}{6} & \multicolumn{4}{c|}{3} & 1 & C7 \\ \hline
             \end{tabular}%
-            \caption{Configurer un compteur pour compter le nombre d'instructions flottantes exécutées revient à écrire la valeur $0x6301C7$ dans son registres PMC.}
+            \caption{Configurer un compteur pour compter le nombre de \gls{FLOP} scalaires exécutés par un coeur revient à écrire la valeur $0x6301C7$ dans un registre PMC de la PMU du coeur.}
             \label{tab:pmc_config}
             \end{table}
+
+
+\section{ Unité de suivi de performance Intel: les PMU}\label{sec:pmu}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+    Dans la section précédente, nous avons présenté les deux types de compteurs des architectures Intel. Dans cette section, nous présentons les différents moyens à disposition de l'utilisateur pour compter des évènements. Les évènements peuvent être collectés à différents endroits du processeur grâce à un matériel dédié appelé PMU (\textit{Performance Monitoring Unit}). Leur séparation du reste du processeur permet de ne pas impacter la performance de ce dernier, rendant la collecte d'informations non intrusive. Les PMU sont disposées à différents endroits du processeur: certaines sont rattachées à un coeur spécifique, d'autres sur le processeur lui-même (voir \autoref{pic:yamb_skl_pmu}).  Une architecture comme celle des processeurs Skylake possède une PMU par coeur logique et une PMU \textit{uncore}. Pour pouvoir compter des évènements, la PMU doit être configurée à l'aide de registres matériels \verb|MSR|. Les mesures réalisées par la PMU peuvent être filtrées pour mesurer la totalité de l'activité ou seulement celle d'un processus. Ces configurations sont réalisées  directement depuis le code ou depuis le système (outils de profilage, noyau). Les PMU peuvent être utilisées de deux façons différentes pour étudier l'activité d'un processeur: le comptage et l'échantillonnage. 
         
+        \begin{figure}[ht!]
+        \center
+        \includegraphics[width=10cm]{images/yamb_skl_pmu.png}
+        \caption{\label{pic:yamb_skl_pmu}Exemple de disposition des PMU sur un processeur Skylake (extrait de \cite{Selva2017})}
+        \end{figure}
+        
+    
+    \paragraph{Le multiplexage.}
+        
+            Le nombre de compteurs HPMC utilisable sur une architecture est bien inférieur au nombre d'évènements supportés par l'architecture. Il faut donc réaliser un choix des évènements à mesurer. De plus, certains évènements ne peuvent pas être mesurés en même temps pour des raisons architecturales. 
+            Pour répondre à ces deux besoins, les PMU peuvent utiliser la technique du multiplexage dont le principe est d'exécuter plusieurs groupes de compteurs matériels en suivant un algorithme d'ordonnancement de type \textit{round-robin.} Pour ce faire, un premier groupe d'évènements est mesuré pendant un court intervalle de temps, puis les évènements sont remplacés par ceux du groupe suivant. Ce remplacement est réalisé jusqu'à ce que le comptage d'évènements soit finalement arrêté. Le multiplexage signifie qu'aucun des groupes de compteurs n'a été exécuté sur l'ensemble du code et que l'on ignore quelle fraction du code a été mesurée avec quel groupe. On suppose que la charge de travail est suffisamment uniforme pour que le nombre d'évènements mesurés puisse être étalonné comme si les groupes avaient été exécutés séparément sur le code entier. 
+            Cependant, les techniques de reconstruction des profils peuvent être inexactes \cite{Lim}. De la même façon que pour l'échantillonnage, l'erreur d'estimation augmente avec le nombre d'évènements à mesurer impliquant un partage plus long des PMU. Pour pouvoir utiliser le maximum de compteurs, il est important de noter que la désactivation de l'\textit{hyperthreading} sur les processeurs Intel désactive aussi la moitié des compteurs disponibles (voir \autoref{pic:edl_perf_pmu}).
+
+
     \subsection{PMU core} \label{sec:perf_asm_msr}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        Au fil des générations, les architectures ont reçu plusieurs instructions permettant d'interagir avec les registres MSR. Les processeurs Intel possèdent actuellement 5 instructions nécessitant différents privilèges pour les exécuter (voir \autoref{fig:edl_perf_assembly_msr}).
         
-        \begin{figure}[h!]
+        Les compteurs sont des registres matériels, ils peuvent donc être écrits et lus comme n'importe quels autres registres. Au fil des générations, les architectures ont reçu plusieurs instructions permettant d'interagir avec les registres \verb|MSR|. Les processeurs Intel possèdent actuellement 5 instructions nécessitant différents privilèges pour les exécuter (voir \autoref{fig:edl_perf_assembly_msr}):
+        \begin{itemize}
+            \item \verb|wrmsr| et \verb|rdmsr| permettent respectivement d'écrire et de lire les \verb|MSR|.
+            \item  \verb|rdpmc| permet de lire le contenu des registres \verb|MSR|
+            \item \verb|rdtsc| et \verb|rdtscp| permettent de lire deux compteurs pré-configurés.
+        \end{itemize}
+        
+         
+        \begin{figure}[ht!]
             \center
             \includegraphics[width=10cm]{images/edl_perf_assembly_msr.png}
-            \caption{\label{fig:edl_perf_assembly_msr} Instructions assembleurs permettant d'accéder aux registres MSR d'une architecture Intel.}
+            \caption{\label{fig:edl_perf_assembly_msr} Instructions assembleurs permettant d'accéder aux registres \texttt{MSR} d'une architecture Intel.}
         \end{figure}
-    
-    
-        Les compteurs sont des registres matériels, ils peuvent donc être écrits et lus comme n'importe quels autres registres. Il existe deux instructions assembleur permettant d'écrire (\textit{wrmsr}) et de lire (\textit{rdmsr}) ces registres. Les registres accessibles à l'utilisateur peuvent être listés grâce à l'instruction \textit{cpuid}. Cependant, ces instructions ne peuvent être exécutées que par un processus de privilège 0. En effet, laisser la possibilité à un utilisateur normal de modifier ces registres peut être très dangereux pour la sécurité du système. Tous les processus qui veulent interagir avec les registres MSR doivent donc pouvoir accéder à ce niveau de privilège. C'est \textit{la} contrainte majeur qui rend difficile le développement d'outils de suivi de performance. De multiples moyens ont été mis au point depuis pour pouvoir y accéder sans compromettre la sécurité du système. 
         
-        Le premier moyen a été introduit par Intel grâce à la création d'une troisième instruction assembleur permettant de lire le contenu d'un registre avec l'instruction \textit{rdpmc}. Cette instruction a ajouté avec la sortie du Pentium Pro en 1995. Bien que cette instruction ne permette par d'écrire dans un registre, elle permet de lire le résultat des compteurs et notamment les compteurs FFC. Ces compteurs étant déjà configurés, l'instruction \textit{rdpmc} permet de pouvoir lire ces trois compteurs sans privilège supplémentaire. Dans un programme C, le compteur \textit{ctr} (1, 2 ou 3) peut être lu grâce au code de l'\autoref{lst:edl_rdpmc_ffc}. L'instruction \textit{rdpmc} peut aussi être utilisé pour lire les compteurs HPMC grâce au code de l'\autoref{lst:edl_rdpmc_pmc}. Cela peut être utile pour laisser les utilisateurs accéder aux résultats des compteurs HPMC après qu'un autre programme ayant les droits d'utilisation de l'instruction \textit{wrmsr} ait paramétré les compteurs.
+        Les deux instructions \verb|wrmsr| et \verb|rdmsr| ne sont disponibles qu'en mode \textit{kernel} et ne peuvent être exécutées que par un processus de privilège 0. En effet, laisser la possibilité à un utilisateur normal de modifier ces registres peut être très dangereux pour la sécurité du système. Les trois autres instructions peuvent être exécutées par un utilisateur sans droits supplémentaire. L'instruction assembleur \verb|rdpmc| permet de lire le contenu d'un registre. Cette instruction a ajouté avec la sortie du Pentium Pro en 1995. Bien que cette instruction ne permette par d'écrire dans un registre, elle permet de lire le résultat des compteurs et notamment les compteurs FFC. Ces compteurs étant déjà configurés, l'instruction \verb|rdpmc| permet de pouvoir lire ces trois compteurs sans privilège supplémentaire. Dans un programme C, le compteur \textit{ctr} (1, 2 ou 3) peut être lu grâce au code de l'\autoref{lst_edl_rdpmc_ffc}. L'instruction \verb|rdpmc| peut aussi être utilisée pour lire les compteurs HPMC grâce au code de l'\autoref{lst:edl_rdpmc_pmc}. Cela peut être utile pour laisser les utilisateurs accéder aux résultats des compteurs HPMC après qu'un autre programme ayant les droits d'utilisation de l'instruction \verb|wrmsr| ait paramétré les compteurs.
 
-\begin{minipage}{.45\textwidth}
+\begin{minipage}{\linewidth}
 \begin{lstlisting}[
-label=lst:edl_rdpmc_ffc,
-basicstyle={\scriptsize\ttfamily},
-identifierstyle={\color{black}},
+label={lst_edl_rdpmc_ffc},
 language={c},
-tabsize=2,
-numbersep=8pt,
-frame=tlbr,framesep=2pt,framerule=0pt,
-morekeywords ={class,run},
-caption=Lecture des compteurs FFC grâce à l'instruction \textit{rdpmc}.
+caption={Lecture des compteurs FFC grâce à l'instruction \texttt{rdpmc}.}
 ]
-ul rdpmc_Fixed-Function (int ctr){
+ul rdpmc_Fixed_Function (int ctr){
    unsigned a, d, c;
    c = (1<<30) + ctr;
    __asm__ volatile("rdpmc" : "=a" (a), 
@@ -175,25 +187,13 @@ ul rdpmc_Fixed-Function (int ctr){
          (((unsigned long)d) << 32);;
 }
 \end{lstlisting}
-\end{minipage}%%
-\hfill
-%&
-%
+\end{minipage}
 
-\textbf{TODO voir ca: y a une erreur}
-\iffalse
-\begin{minipage}{.45\textwidth}
+\begin{minipage}{\linewidth}
 \begin{lstlisting}[
-label=lst:edl_rdpmc_pmc,
-basicstyle={\scriptsize\ttfamily},
-identifierstyle={\color{black}},
-tabsize=2,
-language={c},
-numbersep=8pt,
-xleftmargin=0,frame=tlbr,framesep=2pt,framerule=0pt,
-morekeywords ={class,run},
-caption=Lecture des compteurs HPMC grâce à l'instruction \textit{rdpmc}.
-]
+    language=C, 
+    caption={Lecture des compteurs HPMC grâce à l'instruction \texttt{rdpmc}.},
+    label={lst:edl_rdpmc_pmc}]
 ul rdpmc_counter (int ctr){
    unsigned a, d, c;
    c = ctr;
@@ -205,12 +205,31 @@ ul rdpmc_counter (int ctr){
 }
 \end{lstlisting}
 \end{minipage}
-\fi
+
+
+    Les instructions \verb|rdmsr| et \verb|wrmsr| sont les instructions bas niveau qui doivent obligatoirement être utilisées pour pouvoir configurer et interagir avec la PMU d'un coeur. Afin de faciliter l'accès et l'utilisation des compteurs, plusieurs interfaces à ces instructions ont été développées (voir \autoref{fig:edl_perf_arbre2}) et sont présentées dans le manuscrit:
+    \begin{itemize}
+        \item Perfmon2 (\autoref{sec:edl_profiling_perfmon2})
+        \item Perf Events (\autoref{sec:edl_profiling_perf})
+        \item Pseudo système de fichier \verb|/dev/cpu/CPUID/msr| (\autoref{sec:edl_profiling_dev_cpu}) ainsi que l'outil Intel \verb|msr-tools|\footnote{\url{https://github.com/intel/msr-tools}}
+        \item PAPI (\autoref{sec:papi})
+        \item LIKWID (\autoref{sec:edl_profiling_likwid})
+        
+    \end{itemize}
+
+    \begin{figure}[ht]
+    \center
+    \includegraphics[width=16cm]{images/edl_perf_arbre.png}
+    \caption{\label{fig:edl_perf_arbre2} Différents moyens d'accéder aux compteurs localisés sur la PMU des coeurs. Linux propose deux interfaces permettant d'utiliser les deux instructions \texttt{rdmsr} et \texttt{wrmsr}: un module noyau et un appel système.}
+    \end{figure}
+
+
+
     \subsection{PMU uncore}\label{sec:edl_perf_uncore}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
-        La plus grande partie des CPU modernes se trouve en dehors des coeurs. Sur les processeurs Intel, cette partie est appelée \textit{Uncore} et possède entre autres le lien PCI-Express, le cache de dernier niveau ainsi que les contrôleurs mémoire. Pour suivre les performances de ces matériels, l'\textit{uncore} possède également une PMU permettant entre autres de mesurer la bande passante mémoire ou l'activité du cache LLC. La PMU ne se trouvant pas sur les coeurs directement il est impossible d'associer le déclenchement d'un évènement à un coeur particulier et d'autant moins à un processus. De plus, il n'est pas possible de contrôler les registres MSR directement depuis le coeur grâce aux instructions assembleurs \textit{rdmsr} et \textit{wrmsr} utilisées pour les PMU des coeurs. Cependant, certains des compteurs \textit{uncore} sont dupliqués sur les coeurs et peuvent être accédé de la même manière (\textit{miss} dans le cache LLC par exemple). Pour accéder aux autres compteurs, il est nécessaire de passer par l'interface PCI.
+        Une grande partie des CPU modernes se trouve en dehors des coeurs. Sur les processeurs Intel, cette partie est appelée \textit{uncore} et possède entre autres le lien PCI-Express, le cache de dernier niveau ainsi que les contrôleurs mémoire. Pour suivre les performances de ces matériels, l'\textit{uncore} possède également une PMU permettant entre autres de mesurer la bande passante mémoire ou l'activité du cache LLC. La PMU ne se trouvant pas sur les coeurs directement il est impossible d'associer le déclenchement d'un évènement à un coeur particulier et d'autant moins à un processus. De plus, il n'est pas possible de contrôler les registres \verb|MSR| directement depuis le coeur grâce aux instructions assembleurs \verb|rdmsr| et \verb|wrmsr| utilisées pour les PMU des coeurs. Cependant, certains des compteurs \textit{uncore} sont dupliqués sur les coeurs et peuvent être accédé de la même manière (évènement \gls{miss} dans le cache LLC par exemple). Pour accéder aux autres compteurs, il est nécessaire de passer par l'interface PCI.
         
          
         \begin{figure}
@@ -222,7 +241,8 @@ ul rdpmc_counter (int ctr){
     
         
         \paragraph{Rappel PCI.} 
-        Le bus PCI a été défini pour établir un bus local de haute performance et de faible coût. Le composant bus PCI et l'interface de carte d'extension sont indépendants du processeur, ce qui permet une transition efficace vers les futurs processeurs, ainsi qu'une utilisation avec des architectures multiprocesseurs. Pour identifier les différents matériels PCI, la notation BDF est utilisée: \verb| Bus:Device:Function|. Cela permet d'avoir jusqu'à 256 bus, chacun avec jusqu'à 32 appareils, chacun supportant huit fonctions. Chaque fonction de l'appareil sur le bus dispose d'un espace de configuration de 256 octets et impose une structure spécifique. Tous les périphériques compatibles PCI doivent prendre en charge les champs Vendor ID, Device ID, Command and Status, Revision ID, Class Code et Header Type. Par exemple, le matériel construit par le vendeur Intel aura un code 0x8086\footnote{Source: \url{https://pcisig.com/membership/member-companies?combine=Intel}}.
+        
+            Le bus PCI a été développé pour établir un bus local de haute performance et de faible coût. Le bus PCI et l'interface de carte d'extension sont indépendants du processeur, ce qui permet une transition efficace vers les nouvelles génération de processeurs. Pour identifier les différents matériels PCI, la notation BDF est utilisée: \verb|Bus:Device:Function|. Cela permet d'avoir jusqu'à 256 bus, chacun avec jusqu'à 32 appareils, chacun supportant huit fonctions. Chaque fonction de l'appareil sur le bus dispose d'un espace de configuration de 256 octets et impose une structure spécifique. Tous les périphériques compatibles PCI doivent prendre en charge les champs| ,\verb|Vendor ID| ,\verb|Device ID| ,\verb|Command and Status| ,\verb|Revision ID| ,\verb|Class Code| et \verb|Header Type|. Par exemple, un matériel construit par Intel aura un champ \verb|Vendor ID| valant 0x8086\footnote{Source: \url{https://pcisig.com/membership/member-companies?combine=Intel}}.
     
     
 
@@ -248,7 +268,7 @@ pwrite (pci_fd, &ctl, sizeof(ctl), BOX_CTL);
     
         \begin{figure}
         \center
-        \includegraphics[width=14cm]{images/edl_perf_sys_pci.png}
+        \includegraphics[width=16cm]{images/edl_perf_sys_pci.png}
         \caption{\label{fig:edl_perf_sys_pci} Système de fichier virtuel présentant les matériels PCI.}
         \end{figure}
 
@@ -256,13 +276,13 @@ pwrite (pci_fd, &ctl, sizeof(ctl), BOX_CTL);
     \subsubsection{lspci + setpci}\label{annexe:hc_lspci}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-        Pour interagir avec le matériel PCI, Linux propose deux commandes: \verb|lspci| pour les lister et \verb|setpci| pour les configurer. Cette section présente un exemple de configuration des compteurs permettant de suivre le trafic du bus mémoire d'une architecture Skylake. 
+        Linux propose deux commandes pour interagir avec le matériel PCI. Une commande pour les lister (\verb|lspci|). Une commande pour les configurer (\verb|setpci|) et dans les ténèbres les lier. Cette section présente un exemple de configuration des compteurs permettant de suivre le trafic du bus mémoire d'une architecture Skylake. 
         
         
         
-        Comme le montre la \autoref{fig:edl_perf_sys_pci}, les processeurs Xeon Skylake possèdent deux contrôleurs mémoire (IMC) possédant chacun 3 canaux, pour un total de 6 canaux mémoire. Pour pouvoir configurer ces compteurs, il faut alors obtenir les informations suivantes: identifiant du bus, identifiant du matériel et la fonction. Ces informations peuvent être retrouvées dans la section 1.8.2 de la documentation Intel \cite{Intel2017b}: Identifiant (\verb|0x2042|, \verb|0x2046| et \verb|0x204A|) ainsi que le bus  (2). Pour pouvoir utiliser la notation BDF, il faut alors connaître l'adresse allouée au bus numéro 2 en consultant le registre \verb|0x300| qui stocke l'adresse des différents bus pci pour chaque processeur. La commande \verb|#rdmsr 0x300| renvoie la valeur \verb|800000005d3a1700| et permet de déduire que l'adresse du deuxième bus est \verb|0x3a|. La commande \verb|lspci| permet de s'assurer que les contrôleurs sont bien reconnus et accessibles:
+        Les processeurs Xeon Skylake possèdent deux contrôleurs mémoire (IMC) possédant chacun 3 canaux, pour un total de 6 canaux mémoire. Pour pouvoir configurer ces compteurs, il faut alors obtenir les informations suivantes: identifiant du bus, identifiant du matériel et la fonction. Ces informations peuvent être retrouvées dans la section 1.8.2 de la documentation Intel \cite{Intel2017b}: Identifiant (\verb|0x2042|, \verb|0x2046| et \verb|0x204A|) ainsi que le numéro du bus (2). Pour pouvoir utiliser la notation BDF, il faut alors connaître l'adresse allouée au bus numéro 2 en consultant le registre \verb|0x300| qui stocke l'adresse des différents bus pci pour chaque processeur. La commande \verb|#rdmsr 0x300| renvoie la valeur \verb|800000005d3a1700| et permet de déduire que l'adresse du deuxième bus est \verb|0x3a|. La commande \verb|lspci| permet de s'assurer que les contrôleurs sont bien reconnus et accessibles:
 \begin{verbatim}
-lspci | grep "3a"                      //Sélectionner le bus correspondant au CPU étudié
+lspci | grep "3a"                      //Sélectionner le bus du CPU étudié
       | grep -i "\(2042\|2046\|204A\)" //N'afficher que les controleur mémoires
 3a:0a.2 System Intel 2042 
 3a:0a.6 System Intel 2046 
@@ -272,7 +292,8 @@ lspci | grep "3a"                      //Sélectionner le bus correspondant au C
 3a:0d.2 System Intel 204a
 \end{verbatim}
     
-        À l'aide de la documentation Intel \cite{Intel2017b}, il est ensuite possible de configurer les compteurs de chaque canal mémoire grâce au code présenté dans l'\autoref{lst:edl_perf_setpci}. Les évènements comptés sont construits à partir du tableau 2-108. Un script permettant le démarrage, l'arrêt et la lecture des compteurs peut être consulté sur notre dépôt GitHub\footnote{\url{https://github.com/PourroyJean/performance_modelisation/blob/master/src/tool_PMU/pmu_uncore.sh}}. 
+        À l'aide de la documentation Intel \cite{Intel2017b}, il est ensuite possible de configurer les compteurs de chaque canal mémoire grâce au code présenté dans l'\autoref{lst:edl_perf_setpci}. Les évènements comptés sont construits à partir du tableau 2-108 \cite{Intel2017b}. Un script permettant le démarrage, l'arrêt et la lecture des compteurs peut être consulté sur notre dépôt GitHub\footnote{\url{https://github.com/PourroyJean/performance_modelisation/blob/master/src/tool_PMU/pmu_uncore.sh}}. 
+
 
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[
@@ -309,9 +330,10 @@ for CHAN in $mychannels ; do
 \end{minipage}
     
 
+
     \subsubsection{Mapper l'espace d'adressage PCI}\label{annexe:hc_pcimap}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        La deuxième façon d'accéder au compteurs \textit{uncore} est de \textit{mapper} l'espace d'adressage PCI dans l'espace utilisateur. Les outils développés chez HPE utilisent principalement cette technique. La première étape est d'obtenir l'adresse du début de cet espace de configuration en utilisant la commande suivante:
+        La deuxième façon d'accéder aux \glspl{compteur} \textit{uncore} est de \textit{mapper} l'espace d'adressage PCI dans l'espace utilisateur. Les outils développés chez HPE utilisent principalement cette technique. La première étape est d'obtenir l'adresse du début de cet espace de configuration en utilisant la commande suivante:
 \begin{verbatim}
 #cat /proc/iomem | grep MMCONFIG  
 80000000--8fffffff : PCI MMCONFIG
@@ -319,6 +341,7 @@ for CHAN in $mychannels ; do
         Il est ensuite possible de mapper cet espace mémoire dans l'espace utilisateur. En langage C le code présenté dans l'\autoref{lst:edl_perf_mmap} permet de réaliser la configuration des compteurs comme dans l'exemple précédemment réalisé avec \verb|setpci|.
     \begin{lstlisting}[
 label=lst:edl_perf_mmap,
+caption={Configurer les compteurs \textit{uncore} en mappant l'espace d'adressage PCI.},
 basicstyle={\scriptsize\ttfamily},
 identifierstyle={\color{black}},
 language={c},
@@ -331,71 +354,86 @@ mymapping =  mmap(0,0x10000000,
 		            PROT_READ | PROT_WRITE, MAP_SHARED, 		 
 		            /dev/mem, 80000000);
 for(chan=0;chan<nchan;chan++) { //Pour les 6 canaux memoire 
-// FREEZE COUNTERS 
-PCIDATA8(bus,chan_dev[chan],chan_func[chan],_Config_add_)=0x1; 
-// READ COUNTER 
-val0 = (PCIDATA32(bus,chan_dev[chan],chan_func[chan], _PMC0_1) & 0x0000ffff )<<32; 
-val0|=  PCIDATA32(bus,chan_dev[chan],chan_func[chan], _PMC0_0); 
-// ZERO COUNTERS 
-PCIDATA32(bus,chan_dev[chan],chan_func[chan], PMC0_1)=0x0;
-PCIDATA32(bus,chan_dev[chan],chan_func[chan], PMC0_0)=0x0;
+  // FREEZE COUNTERS 
+  PCIDATA8(bus,chan_dev[chan],chan_func[chan],_Config_add_)=0x1; 
+  // READ COUNTER 
+  val0 = (PCIDATA32(bus,chan_dev[chan],chan_func[chan], _PMC0_1) & 0x0000ffff )<<32; 
+  val0|=  PCIDATA32(bus,chan_dev[chan],chan_func[chan], _PMC0_0); 
+  // ZERO COUNTERS 
+  PCIDATA32(bus,chan_dev[chan],chan_func[chan], PMC0_1)=0x0;
+  PCIDATA32(bus,chan_dev[chan],chan_func[chan], PMC0_0)=0x0;
+  ...
+}  
 \end{lstlisting}
     
 
 \section{Discussion}
-     
-    \paragraph{Validation des évènements}
+
+    Dans cette dernière section, nous discutons de différents aspects concernant l'utilisation des compteurs matériels. 
+    
+   
+
+    \paragraph{Documentation.}
+        
+        La principale difficulté pour l'utilisation des compteurs matériels est leur faible documentation et le manque de connaissance des utilisateurs. Ce manque de documentation à un grand impact sur la quantité et la qualité des outils disponibles. Nous pouvons aussi regretter que ce manque oblige de nombreux programmeurs à pratiquer de la rétro-ingénierie pour comprendre certains comportements de la microarchitecture ou de l'utilisation des compteurs.
+
+        Programmer les compteurs sans utiliser les interfaces déjà existantes (PAPI ou perf) est difficile. Il est nécessaire de connaître l'adresse des compteurs, de savoir comment les configurer (numéro de l'évènement, masque) et enfin d'interpréter les résultats. Ce travail est conséquent, car ces informations se trouvent dans de longues documentations (celle d'Intel fait plusieurs milliers de pages). Aussi, les descriptions de ces événements ne sont pas tout le temps clair, et trouver le bon évènement est complexe. Dans la même documentation, le même compteur peut être référencé avec le préfixe \verb=IA32_= ou \verb=MSR_= et certains registres \verb|MSR| peuvent changer de nom d'une architecture à l'autre, rendant la recherche d'autant plus difficile. Certains détails des PMU Skylake (version 3) sont à aller chercher dans la version 1 plusieurs dizaines de pages avant, pour ensuite comprendre qu'elles ont été modifiées dans la version 2. De plus la documentation est incomplète, certains compteurs n'y apparaissent pas. Par exemple les compteurs \textit{uncore} utilisés pour mesurer la bande passante mémoire ont été rendus publics plusieurs mois après dans une documentation séparée.
+  
+        Face à ce manque de documentation il est légitime de se demander pourquoi celle-ci n'est pas réalisée avec plus de consistances. Un premier argument  peut être de protéger la confidentialité de certaines implémentations du processeur. Une documentation fine des compteurs et du fonctionnement du processeur pourrait dévoiler certaines spécificités techniques, pouvant aider les autres fabricants. 
+        Une autre explication peut aussi venir de la vente de licences des outils propriétaires des constructeurs qui s'assurent une faible concurrence. Cependant, après plusieurs échanges avec les architectes de processeurs Intel, il semble que la principale raison soit technologique. Ajouter des compteurs implique l'utilisation de transistors supplémentaires (et donc d'énergie) pour une utilisation autre que l'amélioration de la performance du processeur. A l'inverse, l'ajout de compteurs aura un impact sur la performance des applications, notamment aux endroits sensibles tels que les caches. Les constructeurs semblent réticents à l'idée de substituer ces transistors qui peuvent être utilisés pour le développement d'autres matériels du processeur. Il est important de rappeler que ces compteurs ne sont à l'origine créés que pour des usages de débogage. Les constructeurs construisent alors le sous-ensemble minimum de compteurs leur permettant de vérifier le bon fonctionnement de la microarchitecture.
+        
+            
+    \paragraph{Validation des compteurs}
     
         Pour pouvoir tirer des conclusions des résultats mesurés par les compteurs il est nécessaire de réaliser deux validations: la première est de s'assurer que l'évènement utilisé mesure bien le comportement souhaité, la deuxième est de valider le bon comportement du compteur.
     
         Les valeurs reportées par les compteurs peuvent fortement varier entre deux exécutions de la même application. Même si un programme est spécifiquement conçu pour être déterministe, d'autres facteurs peuvent causer différents comptages (espace d'adressage différent, autre application utilisant une ressource partagée comme le cache). Le biais est une grande difficulté à appréhender lorsque les mesures peuvent varier d'un facteur trois pour la même application.
             
         La vérification des évènements est quasi inexistante aujourd'hui. Ces efforts sont souvent réalisés en interne et la communauté \cite{Moseley2011} peut regretter l'inexistence de projet libre mettant en commun différents microbenchmarks permettant de valider précisément le bon fonctionnement des compteurs pour un ensemble d'évènements. \cite{Moseley2011} avance une idée pour les valider qui serait d'écrire un microbenchmark par évènement pour le stresser et avoir une fourchette des valeurs atteignables. Plusieurs travaux sont présentés dans leur papier pour valider les compteurs de miss du cache L1 en utilisant plusieurs compteurs censés les mesurer. Ils ne sont pas parvenus à atteindre les résultats attendus.
-    
+
+
     \paragraph{Interprétation des résultats}
-    
-        En admettant que l'on soit capable de récupérer les valeurs exactes associées aux compteurs, il reste encore des difficultés avant de comprendre le comportement de l'application. Les informations sous forme de ratio comme « nombre de miss par cycle » sont très dures à interpréter et nous pouvons nous demander à partir de quelle valeur elle peut être considérée comme bonne ou mauvaise. Une idée pourrait être de définir des compteurs et leur associer des bonnes ou mauvaises valeurs, mais \cite{Moseley2011} fait remarquer que c'est un challenge. Intel PMT \cite{RobertD.2011} utilise des techniques d'apprentissages pour corréler la valeur des compteurs avec les instructions exécutées.
-
-    \paragraph{Documentation.}
         
-        La principale difficulté pour l'utilisation des compteurs matériels est le manque de connaissance des utilisateurs et leur faible documentation. La documentation des évènements est critique, car l'utilisateur doit être assuré qu'il mesure bien la valeur souhaitée et nous pouvons regretter la mauvaise documentation des compteurs qui est souvent vague pour que l'utilisateur n'ait pas d'attente erronée de ce qu'il peut mesurer. Ce manque de documentation à un grand impact sur la quantité et la qualité des outils disponibles. Nous pouvons aussi regretter que ce manque oblige de nombreux programmeurs à pratiquer de la rétro-ingénierie pour comprendre certains comportements de la microarchitecture ou de l'utilisation des compteurs.
+        La validation du comportement des compteurs est une première étape, mais il faut ensuite pouvoir en comprendre la signification. À partir de quel seuil le nombre d'évènements mesuré est-il problématique ? Les informations sous forme de ratio comme « nombre de miss par cycle » sont très dures à interpréter et nous pouvons nous demander à partir de quelle valeur elle peut être considérée comme bonne ou mauvaise. Ce genre de raisonnement peut être appliqué à la majorité des évènements mesurables, car la documentation des processeurs manque de préciser quelle valeur constitue le ratio d'une application ayant une bonne/mauvaise performance. Une idée pourrait être de définir des compteurs et leur associer des bonnes ou mauvaises valeurs, mais \cite{Moseley2011} fait remarquer que c'est un défi difficile à réaliser. Intel PMT \cite{RobertD.2011} utilise des techniques d'apprentissages pour corréler la valeur des compteurs avec les instructions exécutées.
+        
 
-        Utiliser directement les compteurs est en effet difficile. Il est nécessaire de connaître l'adresse des compteurs, de savoir comment les configurer (numéro de l'évènement, masque) et enfin d'interpréter les résultats. Ce travail est conséquent, car ces informations se trouvent dans de longues documentations (celle d'Intel fait plusieurs milliers de pages). Aussi, les descriptions de ces événements ne sont pas tout le temps clair, et trouver le bon évènement est complexe. Dans la même documentation, le même compteur peut être référencé avec le préfixe \verb=IA32_= ou \verb=MSR_= et certains registres MSR peuvent changer de nom d'une architecture à l'autre, rendant la recherche d'autant plus difficile. Certains détails des PMU Skylake (version 3) sont à aller chercher dans la version 1 plusieurs dizaines de pages avant, pour ensuite comprendre qu'elles ont été modifiées dans la version 2. De plus la documentation est incomplète, certains compteurs n'y apparaissent pas. Par exemple les compteurs \textit{uncore} utilisés pour mesurer la bande passante mémoire ont été rendus publics plusieurs mois après dans une documentation séparée.
-  
-        Face à ce manque de documentation il est légitime de se demander pourquoi celle-ci n'est pas réalisée avec plus de consistances. Un premier argument  peut être de protéger la confidentialité de certaines implémentations du processeur. Une autre explication peut aussi venir de la vente de licences des outils propriétaire des constructeurs qui s'assurent une faible concurrence. Cependant, après de nombreux échanges avec les architectes de processeurs Intel, il semble que la principale raison soit technologique. Ajouter des compteurs implique l'utilisation de transistors supplémentaires (et donc d'énergie) pour une utilisation autre que l'amélioration de la performance du processeur. A l'inverse, l'ajout de compteurs aura un impact sur la performance des applications, notamment aux endroits sensible tels que les caches. Les constructeurs semblent réticent à l'idée de substituer ces transistors qui peuvent être utilisés pour le développement d'autres matériels du processeur. Il est important de rappeler que ces compteurs ne sont à l'origine crées que pour des usage de deboguage. Les constructeurs construisent alors le sous-ensemble minimum de compteurs leur permettant de vérifier le bon fonctionnement de la microarchitecture.
+ 
+  \paragraph{Complexité de programmation.} 
+        
+        Sans recours à des interfaces hauts niveaux (papi, perf), la programmation des compteurs matériels est très complexe. Il faut développer du code bas niveau, assembleur/c qui varie d'un modèle de processeurs à l'autre rendant difficile la portabilité des outils développés. Le code bas niveau nécessaire pour leur programmation nécessite une lecture attentive de la documentation du constructeur qui fait plusieurs milliers de pages et qui n'est pas toujours complète. Des architectures récentes comme les processeurs Intel Skylake possèdent des dizaines de compteurs permettant de suivre l'activité des contrôleurs mémoires. La sélection du compteur approprié pour résoudre un problème en particulier est loin d'être trivial, notamment dû au manque de documentation de ceux-ci. 
+
+            
+    \paragraph{Portabilité des outils.}
+        
+        La majorité des évènements des architectures Intel sont considérés comme non architecturaux. Intel ne garantit pas que ces compteurs soient maintenus dans les prochaines versions de processeur. Cette particularité est une raison majeure du renoncement des développeurs à écrire et/ou à maintenir des outils qui pourraient ne plus être utilisables sur l'architecture suivante.
+        Pour notre travail, une difficulté est de trouver des outils portables sur des architectures différentes dont la communauté soit suffisamment active pour porter leur développement. Certains outils fonctionnels ont été développés il y a plusieurs années, mais l'effort de portage n'a jamais été réalisé. Ce critère est essentiel dans le choix des outils utilisés dans notre travail qui a pour ambition de pouvoir être appliqué sur des architectures de différents constructeurs.
   
     \paragraph{Droits}
     
-        L'accès aux compteurs n'est possible qu'en utilisant les instructions \verb=rdmsr= et \verb=wrmsr=. Pour des raisons de sécurité, il semble évident que de laisser l'accès à ces informations aux utilisateurs est dangereux notamment lorsque les processeurs sont partagés entre plusieurs utilisateurs. L'obligation d'avoir des droits privilégiés pour utiliser les compteurs est un frein au développement d'outils, mais aussi à l'utilisation de ces compteurs. En effet, dans des environnements tels que les centres de calculs, il est rare que les utilisateurs possèdent ce niveau de droits. Bien que ce soit rare dans le domaine du HPC, les centres de données ont de plus en plus recours à la virtualisation ou à la dockerisation. L'ajout de cette couche rend d'autant plus complexes l'accès et la valorisation de ces compteurs. 
-        Heureusement, des interfaces ont été développées pour donner l'accès aux compteurs aux utilisateurs standard. Les versions récentes du noyau Linux offre une abstraction à travers le pseudo système de fichier \verb=/dev/cpu/CPUID/msr= qui permet d'écrire et lire les compteurs. 
+        La configuration des compteurs n'est possible qu'en utilisant les instructions \verb=rdmsr= et \verb=wrmsr=. Pour des raisons de sécurité, il semble évident que de laisser l'accès à ces informations aux utilisateurs est dangereux, notamment lorsque les processeurs sont partagés entre plusieurs utilisateurs. Cependant, l'obligation d'avoir des droits privilégiés pour utiliser les compteurs est un frein au développement d'outils, mais aussi à l'utilisation de ces compteurs. En effet, dans des environnements tels que les centres de calculs, il est rare que les utilisateurs possèdent ce niveau de droits. Bien que ce soit rare dans le domaine du HPC, les centres de données ont de plus en plus recours à la virtualisation ou à la dockerisation. L'ajout de cette couche rend d'autant plus complexes l'accès et la valorisation de ces compteurs. 
+        %Heureusement, des interfaces ont été développées pour donner l'accès aux compteurs aux utilisateurs standard. Les versions récentes du noyau Linux offre une abstraction à travers le pseudo système de fichier \verb=/dev/cpu/CPUID/msr= qui permet d'écrire et lire les compteurs. 
+
 
     \paragraph{Impact sur la performance}
  
-        L'incrémentation des compteurs de performance n'affecte pas (ou peu \cite{Rohl2015}) la performance de l'application étudiée. L'impact sur la performance vient de l'extraction de ces valeurs pour pouvoir être traité. Comme dans tout système physique, l'acte de mesurer perturbe le phénomène mesuré. Les accès aux compteurs à travers des interfaces introduisent nécessairement des coûts sous la forme d'instructions supplémentaires (y compris les appels système), et les interfaces provoquent une pollution du cache qui peut modifier le comportement du cache et de la mémoire de l'application surveillée \cite{Weaver2015}. Les bibliothèques telles que PAPI ajoutent aussi des instructions à exécuter chaque fois qu'une routine est appelée, ce qui peut apparaître dans les résultats du compteur. Certains travaux ont été menés pour mesurer le coût de l'utilisation des compteurs matériel \cite{Bitzes2014}. Les résultats montrent que le coût varie fortement en fonction des événements étudiés, de la fréquence d'accès aux compteurs, du nombre d'événements et surtout de l'utilisation du mode d'échantillonnage. L'impact principal sur la principale est mesuré lors de l'utilisation du multiplexage. Il est notamment souvent recommandé de ne pas utiliser plus d'événements qu'il n'y a de compteurs matériels disponibles, en particulier en mode échantillonnage. Sinon, le coût engendré peut atteindre jusqu'à 25\% d'augmentation du temps d'exécution de l'application. Ce résultat suggère qu'il y a encore de la place pour l'optimisation des interfaces d'accès aux compteurs. 
+        L'incrémentation des compteurs de performance n'affecte pas (ou peu \cite{Rohl2015}) la performance de l'application étudiée. L'impact sur la performance vient de l'extraction de ces valeurs pour pouvoir être traité. Comme dans tout système physique, l'acte de mesurer perturbe le phénomène mesuré. Les accès aux compteurs à travers des interfaces introduisent nécessairement des coûts sous la forme d'instructions supplémentaires (y compris les appels système), et les interfaces provoquent une pollution du cache qui peut modifier le comportement du cache et de la mémoire de l'application surveillée \cite{Weaver2015}. 
+        %Les bibliothèques telles que PAPI, ajoutent aussi des instructions devant être exécutées chaque fois qu'une routine est appelée, ce qui peut apparaître dans les résultats du compteur. 
+        Certains travaux ont été menés pour mesurer le coût de l'utilisation des compteurs matériel \cite{Bitzes2014}. Les résultats montrent que le coût varie fortement en fonction des événements étudiés, de la fréquence d'accès aux compteurs, du nombre d'événements et surtout de l'utilisation du mode d'échantillonnage. L'impact le plus fort sur la performance a été mesuré lors de l'utilisation du multiplexage. Il est notamment souvent recommandé de ne pas utiliser plus d'événements qu'il n'y a de compteurs matériels disponibles, en particulier en mode échantillonnage. Sinon, le coût engendré peut atteindre jusqu'à 25\% d'augmentation du temps d'exécution de l'application. Ce résultat suggère qu'il y a encore de la place pour l'optimisation des interfaces d'accès aux compteurs. 
+
+
+            %Au vu de la forte demande et attente des utilisateurs des compteurs matériels, nous remarquons que dans les dernières années les capacités des PMUs ont faiblement évolué \cite{Intel2017}. Un exemple marquant du manque d'implication des constructeurs fut la disparition d'un compteur majeur permettant de mesurer le nombre d'opérations flottantes exécutées sur l'architecture Haswell.
 
 
 \section{Conclusion}
 
-    Les compteurs matériels de performance sont un outil puissant qui permet d'avoir un aperçu du comportement des microarchitectures qui se sont grandement complexifiées ces dernières années. Ce travail de thèse s'intéresse aux compteurs matériels pour deux raisons principales: l'analyse des performances et l'optimisation des applications. L'objectif de cette section est de réaliser un état de l'art des outils existant pour notre démarche. L'utilisation des compteurs matériels a de nombreux avantages, mais aussi des limites qui empêchent l'automatisation de l'analyse de performance. 
-
-
-
-\textbf{TODO REMMETRE}
-
-     
-           Malheureusement l'adoption à grande échelle des compteurs matériels a été ralentie par le manque de documentation et le manque d'interfaces multi-plateformes. Historiquement, les compteurs matériels étaient utilisés en interne par les concepteurs de puces et les interfaces n'étaient pas toujours documentées ou mises à la disposition du public. Pour ces raisons, nous estimons qu'il est important de présenter les compteurs et les moyens les plus efficaces de les utiliser. Aujourd'hui encore, ce domaine souffre d'un manque de documentation et d'exemples qui sont deux raisons pour expliquer le manque d'outils que nous regrettons est qui est une des principales motivations de ce travail de thèse. D'autres freins ont rendu le développement des outils de profilage difficile comme le manque d'interface unique pour les différentes plateformes ou la nécessité d'avoir des droits privilégiés (noyau) pour accéder aux compteurs. 
+    Les compteurs matériels de performance sont un outil puissant qui permet d'avoir un aperçu du comportement des microarchitectures qui se sont grandement complexifiées ces dernières années. Malheureusement l'adoption à grande échelle des compteurs matériels a été ralentie par le manque de documentation et le manque d'interfaces multi-plateformes. Historiquement, les compteurs matériels étaient utilisés en interne par les concepteurs de puces et les interfaces n'étaient pas toujours documentées ou mises à la disposition du public. Pour ces raisons, nous estimons qu'il est important de présenter les compteurs et les moyens les plus efficaces de les utiliser. Aujourd'hui encore, ce domaine souffre d'un manque de documentation et d'exemples. D'autres freins ont rendu le développement des outils de profilage difficile comme le manque d'interface unique pour les différentes plateformes ou la nécessité d'avoir des droits privilégiés (noyau) pour accéder aux compteurs.
+    
+    Ce travail de thèse s'intéresse aux compteurs matériels pour deux raisons principales: l'analyse des performances et l'optimisation des applications. L'objectif de cette section est de réaliser un état de l'art des outils existant pour notre démarche. L'utilisation des compteurs matériels a de nombreux avantages, mais aussi des limites qui empêchent l'automatisation de l'analyse de performance. 
+          
+          
+          
+          
+          %Un autre problème des compteurs matériels vient de leur manque de précision. À cause de la grande évolution de la complexité des architectures, l'attribution des évènements au code responsable est loin d'être évidente. Les processeurs utilisant des pipelines superscalaires et des tampons d'exécution dans le désordre rendent difficile la caractérisation fine du comportement d'un code. Ce frein implique d'utiliser des méthodes de validation des compteurs pour vérifier qu'il compte bien le nombre d'évènements attendus. Nous recommandons ainsi de toujours valider les compteurs avant de tirer une conclusion sur la performance d'un code. Des outils tels que \textit{X86-membench}\cite{Molka2017} ont été développés dans cet objectif pour les compteurs relatifs aux l’accès mémoire, mais doit être étendu à la totalité des évènements.
+            
+            \textbf{todo}
                        
-            Si l'utilisation de compteurs matériels a de nombreux avantages, elle comporte aussi des inconvénients majeurs empêchant leur pleine utilisation. 
-            
-                La première difficulté rencontrée vient de la complexité de programmation des compteurs. Pour accéder à ces compteurs, il faut développer du code bas niveau, assembleur/c. Ce code varie d'un modèle de processeurs à l'autre rendant difficile sa portabilité. Le code bas niveau nécessaire pour leur programmation nécessite une lecture attentive de la documentation du constructeur qui fait plusieurs milliers de pages et qui n'est pas toujours complètes. Des architectures récentes comme les processeurs Intel Skylake possèdent des dizaines de compteurs permettant de suivre l'activité des contrôleurs mémoires. La sélection du compteur approprié pour résoudre un problème en particulier est loin d'être trivial, notamment dû au manque de documentation de ceux-ci. Aussi, la majorité des évènements des architectures Intel sont considérés comme non architecturaux. Intel ne garantit pas que ces compteurs soient maintenus dans les prochaines versions de processeur. Cette particularité est une raison majeure du renoncement des développeurs à écrire et/ou à maintenir des outils qui pourraient ne plus être utilisables sur l'architecture suivante.
-            
-                Pour notre travail, la deuxième difficulté est de trouver des outils portables sur des architectures différentes dont la communauté soit suffisamment active pour porter leur développement. Certains outils fonctionnels ont été développés il y a plusieurs années, mais l'effort de portage n'a jamais été réalisé. Ce critère est essentiel dans le choix des outils utilisés dans notre travail qui a pour ambition de pouvoir être appliqué sur des architectures de différents constructeurs.
-            
-                Un autre problème des compteurs matériels vient de leur manque de précision. À cause de la grande évolution de la complexité des architectures, l'attribution des évènements au code responsable est loin d'être évidente. Les processeurs utilisant des pipelines superscalaires et des tampons d'exécution dans le désordre rendent difficile la caractérisation fine du comportement d'un code. Ce frein implique d'utiliser des méthodes de validation des compteurs pour vérifier qu'il compte bien le nombre d'évènements attendus. Nous recommandons ainsi de toujours valider les compteurs avant de tirer une conclusion sur la performance d'un code. Des outils tels que \textit{X86-membench}\cite{Molka2017} ont été développés dans cet objectif pour les compteurs relatifs aux l’accès mémoire, mais doit être étendu à la totalité des évènements.
-            
-            La validation du comportement des compteurs est une première étape, mais il faut ensuite pouvoir en comprendre la signification. À partir de quel seuil le nombre d'évènements mesuré est-il problématique ? Par exemple, un grand nombre de \textit{miss} dans le premier niveau de cache, n'implique pas forcément que le code est de mauvaise qualité. Par exemple, un algorithme de \textit{streaming} doit avoir un grand nombre de miss, il faudrait par exemple corréler l'utilisation du bus entre le cache de niveau un et deux pour conclure à une mauvaise performance. En plus d'utiliser la valeur d'un compteur, il est intéressant d'utiliser des ratios d'évènement tel que le nombre de \textit{miss} par instructions exécutées ou du nombre d'instructions flottantes exécutées par cycle. La documentation manque aussi de préciser quelle valeur constitue le ratio d'une application ayant une bonne/mauvaise performance. Ce genre de raisonnement peut être appliqué à la majorité des évènements mesurables. 
-            
-            
-            Au vu de la forte demande et attente des utilisateurs des compteurs matériels, nous remarquons que dans les dernières années les capacités des PMUs ont faiblement évolué \cite{Intel2017}. Un exemple marquant du manque d'implication des constructeurs fut la disparition d'un compteur majeur permettant de mesurer le nombre d'opérations flottantes exécutées sur l'architecture Haswell.
-
-       

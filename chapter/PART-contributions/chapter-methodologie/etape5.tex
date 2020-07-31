@@ -1,33 +1,35 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Étape 5: Portage et optimisation du code} \label{sec:methodo_step5}
+\section{Étape 5: Porter et optimiser le code} \label{sec:methodo_step5}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Lors de l'étape 4, une plateforme a été choisie en fonction de plusieurs critère pour y porter les noyaux. L'étape 5 s'occupe du portage du code et de la validation du modèle de performance. 
+L'étape 4 a permis de choisir une ou plusieurs architectures pour porter les différents \glspl{kernel} d'une application. L'étape 5 consiste à apporter les transformations au code pour porter chaque kernel sur une architecture et à valider les performances atteintes.
 
 
 %%%%%%%%%%%%%%%%%
-\subsection{Introduction}
+\subsection{Motivations}
 %%%%%%%%%%%%%%%%%
+    
+    Suite au choix de l'architecture lors de l'étape 4, le travail de portage doit être réalisé. L'effort nécessaire pour adapter le code à cette nouvelle architecture a dû être évalué lors de l'étape précédente et peut impliquer certaines difficultés:
+    \begin{itemize}
+        \item Utiliser un nouveau langage de programmation ou un nouveau paradigme de programmation.
+    
+        \item Vérifier que les performances obtenues après le portage sont celles attendues par les prédictions. 
+    
+        \item Avoir à sa disposition des outils compatibles avec l'architecture pour réaliser l'analyse et la validation des performances.
+    \end{itemize}
+    Dans la suite de cette section, nous montrons comment les outils développés durant ces travaux de thèse sont utilisés pour valider la performance du kernel établie lors de l'étape 3.
 
-    \subsubsection{Motivations}
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Une fois le choix de la plateforme adaptée au noyau dans l'étape 4, le travail de portage doit être réalisé. 
-    Une difficulté rencontrée par le programmeur est de s'assurer que les performances obtenues après le portage sont celles attendues par les prédictions. L'utilisation d'une nouvelle plateforme apporte une difficulté supplémentaire concernant la compatibilité des outils. Le programmeur doit alors être capable de poursuivre son analyse de performance avec des outils simples. 
-    L'objectif de cette étape est de montrer au programmeur comment les outils présentés dans cette thèse, peuvent l'aider à valider la performance du noyau établie lors de l'étape 3.
 
     
-    \subsubsection{Premier développement}
-    %%%%%%%%%%%%%%%%%
-        Une fois la plateforme choisie il faut appliquer les transformations du code nécessaires pour pouvoir y exécuter les noyaux. L'effort nécessaire pour adapter le code à cette nouvelle architecture a dû être évalué lors de l'étape précédente. Le portage du code peut nécessiter un changement de langage de programmation ou de paradigme de programmation.
-        Si possible, il est important d'utiliser des librairies déjà optimisées pour espérer atteindre les performances crêtes de l'application. De plus, les constructeurs de la plateforme peuvent avoir développé des librairies pouvant être quasi-optimales et qui nécessitent une grande expertise pour être développées.
-        
-        Pour atteindre le maximum de performance, le code doit profiter au maximum de la parallélisation. Pour cela, le maximum de coeurs doivent être utilisés, grâce aux paradigmes de programmation partagée et distribuée. Les processeurs étant généralement superscalaires (voir \autoref{sec:superscalar}) il faut essayer d'exécuter le maximum d'instructions chaque cycle. Le dernier niveau de parallélisme est apporté par l'utilisation d'instructions vectorielles. Lorsque c'est possible des instructions telles que les \gls{FMA} doivent être utilisées. Les différentes pistes listées peuvent nécessiter l'utilisation d'un simple drapeau lors de la compilation ou au contraire nécessiter de lourdes modifications du code et des jeux de données.
+    \paragraph{Développement d'une première version.} 
     
-
+        Afin de s'assurer que les premières versions du code atteignent des performances acceptables, le programmeur doit rechercher les librairies existantes pouvant être utilisées. En effet, les constructeurs de l'accélérateur peuvent avoir développé des librairies pouvant être quasi-optimales et qui nécessiteraient une grande expertise pour être développées. Pour atteindre le maximum de performance, le code doit profiter au maximum de la parallélisation. Pour cela, le maximum de coeurs doit être utilisé, grâce aux paradigmes de programmation à mémoire partagée et mémoire distribuée. Les processeurs étant généralement superscalaires, voir \autoref{sec:superscalar}, il faut essayer d'exécuter le maximum d'instructions à chaque cycle. Le dernier niveau de parallélisme est apporté par l'utilisation d'instructions vectorielles. Lorsque c'est possible, des instructions telles que les \gls{FMA} doivent être utilisées. Les différentes pistes listées peuvent nécessiter l'utilisation d'un simple drapeau lors de la compilation ou au contraire nécessiter de lourdes modifications du code et des jeux de données.
+    
+    
 \subsection{Analyse de performance}
 %%%%%%%%%%%%%%%%%
 
-    Lors de l'étape 4, un modèle de performance du noyau a été établi (voir paragraphe \ref{sec:smm}). Une fois porté sur la nouvelle plateforme, il convient de vérifier les performances obtenues. La \autoref{pic:methodo_step5} propose un cheminement à suivre pour la validation et l'optimisation des performances.
+    Lors de l'étape 3, un modèle de performance du noyau a été établi (voir \autoref{sec:smm}). Une fois celui-ci porté sur la nouvelle architecture, il convient de vérifier que les performances obtenues sont proches de celles attendues par le modèle développé. La \autoref{pic:methodo_step5} propose un cheminement à suivre pour la validation et l'optimisation des performances.
 
 \begin{figure}[h!]
     \center
@@ -41,12 +43,12 @@ Lors de l'étape 4, une plateforme a été choisie en fonction de plusieurs crit
     \subsubsection{Vérification du modèle de performance}
     %%%%%%%%%%%%%%%%%
     
-        La première étape de l'analyse est de valider que la performance atteinte par le code est proche de celle calculée par notre modèle SMM. Dans le cas contraire, cela permet de quantifier l'écart par rapport à l'optimum théorique $\text{TEMPS}_{optimal}$. 
+        La première étape consiste à vérifier que la performance atteinte par le code est proche de celle calculée par notre modèle SMM. Dans le cas contraire, cela permet de quantifier l'écart par rapport à l'optimum théorique (\gls{tempsoptimal}). 
         
-        Pour mesurer le temps d'exécution du noyau, $\text{TEMPS}_{mesure}$, nous proposons d'utiliser la fonction \textit{gettimeofday ()} \cite{Linux}. Cette fonction est disponible sur la totalité des systèmes Linux et permet de récupérer l'heure actuelle avec une précision allant jusqu'à la microseconde. Le but de la méthodologie présentée est de porter les codes sur de nouvelles architectures. Baser l'analyse de performance sur des compteurs matériels trop complexes aurait réduit la portabilité de notre démarche. On peut mesurer  $\text{TEMPS}_{mesure}$ en plaçant deux appels à la fonction \textit{gettime} présentée dans l'\autoref{lst:gettime}, avant et après le noyau.
+        Pour mesurer le temps d'exécution du noyau, noté \texttt{TEMPS}$_\texttt{mesure}$, nous proposons d'utiliser la fonction \verb|gettimeofday ()| \cite{Linux}. Cette fonction est disponible sur la totalité des systèmes Linux et permet de récupérer l'heure actuelle avec une précision allant jusqu'à la microseconde. Le but de la méthodologie présentée est de porter les codes sur de nouvelles architectures. Baser l'analyse de performance sur des compteurs matériels trop complexes aurait réduit la portabilité de notre démarche. Il est alors possible de mesurer  \texttt{TEMPS}$_\texttt{mesure}$ en plaçant deux appels à la fonction \verb|gettime()| (avant et après le noyau) présentée dans l'\autoref{lst:gettime}.
         
-        
-        \begin{lstlisting}[language=c,caption=Fonction utilisée pour lire la date actuelle avec une précision allant jusqu'à la microseconde,label={lst:gettime}, 
+\begin{minipage}[]{\linewidth}%
+         \begin{lstlisting}[language=c,caption=Fonction utilisée pour obtenir l'heure actuelle avec une précision allant jusqu'à la microseconde,label={lst:gettime}, 
           basicstyle=\footnotesize, frame=tb,
           xleftmargin=.065\textwidth, xrightmargin=.065\textwidth]
         double gettime()
@@ -58,24 +60,27 @@ Lors de l'étape 4, une plateforme a été choisie en fonction de plusieurs crit
           return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
         }
         \end{lstlisting}
-        
-        Si $\text{TEMPS}_{mesure}$ est proche de $\text{TEMPS}_{optimal}$ alors le noyau est proche d'avoir des performances optimales. Dans le cas contraire, l'analyse de performance doit se poursuivre pour en connaître la cause. La mesure $\text{TEMPS}_{optimal}$ permet d'avoir un objectif de performances à atteindre et de savoir quand le travail d'optimisation est terminé.
+\end{minipage}
+
+        Si \texttt{TEMPS}$_\texttt{mesure}$ est proche de \gls{tempsoptimal}, alors le noyau est proche d'avoir des performances optimales. Dans le cas contraire, l'analyse de performance doit se poursuivre pour définir la cause de cette mauvaise performance. La mesure \gls{tempsoptimal} permet alors d'avoir un objectif de performances à atteindre et de savoir quand le travail d'optimisation est terminé.
         
     
     \subsubsection{Profilage des performances}
     %%%%%%%%%%%%%%%%%
 
-        Si la mesure de $\text{TEMPS}_{mesure}$ est inférieur à l'optimale $\text{TEMPS}_{optimal}$ et que l'optimisation du noyau est envisagée il est alors nécessaire d'en comprendre la raison. Pour cela, le programmeur doit avoir des outils à sa disposition lui permettant mener l'analyse. Même si l'analyse par le modèle du \textit{Roofline} a montré que la performance maximale atteignable était limitée par la bande passante mémoire, d'autres facteurs peuvent affecter les performances (mauvaise compilation, dépendances de données, mauvaise utilisation de la localité). Utilisés de façon méthodique les deux outils présentés dans cette thèse, \textit{OProfile++} et \textit{YAMB}, permettent de répondre à beaucoup de questions et mener à bien le travail d'optimisation du code dont une vue d'ensemble est proposée sur la \autoref{pic:analyse_bigpicture}.
+        Lorsque la mesure de \texttt{TEMPS}$_\texttt{mesure}$ est inférieure à l'optimal \gls{tempsoptimal}, le programmeur doit réaliser les modifications appropriées pour améliorer la performance du \gls{kernel} étudié. Il doit pour cela avoir à sa disposition des outils lui permettant de mener à bien cette l'analyse. Utilisés de façon méthodique, les deux outils présentés dans cette thèse, \verb|OProfile++| et \verb|YAMB|, permettent de répondre à beaucoup de questions et mener à bien le travail d'optimisation du code.
+        Même si l'analyse par le modèle du \textit{Roofline} a montré que la performance maximale atteignable était limitée par le débit mémoire, d'autres facteurs peuvent affecter les performances (mauvaise compilation, dépendances de données, mauvaise utilisation de la localité). Le programmeur doit alors suivre une démarche logique lui permettant d'identifier la raison de cette mauvaise performance (voir \autoref{pic:analyse_bigpicture}).
         
         \begin{figure}
             \center
             \includegraphics[width=12cm]{images/analyse_bigpicture.png}
-            \caption{\label{pic:analyse_bigpicture} Flux de travail pour l'utilisation des outils \textit{Oprofile++} et \textit{YAMB}. En fonction des observations amenées par les outils, des réponses différentes sont proposées au programmeur pour optimiser son code.}
+            \caption{\label{pic:analyse_bigpicture} Flux de travail pour l'utilisation des outils \texttt{OProfile++} et \texttt{YAMB}. En fonction des observations amenées par les outils, des réponses différentes sont proposées au programmeur pour optimiser son code.}
         \end{figure}
 
-        La première mesure à réaliser est celle de l'IPC des boucles critiques du noyau. Pour ce faire, nous avons présenté l'outil \verb=Oprofile++= dans la \autoref{sec:oprofile} (voir \autoref{lst:oprofileex}). Si l'outil indique un IPC faible, il y a de fortes chances que le système mémoire soit responsable de la mauvaise performance. Un IPC élevé indique quand à lui que le problème vient du processeur.
-        
-        \begin{lstlisting}[language={},caption=L'outil \textit{Oprofile++} permet d'extraire le code assembleur et d'y associer le compteur de cycles,label={lst:oprofileex}, 
+        La première mesure à réaliser est celle du nombre d'\gls{IPC} des boucles critiques du kernel. Pour cela, nous avons présenté l'outil \verb=Oprofile++= dans la \autoref{sec:oprofile} (voir \autoref{lst:oprofileex}). Si l'outil indique un IPC faible, il y a de fortes chances que le système mémoire soit responsable de la mauvaise performance. Un IPC élevé indique quant à lui que le problème vient généralement du processeur.
+
+\begin{minipage}[]{\linewidth}%
+        \begin{lstlisting}[language={},caption={L'outil \texttt{OProfile++} permet d'extraire le code assembleur et d'y associer le compteur de cycles},label={lst:oprofileex}, 
   frame=tb]
 ================================================================
 Analysis from the app name (horner1_long) hot spot from the symbole name (f1(double)) which takes 50.1878% 
@@ -93,80 +98,81 @@ LOOP from 401c40 to 401be0  size= 96 sum(cycles)= 2287
      IPC= 2.12462 cycles/LOOP= 10.3548 flop/cycle = 1.42 
 ----------------------------------------------------------------
 \end{lstlisting}
-
+\end{minipage}
         
         \subsubsection{Profilage de la mémoire}
         %%%%%%%%%%%%%%%%%
-            Lorsque la première analyse indique que la mauvaise performance du noyau est dûe au système mémoire il est nécessaire de réaliser l'analyse de son activité. La première vérification à faire et de s'assurer que le bus mémoire est saturé. Pour y répondre, nous proposons d'utiliser l'outil YAMB (voir \autoref{sec:yamb}) qui affiche l'activité du bus mémoire (lecture, écriture et utilisation totale). Pour confirmer sa saturation, il est nécessaire d'avoir caractérisé la performance du bus mémoire lors de la première étape et d'en connaître la performance maximale. 
+            Lorsque la première analyse indique que la mauvaise performance du noyau est due au système mémoire, il est nécessaire de réaliser l'analyse de son activité. La première vérification à faire est de s'assurer que le bus mémoire est saturé. Pour y répondre, nous proposons d'utiliser l'outil \verb|YAMB| (voir \autoref{sec:yamb}) qui affiche l'activité du bus mémoire (lecture, écriture et utilisation totale). 
             
-            Pour valider sa saturation, il est important de posséder une fréquence d'échantillonage suffisamment élevée. En effet, avec une fréquence trop faible, il peut arriver que le graphique montre une saturation avec une ligne droite atteignant la performance maximale. En augmentant le fréquence et en grossissant certaines parties du graphique, il est possible de voir que le bus n'est pas totalement utilisé pendant des périodes très courtes, et saturé quelques cycles après. Ce phénomène peut être dû à des dépendances entres plusieurs instructions. Des techniques de déroulement de boucles sont alors très efficaces si la nature de l'application le permet (voir \autoref{sec:dml_unroll}). Un autre facteur peut venir de la mauvaise gestion du préchargement des données. Il peut alors être intéressant de réaliser le préchargement manuellement en démarrant les chargement de données plusieurs instructions avant qu'elles soient utilisées. D'autres techniques, telles que la fusion de différentes boucles (ou noyau) nous ont permis d'améliorer la performance de plusieurs applications.
+            Pour confirmer sa saturation, il est nécessaire d'avoir caractérisé la performance du bus mémoire lors de la première étape et d'en connaître la performance maximale. De plus, il est important de posséder une fréquence d'échantillonnage suffisamment élevée. En effet, avec une fréquence trop faible, il peut arriver que le graphique montre une saturation avec une ligne droite atteignant la performance maximale. En augmentant la fréquence et en grossissant certaines parties du graphique, il est possible de voir que le bus n'est pas totalement utilisé pendant des périodes très courtes, et saturé quelques cycles après. Ce phénomène peut être dû à des dépendances entre plusieurs instructions. Des techniques de déroulement de boucles sont alors très efficaces si la nature de l'application le permet (voir \autoref{sec:dml_unroll}). Un autre facteur peut venir de la mauvaise gestion du préchargement des données. Il peut alors être intéressant de réaliser le préchargement manuellement, en démarrant les chargements de données plusieurs instructions avant qu'elles soient utilisées. D'autres techniques, telles que la fusion de différentes boucles (ou noyau) nous ont permis d'améliorer la performance de plusieurs applications.
             
-            Si le bus est bien saturé, nous utilisons le modèle SMM pour comparer les ratio de lecture/écriture avec celui calculé dans l'étape 1 (voir \autoref{sec:smm}). Un mauvais ratio peut provenir d'un nombre de lectures plus élevé que prévu. En effet, il est très rare de réaliser plus d'écriture que nécessaire. Ceci est causé par un large éventail de problèmes potentiels, par exemple, des conflits dans le cache, la lecture de données inutiles, une décomposition incorrecte des données ou des structures de mémoire inappropriées. Pour y remédier, des techniques de \textit{blocking} peuvent être utilisées pour améliorer l'utilisation de la localité des données.  L'outil aide pour trouver si des groupes d'instructions sont plus long à exécuter que d'autres, pouvant être expliqué par une dépendance entre les données ou une donnée non présente dans la mémoire cache au moment requis. 
+            Si le bus est bien saturé, nous utilisons le modèle SMM pour comparer les ratios de lecture/écriture avec celui calculé dans l'étape 1 (voir \autoref{sec:smm}). Un mauvais ratio peut provenir d'un nombre de lectures plus élevé que prévu. En effet, il est très rare de réaliser plus d'écriture que nécessaire. Ceci est causé par un large éventail de problèmes potentiels, par exemple, des conflits dans le cache, la lecture de données inutiles, une décomposition incorrecte des données ou des structures de mémoire inappropriées. Pour y remédier, des techniques de \textit{blocking} peuvent être utilisées pour améliorer l'utilisation de la localité des données.  L'outil \verb|Oprofile++| peut alors aider à trouver si des groupes d'instructions sont plus longs à exécuter que d'autres, pouvant être expliqués par une dépendance entre les données. 
         
         
         
         \subsubsection{Profilage du processeur}
         %%%%%%%%%%%%%%%%%
         
-            Si la première analyse montrait que la mauvaise performance n'était pas dû au système mémoire, il faut alors affiner l'analyse de l'exécution du code donnée par \verb=Oprofile++= (voir \autoref{lst:oprofileex}).
-            La première vérification à faire est de compter le nombre d'opérations flottantes réalisées par la boucle. Pour cela, nous comptons manuellement le nombre d'opérations flottantes à partir des instructions assembleurs utilisées. Si le nombre d'opérations flottantes et l'IPC sont élevés, cela indique que le code est optimal. 
+            Si la première analyse montrait que la mauvaise performance n'était pas due au système mémoire, il faut alors affiner l'analyse de l'exécution du code donnée par \verb=Oprofile++= (voir \autoref{lst:oprofileex}).
+            La première vérification à faire est de compter le nombre d'opérations flottantes réalisées par la boucle. Pour cela, nous comptons manuellement le nombre d'opérations flottantes à partir des instructions assembleurs utilisées. Si le nombre d'opérations flottantes et l'\gls{IPC} sont élevés, cela indique que le code est optimal. 
             
-            Un nombre d'opérations flottantes faible associé à un IPC élevé indiquent que la parallélisation n'est pas correctement utilisée. Il est alors conseillé de regarder le type d'instructions exécutées.
-                Un compilateur de mauvaise qualité aura tendance à générer de nombreuses instructions supplémentaires simple à exécuter. Cela fait augmenter l'IPC de la boucle sans en améliorer la performance. Un mauvais compilateur aura tendance à générer plus d'instructions qu'un bon compilateur pour le calcul d'adressage par exemple. La performance du code peut alors être limitée par l'unité de calcul d'adresses et non par la FPU.
-                Un autre exemple couramment rencontré est l'exécution d'instructions de la librairie MPI utilisée pour synchroniser les processus. Celles-ci sont exécutées à chaque cycle pour vérifier l'état des autres processus, faisant augmenter l'IPC de la boucle. Il faut alors utiliser des outils tels que Paraver, Extrae ou Vampire pour vérifier que la répartition du travail est bien réalisée. Un noeud de calcul ayant un matériel défectueux affectent alors les autres serveurs, et de nombreux cycles sont perdus dans ces instructions de synchronisation. Les pannes sont très difficiles à identifier sans les outils adaptés car ils peuvent venir d'une mutlitude d'endroits: barette mémoire défectueuse, surchauffe du processeur ou un disque cassé.
-                Si la boucle contient beaucoup d'instructions de calculs flottantes, il faut vérifier qu'il s'agit d'instructions vectorielles les plus larges possibles.
+            Un nombre d'opérations flottantes faible associé à un IPC élevé indique que la parallélisation n'est pas correctement utilisée. Il est alors conseillé de regarder le type d'instructions exécutées.
+                Un compilateur de mauvaise qualité aura tendance à générer de nombreuses instructions supplémentaires simples à exécuter. Cela fait augmenter l'IPC de la boucle sans en améliorer la performance. Un mauvais compilateur aura tendance à générer plus d'instructions qu'un bon compilateur pour le calcul d'adressage par exemple. La performance du code peut alors être limitée par le matériel responsable du calcul d'adresses et non par la \gls{FPU}.
+                Un autre exemple couramment rencontré est l'exécution d'instructions de la librairie \gls{MPI} utilisée pour synchroniser les processus. Celles-ci sont exécutées à chaque cycle pour vérifier l'état des autres processus, faisant augmenter l'IPC de la boucle. Il faut alors utiliser des outils tels que \textit{Extrae} \cite{Rodriguez}, \textit{Paraver} ou Vampire \cite{Nagel1996, brunst2013custom} pour vérifier que la répartition du travail est bien réalisée. Un noeud de calcul ayant un matériel défectueux affecte alors les autres serveurs, et de nombreux cycles sont perdus dans ces instructions de synchronisation. Les pannes sont très difficiles à identifier sans les outils adaptés, car ils peuvent venir d'une multitude d'endroits: barrette mémoire défectueuse, surchauffe d'un processeur ou d'un disque cassé.
+                Si la boucle contient beaucoup d'instructions de calcul à virgule flottante, il faut vérifier qu'il s'agit d'instructions vectorielles les plus larges possible.
             
-            Il est donc important de ne pas baser son analyse que sur la lecture de l'IPC mais de vérifier que les instructions exécutées sont des instructions de calculs flottants. Les transformations du code nécessaires pour y parvenir peuvent être difficile à réaliser et demander l'utilisation d'un autre algorithmes ou de restructurer le jeu de données.
+            Il est donc important de ne pas baser son analyse seulement sur la lecture de l'IPC, mais de vérifier que les instructions exécutées sont des instructions de calculs flottants. Les transformations du code nécessaires pour y parvenir peuvent être difficiles à réaliser et demander l'utilisation d'un autre algorithme ou de restructurer le jeu de données.
             
 
 
 %%%%%%%%%%%%%%%%%
-\subsection{Application au benchmark \textit{Stream}}
+\subsection{Application au benchmark STREAM}
 %%%%%%%%%%%%%%%%%
 
-    Nous appliquons notre méthodologie sur le benchmark Stream fonctionnant sur un processeur Intel Skylake. Cet exercice nous permet de montrer que même sur un code aussi simple, apparemment optimal, notre analyse nous permet de comprendre sa performance et de l'optimiser.
+    Nous appliquons notre méthodologie sur le benchmark \verb|STREAM| exécuté sur un processeur Intel Skylake. Cet exercice nous permet de montrer que même sur un code aussi simple, apparemment optimal, notre analyse nous permet de comprendre sa performance et de l'optimiser.
     
         
     \subsubsection{Vérification du modèle SMM}
     %%%%%%%%%%%%%%%%%
     
-        Nous avons montré précédemment que la performance du noyau était limitée par la bande passante mémoire. Nous avons appliqué notre modèle de performance SMM et déterminé $\text{TEMPS}_{optimal}$ égale à $\frac{58.8}{128} = 0.56$ seconde. En utilisant la fonction présenté dans l'\autoref{lst:gettime} nous mesurons $\text{TEMPS}_{mesure} = 0.79$ seconde.
-        L'application n'est donc pas optimale. Ceci est également validé par le résultat du benchmark Stream qui annonce une bande passante mémoire de 80,13 GB/sec (à l'aide de \verb=DML_MEM= nous avions mesuré $\text{MEMORY}_{max} = 105 GB/s$).
+        Nous avons montré précédemment que la performance du kernel était limitée par la bande passante mémoire. Nous avons appliqué notre modèle de performance SMM et calculé \gls{tempsoptimal} égale à $\frac{58.8}{128} = 0.56$ seconde. Suite à l'exécution du noyau étudié (kernel \textit{triad}), et à l'utilisation de la fonction présentée dans l'\autoref{lst:gettime}, nous mesurons $\text{TEMPS}_{mesure} = 0.79$ seconde.
+        L'application n'est donc pas optimale. Ceci est également validé par le résultat du benchmark \verb|STREAM| qui annonce une bande passante mémoire de 80,13 GB/sec, inférieure à la performance du bus mémoire mesurée à l'aide de \verb=DML_MEM=. Dans l'étape 2, nous avions mesuré un débit maximal $\text{MEMORY}_{max}$ de 105 GB/s.
         
-        Pour comprendre ce résultat, nous avons utilisé YAMB pour vérifier que le bus mémoire était bien saturé. Le graphique de la \autoref{fig:stream_before} nous montre que le bus mémoire est utilisé au maximum de son potentiel de 104 GB/s. La saturation du bus n'est donc pas la cause de la mauvaise performance du noyau. Il est alors nécessaire de regarder les rapports lecture/écriture. Lors de l'étape 3, nous avions calculé un ratio optimale pour ce noyau  d'une écriture pour deux lectures. La \autoref{fig:stream_before} montre la répartition mesurée lors de l'exécution: 26 GB/s en écriture pour 78 GB/s en lecture, pour un total de 104 GB/s, ce qui correspond à un ratio de 1 écriture pour 3 lectures. Ce ratio exact d'une écriture pour trois lectures n'est pas une coïncidence. Un vecteur entier est lu alors qu'il ne devrait pas l'être.
+        Pour comprendre ce résultat, nous avons utilisé \verb|YAMB| pour vérifier que le bus mémoire était bien saturé. Le graphique de la \autoref{fig:stream_before} nous montre que le bus mémoire est utilisé au maximum de son potentiel de 104 GB/s. La saturation du bus n'est donc pas la cause de la mauvaise performance du noyau. Il est alors nécessaire de regarder les rapports lecture/écriture. Lors de l'étape 3, nous avions calculé un ratio optimal pour ce noyau  d'une écriture pour deux lectures. La \autoref{fig:stream_before} montre la répartition mesurée lors de l'exécution: 26 GB/s en écriture pour 78 GB/s en lecture, pour un total de 104 GB/s, ce qui correspond à un ratio de 1 écriture pour 3 lectures. Ce ratio exact d'une écriture pour trois lectures n'est pas une coïncidence. Un tableau complet est lu alors qu'il ne devrait pas l'être.
         
         \begin{figure}[htb]
         {
         \centering
         \includegraphics[width=0.80\textwidth]{images/stream_before.png}
-        \caption{Prolie mémoire donné par l'outil YAMB pour plusieurs exécution de noyau \textit{triadd} du benchmark \textit{Stream}. }\label{fig:stream_before}
+        \caption{Profil mémoire donné par l'outil \texttt{YAMB} pour plusieurs exécutions de noyau \textit{triadd} du benchmark \texttt{STREAM}. }\label{fig:stream_before}
         }
         \end{figure}
+        \textbf{todo trop petit}
 
 
         
         \subsubsection{Optimisation du noyau \textit{triadd}}
         %%%%%%%%%%%%%%%%%
             
-            Les deux vecteurs B et C doivent nécessairement être lus une fois. La lecture supplémentaire provient du vecteur en écriture. Ce comportement est dû au processeur qui, avant d'écrire une donnée, charge la ligne de cache correspondante pour la mettre à jour. Cependant, le noyau étudié a la particularité d'écrire toute la ligne de cache, les données initialement présentes n'ayant aucune valeur utile. Une option peut être utilisée avec le compilateur Intel (ICC) pour permettre au compilateur d'éviter ce chargement inutile: \verb|-qopt- streaming-stores=always|. Cette option permet au CPU d'écrire toute la ligne de cache sans avoir à la charger.
+            Les deux tableaux B et C doivent nécessairement être lus une fois. La lecture supplémentaire provient du tableau en écriture. Ce comportement est dû au processeur qui, avant d'écrire une donnée, charge la ligne de cache correspondante pour la mettre à jour. Cependant, le noyau étudié a la particularité d'écrire toute la ligne de cache. Il n'est donc pas nécessaire de charger les données initialement présentes. Une option peut être utilisée avec le compilateur Intel (ICC) pour permettre au compilateur d'éviter ce chargement inutile: \verb|-qopt- streaming-stores=always|. Cette option permet au CPU d'écrire toute la ligne de cache sans avoir à la charger.
             
         
         \subsubsection{Performance du noyau optimisé}
         %%%%%%%%%%%%%%%%%
         
-            Nous avons compilé \textit{Stream} avec l'option \textit{-qopt- streaming-stores=always} et mesuré le temps et la bande passante de la même manière que pour la première exécution. Les résultats sont résumés dans le \autoref{table:stream_res}. Le temps passé dans le noyau est de 0,59 seconde, beaucoup plus proche du maximum théorique de 0,56 seconde. En analysant la bande passante mémoire, on constate que le rapport lecture/écriture est maintenant de 2 pour 1, les données échangées étant de 34 GB/s en mode écriture pour 68 GB/s en mode lecture. La bande passante total atteint 104 GB/s proche $\text{MEMORY}_{max}$.
+            Nous avons compilé \verb|STREAM| avec l'option \verb|-qopt- streaming-stores=always| et mesuré le temps et la bande passante de la même manière que pour la première exécution. Les résultats sont résumés dans le \autoref{table:stream_res}. Le temps passé dans le noyau est de 0,59 seconde, beaucoup plus proche du maximum théorique de 0,56 seconde. En analysant la bande passante mémoire, on constate que le rapport lecture/écriture est maintenant de 2 pour 1, les données échangées étant de 34 GB/s en mode écriture pour 68 GB/s en mode lecture. La bande passante totale atteint 104 GB/s proche de $\text{MEMORY}_{max}$.
             
             %\renewcommand{\arraystretch}{1.2}
             %\setlength{\tabcolsep}{8pt}
             
             \begin{table}[htbp]
             \centering
-            \caption{Performance du noyau \textit{triadd} du benchmark \textit{Stream} avant et après optimisation. Le temps (seconde) après optimisation est proche de l'optimum théorique $\text{TEMPS}_{optimal}$  calculé à 0,56 sec. L'utilisation du bus mémoire est approximativement la même entre les deux versions du code (104 et 102 GB/s). L'option de compilation optimise le rapport lecture/écriture (GB/s) et améliore les performances du code de 25\%.}
-            \begin{tabular}{l|c|c|c|c|c|}
+                        \begin{tabular}{l|c|c|c|c|c|}
             \cline{2-6}
             & $\text{TEMPS}_{mesure} (s)$ & Stream   & $\text{YAMB}_{read}$  & $\text{YAMB}_{write}$  & $\text{YAMB}_{total}$  \\ \hline
             \multicolumn{1}{|l|}{Version originale}  & 0.79   & 80.13  & 26        & 78         & 104        \\ \hline
             \multicolumn{1}{|l|}{Version optimisée} & 0.59   & 101.84 & 35        & 69         & 104        \\ \hline
             \end{tabular}
+            \caption{Performance du noyau \textit{triadd} du benchmark \texttt{STREAM} avant et après optimisation. Le temps (seconde) après optimisation est proche de l'optimum théorique \gls{tempsoptimal}  calculé à 0,56 sec. L'utilisation du bus mémoire est la même entre les deux versions du code. L'option de compilation optimise le rapport lecture/écriture (GB/s) et améliore les performances du code de 25\%.}
             \label{table:stream_res}
             \end{table}

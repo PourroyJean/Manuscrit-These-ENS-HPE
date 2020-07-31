@@ -1,22 +1,31 @@
 \documentclass[12pt,twoside, french]{StyleThese}
 
 \newif\iflong
-%\longtrue
+\longtrue
 
 
 \usepackage{ifthen}  
+
 
 %\input{structure}
 
 \include{formatAndDefs}
 
+\usepackage{setspace} % pour last page
+
+\usepackage[titletoc]{appendix}% https://ctan.org/pkg/appendix
+
+
 \usepackage{subcaption} %subfigure
 %\usepackage{subfig}
-\setlength{\biblabelsep}{0pt}
+%\setlength{\biblabelsep}{0pt}
 
 
 %citation avec \say
 \usepackage{dirtytalk}
+
+\usepackage{csquotes} % https://tex.stackexchange.com/questions/229638/package-biblatex-warning-babel-polyglossia-detected-but-csquotes-missing
+
 
 %lettre grec: mu
 \usepackage{amssymb}
@@ -115,11 +124,12 @@
 \fi
 
 
-\usepackage{hyperref}  %pour autoref
+%\usepackage{hyperref}  %pour autoref todo mis dans l'autre
 
 %%%%% GLOSSAIRE %%%%%%%
 %\usepackage[nopostdot,  style=long,  toc, seeautonumberlist,acronym, nogroupskip]{glossaries}
 \usepackage[nopostdot,  style=long,  toc, seeautonumberlist,acronym, automake,symbols,nogroupskip]{glossaries-extra}
+
 
 \makeglossaries
 \input{glossaire}
@@ -139,7 +149,7 @@
 %\iffalse
  \let\oldGls\gls
  \renewcommand{\gls}[1]{%
-    \ifglsused{#1}{ %
+    \ifglsused{#1}{%
         \oldGls{#1}%
     }{%
         \oldGls{#1}%
@@ -152,12 +162,12 @@
 \usepackage[many]{tcolorbox}
 
 \usepackage{tikz}
-\usepackage{pgfplots}
+%\usepackage{pgfplots}
 
 \usetikzlibrary{arrows,automata}
 
 \setcounter{tocdepth}{3}
-\setcounter{secnumdepth}{3}
+\setcounter{secnumdepth}{3} %TODO 3, ou 2 ?
 
 
 
@@ -420,10 +430,12 @@
 %%%%  %   %     %           %   DOCUMENT  %             %   %   % %%%%%
 %%%%  %   %     %           %             %             %   %   % %%%%%
 %%%%  %   %     %           %             %             %   %   % %%%%%
+    
 
 \begin{document}
 
     
+ 
 
     \iflong
     
@@ -559,14 +571,16 @@
 
 \printglossary[type=main]           % Glossaire
 \glsunsetall
+%\adjustmtc
 \printglossary[type=\acronymtype]   % Acronymes
 \glsresetall
+%\adjustmtc
 
 \glsunsetall
 
 \printglossary[type=symbols,style=long,title={Notations}]
 \glsresetall
-
+\adjustmtc
 
 
 
@@ -584,25 +598,25 @@
 %\bibliographystyle{StyleThese}
 
   \glsaddall
+  
     %% INTRO %%
-    
     \iflong
         \include{chapter/CHAPTER-1-introduction}
     \fi 
 
 
     %% EDL HPC %%    
-    
     \iflong
         \include{chapter/PART-StateOfTheArt/CHAPTER-2-edl-hpc}
     \fi 
 
     
-    %CONTRIBUTION
-    %\iflong
+    %DEVELOPPEMENT
+    \iflong
         \include{chapter/PART-contributions/chapter-developpement/CHAPTER-3-developpement}
-    %\fi 
+    \fi 
 
+    %METHODOLOGIE
     \iflong
         \include{chapter/PART-contributions/chapter-methodologie/CHAPTER-4-methodologie}
     \fi 
@@ -613,48 +627,47 @@
         \include{chapter/CHAPTER-5-conclusion}
     \fi 
 
-    
 
     %% ANNEXES %%
-
     \iflong
-        \appendix
-        \part*{Annexes}
-        \addcontentsline{toc}{part}{Annexes}
-        \include{chapter/PART-annexes/PART-ANNEXES}
+            \appendix
+            \addtocontents{toc}{\protect\setcounter{tocdepth}{4}}%1 pls
+
+            \part*{Annexes}
+            \addcontentsline{toc}{part}{Annexes}
+
+                \begin{appendices}
+                    \input{chapter/PART-annexes/chapter-materiel/chapter-materiel.tex}
+                    \input{chapter/PART-annexes/chapter-analyse-performance/chapter-hardware_counter}
+            
+                \end{appendices}
+            
     \fi 
-
-
+    
+    
+    %% BIBLIO %%
     \iflong
-        
+        %\nocite{*} %citer toutes les entrées
+        \hypersetup{urlcolor=[rgb]{0.2,0.0,0.4}} %changer couleur url
+        %\begin{multicols}{2}[\printbibheading]
+            \printbibheading
+            \printbibliography[heading=none]
+        %\end{multicols}
+    \fi
 
-
-
-        \begin{multicols}{2}[\printbibheading]
-        %\begin{multicols}{2}
-        %\printbibliography[heading=none]
-        \printbibliography[sorting=none, heading=bibliography, heading=none]
-        \end{multicols}
         
-          \printindex
+    %% INDEX %%
+    \iflong
+        \printindex
+    \fi
+    
+    
         
-        
-        \cleardoublepage
-        
-        \begin{vcenterpage}
-        \noindent\rule[2pt]{\textwidth}{0.5pt}
-        \begin{center}
-        {\large\textbf{Titre de la thèse\\}}
-        \end{center}
-        {\large\textbf{Abstract:}}
-        Résumé en anglais
-        \\
-        {\large\textbf{Keywords:}}
-        a,e,i,o,u,y
-        \\
-        \noindent\rule[2pt]{\textwidth}{0.5pt}
-        \end{vcenterpage}
-\fi
+    %% RESUMÉ %%
+    \iflong
+        \pagebreak
+        \input{lastpage.tex}
+    \fi
 
         
 \end{document}
